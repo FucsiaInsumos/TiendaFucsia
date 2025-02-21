@@ -39,8 +39,12 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
       },
       role: {
-        type: DataTypes.ENUM('User', 'Admin', 'Cajero'),
-        defaultValue: 'User',
+        type: DataTypes.ENUM('Customer', 'Distributor', 'Cashier', 'Owner'),
+        defaultValue: 'Customer',
+      },
+      isActive: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
       },
       wlegalorganizationtype: {
         type: DataTypes.ENUM('person', 'company'),
