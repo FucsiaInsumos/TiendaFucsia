@@ -1,35 +1,26 @@
-import aspectRatio from '@tailwindcss/aspect-ratio';
-
-export default {
-  purge: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
-  darkMode: false, // or 'media' or 'class'
-  theme: {
-    extend: {
-      colors: {
-        colorLogo: "#ffb422",
-        colorDetalle: "#2e5059",
-        colorBeige: "#8F8074",
-        colorBeigeClaro: "#95867b",
-      },
-      fontFamily: {
-        nunito: ['Nunito', 'sans-serif'], 
-      },
-      animation: {
-        'infinite-scroll': 'scroll 40s linear infinite',
-      },
-      keyframes: {
-        scroll: {
-          '0%': { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(-100%)' }
-        }
-      }
+/** @type {import('tailwindcss').Config} */
+export const content = [
+  "./index.html",
+  "./src/**/*.{js,ts,jsx,tsx}",
+];
+export const theme = {
+  extend: {
+    darkMode: 'selector',
+    colors: {
+      boton: "#636363",
+      secondary: "#6b7280",
+      customBlue: "#445868",
+      customRed: "#6b4946",
+      customGreen: "#0f766e",
+      customYellow: "#7c775f",
+      customPurple: "#0f766e",
+      customPink: "#059669",
+      textWhite: "white",
+      footer: "#49465a"
     },
+    fontFamily: {
+        Montserrat: ['Montserrat', 'sans-serif'], // Definir la fuente Nunito
+      },
   },
-  variants: {
-    extend: {},
-    aspectRatio,
-  plugins: [
-    aspectRatio,
-  ],
-}
-}
+};
+export const plugins = [];
