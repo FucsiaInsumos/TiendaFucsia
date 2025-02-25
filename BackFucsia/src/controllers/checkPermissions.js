@@ -1,4 +1,4 @@
-const { permisos } = require('../routes/middleware.js/ControlDeAcceso');
+const { permisos } = require('../middleware/byRol');
 
 const checkPermissions = (permisosRequeridos) => {
   return (req, res, next) => {

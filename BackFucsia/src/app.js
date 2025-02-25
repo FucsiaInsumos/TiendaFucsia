@@ -6,6 +6,7 @@ const cors = require('cors');
 const path = require('path');
 const { passport } = require('./passport');
 const { JWT_SECRET_KEY } = require('./config/envs');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/', routes);
+app.use('/auth', authRoutes);
 
 // Not Found Middleware
 app.use('*', (req, res) => {
