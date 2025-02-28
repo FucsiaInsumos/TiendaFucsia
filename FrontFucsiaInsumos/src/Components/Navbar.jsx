@@ -24,7 +24,7 @@ const Navbar = () => {
         <div className="flex space-x-4 pr-2">
           {isAuthenticated ? (
             <>
-              {user && user.role === 'Owner' && (
+              {user && (user.role === 'Owner' || user.role === 'Cashier') && (
                 <Link to="/dashboard" className="text-white font-semibold">Dashboard</Link>
               )}
               <button onClick={handleLogout} className="text-white font-semibold">Cerrar sesión</button>
