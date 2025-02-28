@@ -4,8 +4,8 @@ import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
-import image1 from '../assets/img1.png';
-import image2 from '../assets/img2.png';
+import image1 from '../../assets/img1.png';
+import image2 from '../../assets/img2.png';
 
 const HeroCarousel = () => {
   const images = [

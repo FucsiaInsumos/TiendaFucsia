@@ -1,7 +1,7 @@
 import React from 'react'
-import LandingSections from './LandingSections'
-import HeroCarousel from './HeroCarousel'
-import InfoSections from './InfoSections'
+import LandingSections from './Sections/LandingSections'
+import HeroCarousel from './Sections/HeroCarousel'
+import InfoSections from './Sections/InfoSections'
 
 const Landing = () => {
   return (

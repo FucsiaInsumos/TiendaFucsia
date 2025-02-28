@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import envioImg from '../assets/envio.png';
-import compraImg from '../assets/compra.png';
-import pagosImg from '../assets/pagos.png';
+import envioImg from '../../assets/envio.png';
+import compraImg from '../../assets/compra.png';
+import pagosImg from '../../assets/pagos.png';
 
 const sections = [
   {
