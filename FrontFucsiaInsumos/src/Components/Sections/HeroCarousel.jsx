@@ -23,7 +23,7 @@ const HeroCarousel = () => {
         pagination={{ clickable: true }}
         navigation
         loop={true}
-        className="h-[50vh] md:h-[70vh] lg:h-[80vh]"
+        className="h-[30vh] md:h-[50vh] lg:h-[60vh]"
       >
         {images.map((src, index) => (
           <SwiperSlide key={index}>

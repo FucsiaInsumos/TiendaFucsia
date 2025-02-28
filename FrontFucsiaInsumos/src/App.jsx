@@ -43,13 +43,13 @@ function App() {
 
           {/* Rutas protegidas */}
           <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute allowedRoles={['Owner']}>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
+  path="/dashboard"
+  element={
+    <PrivateRoute allowedRoles={['Owner']}>
+      <Dashboard />
+    </PrivateRoute>
+  }
+/>
 
           {/* Ruta por defecto para 404 */}
           <Route path="*" element={<NotFound />} />

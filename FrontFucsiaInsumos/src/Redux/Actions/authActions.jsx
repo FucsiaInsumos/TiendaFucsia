@@ -5,12 +5,15 @@ import { loginRequest, loginSuccess, loginFailure, logout } from '../Reducer/aut
 export const login = (credentials) => async (dispatch) => {
   try {
     dispatch(loginRequest());
-    const { data } = await api.post('/auth/login', credentials);
+    const response = await api.post('/auth/login', credentials);
+    const { data } = response;
+    console.log('Login response data:', data);
     dispatch(loginSuccess(data));
     localStorage.setItem('token', data.token);
     return data;
   } catch (error) {
     const errorMessage = error.response?.data?.message || 'Error en el login';
+    console.error('Login error:', errorMessage);
     dispatch(loginFailure(errorMessage));
     throw error;
   }

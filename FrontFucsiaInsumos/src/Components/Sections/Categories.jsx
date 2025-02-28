@@ -8,17 +8,37 @@ const Categories = () => {
   const categories = [
     {
       id: 1,
-      name: 'Medicamentos',
+      name: 'Micro Pigmentación',
       subcategories: ['Cuidado de la Piel', 'Dermocosmética', 'Cosmética Natural']
     },
     {
       id: 2,
-      name: 'Salud y Bienestar',
+      name: 'Cejas',
       subcategories: ['Productos Saludables', 'Suplementos', 'Vitaminas']
     },
     {
       id: 3,
-      name: 'Belleza',
+      name: 'Organización',
+      subcategories: ['Maquillaje', 'Cuidado del Cabello', 'Perfumes']
+    },
+    {
+      id: 4,
+      name: 'Pestañas',
+      subcategories: ['Maquillaje', 'Cuidado del Cabello', 'Perfumes']
+    },
+    {
+      id: 5,
+      name: 'Accesorios',
+      subcategories: ['Maquillaje', 'Cuidado del Cabello', 'Perfumes']
+    },
+    {
+      id: 6,
+      name: 'Lifting',
+      subcategories: ['Maquillaje', 'Cuidado del Cabello', 'Perfumes']
+    },
+    {
+      id: 7,
+      name: 'Laminado',
       subcategories: ['Maquillaje', 'Cuidado del Cabello', 'Perfumes']
     }
   ];
