@@ -1,11 +1,10 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { logoutUser } from '../Redux/Actions/authActions';
-import { Link } from 'react-router-dom';
+import { logoutUser } from '../Redux/Actions/authActions'; 
 
 const Navbar = () => {
   const dispatch = useDispatch();
-  const { isAuthenticated, user } = useSelector(state => state.auth);
+  const { isAuthenticated } = useSelector(state => state.auth);
 
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -19,16 +18,11 @@ const Navbar = () => {
         </div>
         <div className="flex space-x-4">
           {isAuthenticated ? (
-            <>
-              {user && user.role === 'Owner' && (
-                <Link to="/dashboard" className="text-white font-bold">Dashboard</Link>
-              )}
-              <button onClick={handleLogout} className="text-white font-semibold">Cerrar sesión</button>
-            </>
+            <button onClick={handleLogout} className="text-white font-semibold">Cerrar sesión</button>
           ) : (
             <>
-              <Link to="/signup" className="text-white font-bold">Registrate</Link>
-              <Link to="/login" className="text-white font-bold">Ingresá</Link>
+              <a href="/signup" className="text-white font-bold">Registrate</a>
+              <a href="/login" className="text-white font-bold">Ingresá</a>
             </>
           )}
         </div>
