@@ -5,6 +5,7 @@ import { loginSuccess } from './Redux/Actions/authActions';
 import PrivateRoute from './Components/PrivateRoute';
 
 // Importa tus componentes
+import Navbar from './Components/Navbar';
 import Login from './Components/Auth/Login';
 import Register from './Components/Auth/Register';
 import Dashboard from './Components/Dashboard/Dashboard';
@@ -30,29 +31,30 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Rutas públicas */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/tienda" element={<Tienda />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/unauthorized" element={<Unauthorized />} />
+      <div>
+        <Navbar />
+        <Routes>
+          {/* Rutas públicas */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/tienda" element={<Tienda />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
 
-        {/* Rutas protegidas */}
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute allowedRoles={['Owner']}>
-              <Dashboard />
-            </PrivateRoute>
-          }
-        />
+          {/* Rutas protegidas */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute allowedRoles={['Owner']}>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
 
-
-
-        {/* Ruta por defecto para 404 */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* Ruta por defecto para 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
     </BrowserRouter>
   );
 }

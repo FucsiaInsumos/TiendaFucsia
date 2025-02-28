@@ -23,7 +23,7 @@ const Login = () => {
     e.preventDefault();
     try {
       await dispatch(login(formData));
-      navigate('/dashboard');
+      navigate('/');
     } catch (error) {
       console.error('Login failed:', error);
     }
