@@ -1,24 +1,27 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { logoutUser } from '../Redux/Actions/authActions'; 
+import { logoutUser } from '../Redux/Actions/authActions';
 import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector(state => state.auth);
   console.log('Navbar user:', user);
-  
+
   const handleLogout = () => {
     dispatch(logoutUser());
   };
 
   return (
-    <nav className="bg-fuchsia-500 p-4">
+    <nav className="bg-principal">
       <div className="container mx-auto flex justify-between items-center">
-        <div className="text-white text-lg font-bold">
-          Tienda Fucsia
+        <div className="flex items-center">
+          <Link to="/">
+            <img src="/logoBlanco.jpg" alt="Fucsia Logo" className="h-16 lg:h-20 w-auto mr-2" />
+          </Link>
+      
         </div>
-        <div className="flex space-x-4">
+        <div className="flex space-x-4 pr-2">
           {isAuthenticated ? (
             <>
               {user && user.role === 'Owner' && (

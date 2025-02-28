@@ -51,7 +51,7 @@ const Categories = () => {
     <div className="relative">
       {/* Botón para abrir el menú de categorías */}
       <button 
-        className="flex items-center text-xl font-bold text-cyan-500 hover:text-cyan-700 cursor-pointer" 
+        className="flex items-center text-xl font-bold text-principal hover:text-principalHover cursor-pointer" 
         onClick={() => setIsOpen(!isOpen)}
       >
         <Menu className="mr-2" /> Categorías
@@ -64,7 +64,7 @@ const Categories = () => {
             <div key={category.id}>
               {/* Botón de categoría */}
               <button 
-                className="text-cyan-500 font-bold uppercase mb-2 flex justify-between items-center w-full p-2 hover:bg-gray-100 rounded-md"
+                className="text-principalHover font-bold uppercase mb-2 flex justify-between items-center w-full p-2 hover:bg-gray-100 rounded-md"
                 onClick={() => toggleCategory(category.id)}
               >
                 {category.name}
@@ -77,7 +77,7 @@ const Categories = () => {
                   {category.subcategories.map((subcategory, subIndex) => (
                     <li 
                       key={subIndex} 
-                      className="text-gray-700 hover:text-cyan-600 cursor-pointer p-2"
+                      className="text-gray-700 hover:text-principalHover cursor-pointer p-2"
                     >
                       {subcategory}
                     </li>
