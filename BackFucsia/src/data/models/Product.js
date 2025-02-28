@@ -47,7 +47,8 @@ module.exports = (sequelize) => {
       defaultValue: []
     },
     image_url: {
-      type: DataTypes.STRING
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      defaultValue: []
     },
     isActive: {
       type: DataTypes.BOOLEAN,
