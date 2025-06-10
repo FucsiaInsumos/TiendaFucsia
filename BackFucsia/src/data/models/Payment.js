@@ -20,17 +20,14 @@ module.exports = (sequelize) => {
       allowNull: false
     },
     method: {
-      type: DataTypes.ENUM('wompi', 'nequi', 'bancolombia', 'efectivo', 'tarjeta', 'credito'),
+      type: DataTypes.ENUM('wompi', 'nequi', 'bancolombia', 'efectivo', 'tarjeta', 'credito', 'daviplata'),
       allowNull: false
     },
     status: {
       type: DataTypes.ENUM('pending', 'completed', 'failed', 'refunded'),
       defaultValue: 'pending'
     },
-    referenceId: {
-      type: DataTypes.STRING,
-      unique: true
-    },
+    
     dueDate: {
       type: DataTypes.DATE,
       allowNull: true // Solo para pagos a crédito
