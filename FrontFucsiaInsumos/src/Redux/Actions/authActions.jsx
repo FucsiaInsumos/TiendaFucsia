@@ -33,8 +33,30 @@ export const login = (credentials) => async (dispatch) => {
   }
 };
 
-export const logoutUser = () => (dispatch) => {
-  dispatch(logout());
+export const logoutUser = () => async (dispatch) => {
+  try {
+    // Opcional: Llamar al backend para registrar el logout
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        await api.post('/auth/logout');
+      } catch (error) {
+        // Si falla la llamada al backend, continuar con el logout local
+        console.warn('Error al notificar logout al servidor:', error);
+      }
+    }
+    
+    // Dispatch del logout
+    dispatch(logout());
+    
+    // Redireccionar a la página principal (opcional)
+    window.location.href = '/';
+    
+  } catch (error) {
+    console.error('Error en logout:', error);
+    // Aunque haya error, hacer logout local
+    dispatch(logout());
+  }
 };
 
 // Export the actions

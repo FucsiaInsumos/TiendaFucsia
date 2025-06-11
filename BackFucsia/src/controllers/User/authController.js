@@ -71,10 +71,28 @@ const login = async (req, res) => {
   }
 };
 
+const logout = async (req, res) => {
+  try {
+    // En JWT, el logout se maneja principalmente en el frontend
+    // Aquí podríamos añadir lógica adicional como:
+    // - Registrar la acción de logout en logs
+    // - Invalidar el token en una blacklist (si usamos una)
+    // - Limpiar datos de sesión adicionales
 
+    res.json({
+      error: false,
+      message: 'Logout exitoso',
+      data: null
+    });
+
+  } catch (error) {
+    console.error('Error en logout:', error);
+    res.status(500).json({ error: true, message: 'Error en el servidor' });
+  }
+};
 
 module.exports = {
   register,
   login,
-  
+  logout
 };

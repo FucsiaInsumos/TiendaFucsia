@@ -32,8 +32,14 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Si recibimos un 401, limpiamos el token y redirigimos a login
+      // Si recibimos un 401, hacer logout automático
       store.dispatch(logout());
+      
+      // Mostrar mensaje al usuario (opcional)
+      console.warn('Sesión expirada. Redirigiendo al login...');
+      
+      // Redireccionar al login
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

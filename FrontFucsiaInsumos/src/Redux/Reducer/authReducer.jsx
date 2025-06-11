@@ -28,12 +28,15 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
     },
     logout: (state) => {
+      state.isAuthenticated = false;
       state.user = null;
       state.token = null;
-      state.isAuthenticated = false;
       state.loading = false;
       state.error = null;
+      
+      // Limpiar localStorage
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
     }
   }
 });

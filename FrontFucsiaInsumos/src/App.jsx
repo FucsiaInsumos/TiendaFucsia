@@ -15,6 +15,7 @@ import Unauthorized from './Components/Auth/Unauthorized';
 import Landing from './Components/Landing';
 import CategoryManager from './Components/Categories/CategoryManager';
 import ProductManager from './Components/Products/ProductManager';
+import ProductCatalog from './Components/Shop/ProductCatalog';
 
 function App() {
   const dispatch = useDispatch();
@@ -48,6 +49,7 @@ function App() {
           {/* Rutas públicas */}
           <Route path="/" element={<Landing />} />
           <Route path="/tienda" element={<Tienda />} />
+          <Route path="/catalogo" element={<ProductCatalog />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
@@ -79,6 +81,7 @@ function App() {
               </PrivateRoute>
             }
           />
+
           {/* Ruta por defecto para 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -1,7 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const CategoryList = ({ categories, onEdit, onDelete }) => {
+  const [expandedCategories, setExpandedCategories] = useState({});
+
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId]
+    }));
+  };
+
   const renderCategory = (category, level = 0) => {
+    const hasSubcategories = category.subcategories && category.subcategories.length > 0;
+    const isExpanded = expandedCategories[category.id];
+
     return (
       <div key={category.id}>
         <div 
@@ -14,18 +26,47 @@ const CategoryList = ({ categories, onEdit, onDelete }) => {
               {level > 0 && (
                 <span className="text-gray-400 mr-2">└─</span>
               )}
+              
+              {/* Botón para expandir/contraer subcategorías */}
+              {hasSubcategories && level === 0 && (
+                <button
+                  onClick={() => toggleCategory(category.id)}
+                  className="mr-2 p-1 hover:bg-gray-200 rounded"
+                  title={isExpanded ? 'Contraer subcategorías' : 'Expandir subcategorías'}
+                >
+                  <svg 
+                    className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </button>
+              )}
+              
               <h3 className="text-lg font-semibold text-gray-800">
                 {category.name}
               </h3>
+              
               {category.parentId && (
                 <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                   Subcategoría
                 </span>
               )}
+              
+              {/* Contador de subcategorías */}
+              {hasSubcategories && level === 0 && (
+                <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                  {category.subcategories.length} subcategoría{category.subcategories.length !== 1 ? 's' : ''}
+                </span>
+              )}
             </div>
+            
             {category.description && (
               <p className="text-gray-600 mt-1">{category.description}</p>
             )}
+            
             <div className="flex items-center mt-2 space-x-4 text-sm text-gray-500">
               <span>ID: {category.id}</span>
               <span className={`px-2 py-1 rounded-full text-xs ${
@@ -62,9 +103,13 @@ const CategoryList = ({ categories, onEdit, onDelete }) => {
           </div>
         </div>
         
-        {/* Render subcategories */}
-        {category.subcategories && category.subcategories.map(subcat => 
-          renderCategory(subcat, level + 1)
+        {/* Render subcategories solo si está expandido */}
+        {hasSubcategories && isExpanded && (
+          <div className="transition-all duration-200">
+            {category.subcategories.map(subcat => 
+              renderCategory(subcat, level + 1)
+            )}
+          </div>
         )}
       </div>
     );
@@ -85,6 +130,33 @@ const CategoryList = ({ categories, onEdit, onDelete }) => {
 
   return (
     <div className="space-y-2">
+      {/* Botón para expandir/contraer todas */}
+      {categories.some(cat => cat.subcategories && cat.subcategories.length > 0) && (
+        <div className="mb-4 flex space-x-2">
+          <button
+            onClick={() => {
+              const allMainCategories = categories.filter(cat => !cat.parentId);
+              const expandAll = {};
+              allMainCategories.forEach(cat => {
+                if (cat.subcategories && cat.subcategories.length > 0) {
+                  expandAll[cat.id] = true;
+                }
+              });
+              setExpandedCategories(expandAll);
+            }}
+            className="px-3 py-1 text-sm bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+          >
+            Expandir Todas
+          </button>
+          <button
+            onClick={() => setExpandedCategories({})}
+            className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded hover:bg-gray-200"
+          >
+            Contraer Todas
+          </button>
+        </div>
+      )}
+      
       {categories.map(category => renderCategory(category))}
     </div>
   );
