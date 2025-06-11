@@ -17,6 +17,8 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      // Debug: verificar header
+      console.log('Authorization header being sent:', config.headers.Authorization);
     }
     return config;
   },

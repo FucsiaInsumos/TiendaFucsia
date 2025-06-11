@@ -1,10 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { combineReducers } from 'redux';
 import authReducer from '../Reducer/authReducer';
-// Importa otros reducers aquí
+import productReducer from '../Reducer/productReducer';
+import categoryReducer from '../Reducer/categoryReducer';
 
 const rootReducer = combineReducers({
   auth: authReducer,
+  products: productReducer,
+  categories: categoryReducer,
   // Agrega otros reducers aquí
 });
 

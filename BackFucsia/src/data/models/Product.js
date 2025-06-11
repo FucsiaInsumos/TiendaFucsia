@@ -7,12 +7,21 @@ module.exports = (sequelize) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
     },
+    sku: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true
+    },
     name: {
       type: DataTypes.STRING,
       allowNull: false
     },
     description: {
       type: DataTypes.TEXT
+    },
+    purchasePrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false
     },
     price: {
       type: DataTypes.DECIMAL(10, 2),
@@ -49,6 +58,10 @@ module.exports = (sequelize) => {
     image_url: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       defaultValue: []
+    },
+    specificAttributes: {
+      type: DataTypes.JSONB,
+      allowNull: true
     },
     isActive: {
       type: DataTypes.BOOLEAN,

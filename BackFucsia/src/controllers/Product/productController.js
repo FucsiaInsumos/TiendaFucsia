@@ -1,15 +1,17 @@
 const { Op } = require('sequelize');
 const { Product, Category } = require('../../data');
+const { uploadToCloudinary } = require('../../utils/cloudinaryUploader');
 
-// Crear un producto nuevo asignándole una categoría existente (y la posibilidad de usar subcategorías)
+// Crear un producto nuevo
 const createProduct = async (req, res) => {
   try {
-    const { name, description, price, stock, minStock, isPromotion, promotionPrice, categoryId, tags, image_url } = req.body;
+    const { 
+      name, description, purchasePrice, price, stock, minStock, 
+      isPromotion, promotionPrice, categoryId, tags, sku, specificAttributes 
+    } = req.body;
 
     // Verificar que la categoría exista
-    const category = await Category.findByPk(categoryId, {
-      include: [{ association: 'subcategories' }]
-    });
+    const category = await Category.findByPk(categoryId);
     if (!category) {
       return res.status(404).json({
         error: true,
@@ -17,18 +19,35 @@ const createProduct = async (req, res) => {
       });
     }
 
+    let imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        try {
+          const result = await uploadToCloudinary(file.path, 'fucsia-products');
+          imageUrls.push(result.secure_url);
+        } catch (uploadError) {
+          console.error('Error al subir imagen a Cloudinary:', uploadError);
+        }
+      }
+    } else if (req.body.image_url) {
+      imageUrls = Array.isArray(req.body.image_url) ? req.body.image_url : [req.body.image_url];
+    }
+
     // Crear el producto
     const product = await Product.create({
+      sku,
       name,
       description,
+      purchasePrice,
       price,
       stock,
       minStock,
       isPromotion,
       promotionPrice,
       categoryId,
-      tags,
-      image_url,
+      tags: tags ? (Array.isArray(tags) ? tags : JSON.parse(tags)) : [],
+      image_url: imageUrls,
+      specificAttributes: specificAttributes ? (typeof specificAttributes === 'string' ? JSON.parse(specificAttributes) : specificAttributes) : null,
       isActive: true
     });
 
@@ -39,14 +58,22 @@ const createProduct = async (req, res) => {
     });
   } catch (error) {
     console.error('Error al crear el producto:', error);
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({
+        error: true,
+        message: 'Error al crear el producto: SKU ya existe.',
+        details: error.errors.map(e => e.message)
+      });
+    }
     return res.status(500).json({
       error: true,
-      message: 'Error interno del servidor'
+      message: 'Error interno del servidor',
+      details: error.message
     });
   }
 };
 
-// Obtener todos los productos, incluyendo su categoría y las subcategorías asociadas
+// Obtener todos los productos
 const getProducts = async (req, res) => {
   try {
     const products = await Product.findAll({
@@ -75,7 +102,7 @@ const getProducts = async (req, res) => {
   }
 };
 
-// Obtener un producto por su id, incluyendo detalles de su categoría y subcategorías
+// Obtener un producto por su id
 const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -116,7 +143,10 @@ const getProductById = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, price, stock, minStock, isPromotion, promotionPrice, categoryId, tags, image_url } = req.body;
+    const { 
+      name, description, purchasePrice, price, stock, minStock, 
+      isPromotion, promotionPrice, categoryId, tags, sku, specificAttributes, isActive 
+    } = req.body;
 
     // Verificar la existencia del producto
     const product = await Product.findByPk(id);
@@ -137,9 +167,60 @@ const updateProduct = async (req, res) => {
         });
       }
     }
+    
+    let imageUrls = product.image_url || [];
+    if (req.files && req.files.length > 0) {
+      imageUrls = [];
+      for (const file of req.files) {
+        try {
+          const result = await uploadToCloudinary(file.path, 'fucsia-products');
+          imageUrls.push(result.secure_url);
+        } catch (uploadError) {
+          console.error('Error al subir imagen a Cloudinary:', uploadError);
+        }
+      }
+    } else if (req.body.image_url_delete) {
+      const urlsToDelete = Array.isArray(req.body.image_url_delete) ? req.body.image_url_delete : [req.body.image_url_delete];
+      imageUrls = imageUrls.filter(url => !urlsToDelete.includes(url));
+    } else if (req.body.image_url_add) {
+      const urlsToAdd = Array.isArray(req.body.image_url_add) ? req.body.image_url_add : [req.body.image_url_add];
+      imageUrls = [...new Set([...imageUrls, ...urlsToAdd])];
+    }
+
+    // Preparar datos para actualizar con validaciones
+    const updateData = {};
+    
+    if (sku !== undefined) updateData.sku = sku;
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (purchasePrice !== undefined && purchasePrice !== '') updateData.purchasePrice = parseFloat(purchasePrice);
+    if (price !== undefined && price !== '') updateData.price = parseFloat(price);
+    if (stock !== undefined && stock !== '') updateData.stock = parseInt(stock);
+    if (minStock !== undefined && minStock !== '') updateData.minStock = parseInt(minStock);
+    if (isPromotion !== undefined) updateData.isPromotion = isPromotion;
+    if (categoryId !== undefined) updateData.categoryId = categoryId;
+    if (isActive !== undefined) updateData.isActive = isActive;
+    
+    // Manejar promotionPrice - convertir string vacío a null
+    if (promotionPrice !== undefined) {
+      updateData.promotionPrice = promotionPrice === '' || promotionPrice === null ? null : parseFloat(promotionPrice);
+    }
+    
+    // Manejar tags
+    if (tags !== undefined) {
+      updateData.tags = Array.isArray(tags) ? tags : (typeof tags === 'string' ? JSON.parse(tags) : []);
+    }
+    
+    // Manejar specificAttributes
+    if (specificAttributes !== undefined) {
+      updateData.specificAttributes = typeof specificAttributes === 'string' ? JSON.parse(specificAttributes) : specificAttributes;
+    }
+    
+    // Actualizar URLs de imágenes
+    updateData.image_url = imageUrls;
 
     // Actualizar el producto
-    await product.update({ name, description, price, stock, minStock, isPromotion, promotionPrice, categoryId, tags, image_url });
+    await product.update(updateData);
 
     return res.status(200).json({
       error: false,
@@ -148,9 +229,17 @@ const updateProduct = async (req, res) => {
     });
   } catch (error) {
     console.error('Error al actualizar producto:', error);
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({
+        error: true,
+        message: 'Error al actualizar el producto: SKU ya existe para otro producto.',
+        details: error.errors.map(e => e.message)
+      });
+    }
     return res.status(500).json({
       error: true,
-      message: 'Error interno del servidor'
+      message: 'Error interno del servidor',
+      details: error.message
     });
   }
 };
@@ -182,7 +271,7 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-// Endpoint para filtrar productos por diferentes criterios
+// Endpoint para filtrar productos
 const filterProducts = async (req, res) => {
   try {
     const { categoryId, minPrice, maxPrice, name } = req.query;
