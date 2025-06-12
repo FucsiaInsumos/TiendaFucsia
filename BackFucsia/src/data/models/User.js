@@ -10,8 +10,11 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
       wdoctype: {
-        type: DataTypes.ENUM('RC', 'TI', 'CC','TE', 'CE', 'NIT','PAS', 'DEX', 'PEP','PPT', 'FI', 'NUIP'),
+        type: DataTypes.STRING, // Cambiado de ENUM a STRING
         allowNull: true,
+        validate: {
+          isIn: [['RC', 'TI', 'CC','TE', 'CE', 'NIT','PAS', 'DEX', 'PEP','PPT', 'FI', 'NUIP']]
+        }
       },
       first_name: {
         type: DataTypes.STRING,
@@ -39,17 +42,23 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
       },
       role: {
-        type: DataTypes.ENUM('Customer', 'Distributor', 'Cashier', 'Owner'),
+        type: DataTypes.STRING, // Cambiado de ENUM a STRING
         defaultValue: 'Customer',
+        validate: {
+          isIn: [['Customer', 'Distributor', 'Cashier', 'Owner']]
+        }
       },
       isActive: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
       },
       wlegalorganizationtype: {
-        type: DataTypes.ENUM('person', 'company'),
+        type: DataTypes.STRING, // Cambiado de ENUM a STRING
         allowNull: true,
         defaultValue: 'person',
+        validate: {
+          isIn: [['person', 'company']]
+        }
       },
       scostumername: {
         type: DataTypes.STRING,
@@ -57,20 +66,28 @@ module.exports = (sequelize) => {
         
       },
       stributaryidentificationkey: {
-        type: DataTypes.ENUM('O-1', 'O-4', 'ZZ', 'ZA'),
+        type: DataTypes.STRING, // Cambiado de ENUM a STRING
         allowNull: true,
         defaultValue: 'O-1',
-        
+        validate: {
+          isIn: [['O-1', 'O-4', 'ZZ', 'ZA']]
+        }
       },
       sfiscalresponsibilities: {
-        type: DataTypes.ENUM('O-13', 'O-15', 'O-23', 'O-47', 'R-99-PN'),
+        type: DataTypes.STRING, // Cambiado de ENUM a STRING
         allowNull: true,
         defaultValue: 'R-99-PN',
+        validate: {
+          isIn: [['O-13', 'O-15', 'O-23', 'O-47', 'R-99-PN']]
+        }
       },
       sfiscalregime: {
-        type: DataTypes.ENUM('48', "49"),
+        type: DataTypes.STRING, // Cambiado de ENUM a STRING
         allowNull: true,
         defaultValue: '48',
+        validate: {
+          isIn: [['48', '49']]
+        }
       },
       
 

@@ -1,12 +1,12 @@
 const { Op } = require('sequelize');
-const { Product, Category } = require('../../data');
+const { Product, Category, DiscountRule, Distributor } = require('../../data');
 const { uploadToCloudinary } = require('../../utils/cloudinaryUploader');
 
 // Crear un producto nuevo
 const createProduct = async (req, res) => {
   try {
     const { 
-      name, description, purchasePrice, price, stock, minStock, 
+      name, description, purchasePrice, price, distributorPrice, stock, minStock, 
       isPromotion, promotionPrice, categoryId, tags, sku, specificAttributes 
     } = req.body;
 
@@ -40,6 +40,7 @@ const createProduct = async (req, res) => {
       description,
       purchasePrice,
       price,
+      distributorPrice: distributorPrice || null,
       stock,
       minStock,
       isPromotion,
@@ -144,7 +145,7 @@ const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const { 
-      name, description, purchasePrice, price, stock, minStock, 
+      name, description, purchasePrice, price, distributorPrice, stock, minStock, 
       isPromotion, promotionPrice, categoryId, tags, sku, specificAttributes, isActive 
     } = req.body;
 
@@ -195,6 +196,9 @@ const updateProduct = async (req, res) => {
     if (description !== undefined) updateData.description = description;
     if (purchasePrice !== undefined && purchasePrice !== '') updateData.purchasePrice = parseFloat(purchasePrice);
     if (price !== undefined && price !== '') updateData.price = parseFloat(price);
+    if (distributorPrice !== undefined) {
+      updateData.distributorPrice = distributorPrice === '' || distributorPrice === null ? null : parseFloat(distributorPrice);
+    }
     if (stock !== undefined && stock !== '') updateData.stock = parseInt(stock);
     if (minStock !== undefined && minStock !== '') updateData.minStock = parseInt(minStock);
     if (isPromotion !== undefined) updateData.isPromotion = isPromotion;
@@ -322,11 +326,225 @@ const filterProducts = async (req, res) => {
   }
 };
 
+// Calcular precio con descuentos aplicables
+const calculateProductPrice = async (req, res) => {
+  try {
+    const { items, userType = 'customers', userId = null } = req.body;
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        error: true,
+        message: 'Se requiere un array de items válido'
+      });
+    }
+
+    const results = [];
+    let subtotal = 0;
+    let totalDiscount = 0;
+
+    // Validar si es distribuidor y obtener datos
+    let distributor = null;
+    if (userType === 'distributors' && userId) {
+      distributor = await Distributor.findOne({ where: { userId } });
+    }
+
+    for (const item of items) {
+      const { productId, quantity } = item;
+
+      if (!productId || !quantity || quantity <= 0) {
+        return res.status(400).json({
+          error: true,
+          message: 'Cada item debe tener productId y quantity válidos'
+        });
+      }
+
+      // Obtener producto
+      const product = await Product.findByPk(productId, {
+        include: [{ model: Category, as: 'category' }]
+      });
+
+      if (!product) {
+        return res.status(404).json({
+          error: true,
+          message: `Producto con ID ${productId} no encontrado`
+        });
+      }
+
+      // Determinar precio base
+      let basePrice = product.price;
+      let priceType = 'regular';
+
+      // Si es distribuidor y tiene precio especial
+      if (userType === 'distributors' && product.distributorPrice && distributor) {
+        basePrice = product.distributorPrice;
+        priceType = 'distributor';
+      }
+
+      // Si está en promoción
+      if (product.isPromotion && product.promotionPrice) {
+        if (!product.distributorPrice || product.promotionPrice < basePrice) {
+          basePrice = product.promotionPrice;
+          priceType = 'promotion';
+        }
+      }
+
+      const itemTotal = quantity * basePrice;
+      subtotal += itemTotal;
+
+      // Buscar descuentos aplicables
+      const applicableDiscounts = await findApplicableDiscounts(
+        productId,
+        product.categoryId,
+        quantity,
+        itemTotal,
+        userType
+      );
+
+      let itemDiscount = 0;
+      let appliedRule = null;
+
+      if (applicableDiscounts.length > 0) {
+        const bestDiscount = applicableDiscounts[0];
+        itemDiscount = bestDiscount.discountAmount;
+        appliedRule = {
+          id: bestDiscount.ruleId,
+          name: bestDiscount.ruleName,
+          type: bestDiscount.discountType,
+          value: bestDiscount.discountValue
+        };
+        totalDiscount += itemDiscount;
+      }
+
+      results.push({
+        productId,
+        productName: product.name,
+        quantity,
+        basePrice,
+        priceType,
+        itemTotal,
+        itemDiscount,
+        finalPrice: itemTotal - itemDiscount,
+        appliedRule
+      });
+    }
+
+    // Validar mínimo de compra para distribuidores
+    let minimumPurchaseValidation = { valid: true };
+    if (userType === 'distributors' && distributor) {
+      const finalTotal = subtotal - totalDiscount;
+      if (finalTotal < distributor.minimumPurchase) {
+        minimumPurchaseValidation = {
+          valid: false,
+          message: `Monto mínimo de compra requerido: $${distributor.minimumPurchase}`,
+          minimumRequired: distributor.minimumPurchase,
+          currentTotal: finalTotal,
+          missing: distributor.minimumPurchase - finalTotal
+        };
+      }
+    }
+
+    return res.status(200).json({
+      error: false,
+      message: 'Precios calculados exitosamente',
+      data: {
+        items: results,
+        summary: {
+          subtotal,
+          totalDiscount,
+          total: subtotal - totalDiscount,
+          userType,
+          minimumPurchaseValidation
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error al calcular precios:', error);
+    return res.status(500).json({
+      error: true,
+      message: 'Error interno del servidor',
+      details: error.message
+    });
+  }
+};
+
+// Función auxiliar para encontrar descuentos aplicables
+const findApplicableDiscounts = async (productId, categoryId, quantity, itemTotal, userType) => {
+  try {
+    const rules = await DiscountRule.findAll({
+      where: {
+        isActive: true,
+        applicableFor: { [Op.in]: ['all', userType] },
+        [Op.or]: [
+          { productId: productId },
+          { categoryId: categoryId },
+          { productId: null, categoryId: null }
+        ],
+        [Op.or]: [
+          { startDate: null },
+          { startDate: { [Op.lte]: new Date() } }
+        ],
+        [Op.or]: [
+          { endDate: null },
+          { endDate: { [Op.gte]: new Date() } }
+        ]
+      },
+      order: [['priority', 'DESC']]
+    });
+
+    const applicableDiscounts = [];
+
+    for (const rule of rules) {
+      let applies = false;
+
+      switch (rule.conditionType) {
+        case 'quantity':
+          applies = quantity >= (rule.minQuantity || 0) && 
+                   (rule.maxQuantity ? quantity <= rule.maxQuantity : true);
+          break;
+        case 'amount':
+          applies = itemTotal >= (rule.minAmount || 0) && 
+                   (rule.maxAmount ? itemTotal <= rule.maxAmount : true);
+          break;
+        case 'both':
+          applies = quantity >= (rule.minQuantity || 0) && 
+                   itemTotal >= (rule.minAmount || 0) &&
+                   (rule.maxQuantity ? quantity <= rule.maxQuantity : true) &&
+                   (rule.maxAmount ? itemTotal <= rule.maxAmount : true);
+          break;
+      }
+
+      if (applies) {
+        let discountAmount = 0;
+        if (rule.discountType === 'percentage') {
+          discountAmount = itemTotal * (rule.discountValue / 100);
+        } else {
+          discountAmount = Math.min(rule.discountValue, itemTotal);
+        }
+
+        applicableDiscounts.push({
+          ruleId: rule.id,
+          ruleName: rule.name,
+          discountAmount,
+          discountType: rule.discountType,
+          discountValue: rule.discountValue
+        });
+      }
+    }
+
+    return applicableDiscounts;
+  } catch (error) {
+    console.error('Error al buscar descuentos aplicables:', error);
+    return [];
+  }
+};
+
 module.exports = {
   createProduct,
   getProducts,
   getProductById,
   updateProduct,
   deleteProduct,
-  filterProducts
+  filterProducts,
+  calculateProductPrice
 };

@@ -27,6 +27,11 @@ module.exports = (sequelize) => {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false
     },
+    distributorPrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      comment: 'Precio especial para distribuidores'
+    },
     stock: {
       type: DataTypes.INTEGER,
       allowNull: false,

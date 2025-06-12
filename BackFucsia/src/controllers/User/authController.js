@@ -7,12 +7,30 @@ const { generateToken } = require('../../middleware/isAuth');
 
 const register = async (req, res) => {
   try {
-    const { email, password, ...userData } = req.body;
+    console.log('Datos recibidos para registro:', req.body);
+    
+    const { email, password, n_document, ...userData } = req.body;
+
+    // Validaciones básicas
+    if (!email || !password || !n_document) {
+      return res.status(400).json({ 
+        error: true, 
+        message: 'Email, contraseña y número de documento son requeridos' 
+      });
+    }
 
     // Verificar si el correo ya existe
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
+    const existingUserByEmail = await User.findOne({ where: { email } });
+    if (existingUserByEmail) {
+      console.log('Email ya existe:', email);
       return res.status(400).json({ error: true, message: 'El correo ya está registrado' });
+    }
+
+    // Verificar si el documento ya existe
+    const existingUserByDocument = await User.findOne({ where: { n_document } });
+    if (existingUserByDocument) {
+      console.log('Documento ya existe:', n_document);
+      return res.status(400).json({ error: true, message: 'El número de documento ya está registrado' });
     }
 
     // Hash de la contraseña
@@ -21,9 +39,16 @@ const register = async (req, res) => {
     // Crear usuario
     const newUser = await User.create({
       ...userData,
+      n_document,
       email,
       password: hashedPassword
     });
+
+    console.log('Usuario creado exitosamente:', newUser.n_document);
+
+    // Remover la contraseña del objeto de respuesta
+    const userResponse = { ...newUser.toJSON() };
+    delete userResponse.password;
 
     // Generar token JWT
     const token = generateToken(newUser);
@@ -31,11 +56,23 @@ const register = async (req, res) => {
     res.status(201).json({
       error: false,
       message: 'Usuario registrado exitosamente',
-      data: { token, user: newUser }
+      data: { token, user: userResponse }
     });
 
   } catch (error) {
     console.error('Error en registro:', error);
+    
+    // Manejar errores de validación de Sequelize
+    if (error.name === 'SequelizeValidationError') {
+      const validationErrors = error.errors.map(err => err.message);
+      console.log('Errores de validación:', validationErrors);
+      return res.status(400).json({ 
+        error: true, 
+        message: 'Errores de validación', 
+        errors: validationErrors 
+      });
+    }
+    
     res.status(500).json({ error: true, message: 'Error en el servidor' });
   }
 };

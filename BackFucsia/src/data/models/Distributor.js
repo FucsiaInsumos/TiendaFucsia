@@ -35,6 +35,11 @@ module.exports = (sequelize) => {
     paymentTerm: {
       type: DataTypes.INTEGER, // días
       defaultValue: 30
+    },
+    minimumPurchase: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0,
+      comment: 'Monto mínimo de compra para acceder a precios de distribuidor'
     }
   });
 };

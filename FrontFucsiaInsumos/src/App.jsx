@@ -7,7 +7,7 @@ import PrivateRoute from './Components/PrivateRoute';
 // Importa tus componentes
 import Navbar from './Components/Navbar';
 import Login from './Components/Auth/Login';
-import Register from './Components/Auth/Register';
+import RegisterForm from './components/Auth/RegisterForm';
 import Dashboard from './Components/Dashboard/Dashboard';
 import Tienda from './Components/Tienda/Tienda';
 import NotFound from './Components/NotFound';
@@ -16,6 +16,10 @@ import Landing from './Components/Landing';
 import CategoryManager from './Components/Categories/CategoryManager';
 import ProductManager from './Components/Products/ProductManager';
 import ProductCatalog from './Components/Shop/ProductCatalog';
+import DiscountRuleManager from './Components/DiscountRules/DiscountRuleManager';
+import DistributorManager from './Components/Distributors/DistributorManager';
+import PriceCalculator from './Components/PriceCalculator/PriceCalculator';
+import UserManagement from './components/Dashboard/UserManagement/UserManagement';
 
 function App() {
   const dispatch = useDispatch();
@@ -51,7 +55,7 @@ function App() {
           <Route path="/tienda" element={<Tienda />} />
           <Route path="/catalogo" element={<ProductCatalog />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/register" element={<RegisterForm />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
           {/* Rutas protegidas */}
@@ -78,6 +82,51 @@ function App() {
             element={
               <PrivateRoute allowedRoles={['Owner', 'Distributor']}>
                 <ProductManager />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/reglas-descuento"
+            element={
+              <PrivateRoute allowedRoles={['Owner']}>
+                <DiscountRuleManager />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/usuarios"
+            element={
+              <PrivateRoute allowedRoles={['Owner']}>
+                <UserManagement />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/usuarios/crear"
+            element={
+              <PrivateRoute allowedRoles={['Owner']}>
+                <UserManagement />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/distribuidores"
+            element={
+              <PrivateRoute allowedRoles={['Owner']}>
+                <DistributorManager />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/calculadora-precios"
+            element={
+              <PrivateRoute allowedRoles={['Owner', 'Cashier']}>
+                <PriceCalculator />
               </PrivateRoute>
             }
           />

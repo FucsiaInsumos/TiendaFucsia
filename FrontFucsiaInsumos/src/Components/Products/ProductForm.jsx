@@ -7,14 +7,16 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
     description: '',
     purchasePrice: '',
     price: '',
+    distributorPrice: '', // Nuevo campo
     stock: '',
     minStock: '',
     isPromotion: false,
     promotionPrice: '',
     categoryId: '',
     tags: [],
-    image_url: [],
-    specificAttributes: {}
+    specificAttributes: {}, // Cambiar null por objeto vacío
+    isActive: true,
+    ...product
   });
 
   const [files, setFiles] = useState([]);
@@ -30,14 +32,14 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
         description: product.description || '',
         purchasePrice: product.purchasePrice || '',
         price: product.price || '',
+        distributorPrice: product.distributorPrice || '', // Nuevo campo
         stock: product.stock || '',
         minStock: product.minStock || '',
         isPromotion: product.isPromotion || false,
         promotionPrice: product.promotionPrice || '',
         categoryId: product.categoryId || '',
         tags: product.tags || [],
-        image_url: product.image_url || [],
-        specificAttributes: product.specificAttributes || {}
+        specificAttributes: product.specificAttributes || {} // Asegurar que sea un objeto
       });
     }
   }, [product]);
@@ -76,7 +78,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
       setFormData(prev => ({
         ...prev,
         specificAttributes: {
-          ...prev.specificAttributes,
+          ...(prev.specificAttributes || {}), // Validación adicional
           [attributeKey.trim()]: attributeValue.trim()
         }
       }));
@@ -87,7 +89,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
 
   const removeAttribute = (keyToRemove) => {
     setFormData(prev => {
-      const newAttributes = { ...prev.specificAttributes };
+      const newAttributes = { ...(prev.specificAttributes || {}) }; // Validación adicional
       delete newAttributes[keyToRemove];
       return {
         ...prev,
@@ -219,7 +221,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
       </div>
 
       {/* Precios y stock */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
           <label htmlFor="purchasePrice" className="block text-sm font-medium text-gray-700 mb-1">
             Precio de Compra *
@@ -252,6 +254,25 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="0.00"
           />
+        </div>
+
+        <div>
+          <label htmlFor="distributorPrice" className="block text-sm font-medium text-gray-700 mb-1">
+            Precio Distribuidor
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            id="distributorPrice"
+            name="distributorPrice"
+            value={formData.distributorPrice}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="0.00"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Precio especial para distribuidores
+          </p>
         </div>
 
         <div>
@@ -387,7 +408,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
           </button>
         </div>
         <div className="space-y-1">
-          {Object.entries(formData.specificAttributes).map(([key, value]) => (
+          {Object.entries(formData.specificAttributes || {}).map(([key, value]) => (
             <div key={key} className="flex items-center justify-between bg-gray-100 px-3 py-2 rounded">
               <span className="text-sm"><strong>{key}:</strong> {value}</span>
               <button
@@ -450,11 +471,11 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
         )}
 
         {/* Mostrar imágenes actuales del producto */}
-        {product && formData.image_url.length > 0 && (
+        {product && (formData.image_url || []).length > 0 && (
           <div className="mb-4">
             <p className="text-sm font-medium text-gray-700 mb-2">Imágenes actuales del producto:</p>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {formData.image_url.map((url, index) => (
+              {(formData.image_url || []).map((url, index) => (
                 <div key={index} className="relative group">
                   <img
                     src={url}
@@ -478,7 +499,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
                 </div>
               ))}
             </div>
-            {formData.image_url.length === 0 && (
+            {(formData.image_url || []).length === 0 && (
               <p className="text-sm text-gray-500 italic">No hay imágenes actuales</p>
             )}
           </div>

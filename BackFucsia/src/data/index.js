@@ -51,13 +51,11 @@ sequelize.models = Object.fromEntries(capsEntries);
 
 // En sequelize.models están todos los modelos importados como propiedades
 // Para relacionarlos hacemos un destructuring
-const { User, Product, Category } = sequelize.models;
+const { User, Product, Category, Distributor, DiscountRule } = sequelize.models;
 
 // Aca vendrian las relaciones
 
-
-
-// Relaciones
+// Relaciones existentes
 // Un producto pertenece a una categoría
 Product.belongsTo(Category, { foreignKey: 'categoryId', as: 'category' });
 // Una categoría tiene muchos productos
@@ -66,6 +64,18 @@ Category.hasMany(Product, { foreignKey: 'categoryId', as: 'products' });
 // Relaciones para subcategorías (relación autoreferenciada en Category)
 Category.hasMany(Category, { foreignKey: 'parentId', as: 'subcategories' });
 Category.belongsTo(Category, { foreignKey: 'parentId', as: 'parentCategory' });
+
+// Nuevas relaciones para Distributor
+User.hasOne(Distributor, { foreignKey: 'userId', as: 'distributor' });
+Distributor.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+// Nuevas relaciones para DiscountRule
+Product.hasMany(DiscountRule, { foreignKey: 'productId', as: 'discountRules' });
+DiscountRule.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
+
+Category.hasMany(DiscountRule, { foreignKey: 'categoryId', as: 'discountRules' });
+DiscountRule.belongsTo(Category, { foreignKey: 'categoryId', as: 'category' });
+
 
 //---------------------------------------------------------------------------------//
 module.exports = {
