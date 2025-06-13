@@ -6,9 +6,9 @@ router.use("/auth", require("./authRoutes"));
 
 // Rutas RESTful (todas en plural)
 router.use("/users", require("./userRoutes"));
-router.use("/categories", require("./categoryRoutes"));      // Cambiar
-router.use("/products", require("./productRoutes"));        // Cambiar
-router.use("/distributors", require("./distributorRoutes")); // Cambiar
+router.use("/category", require("./categoryRoutes"));      // Cambiar
+router.use("/product", require("./productRoutes"));        // Cambiar
+router.use("/distributor", require("./distributorRoutes")); // Cambiar
 router.use("/discount-rules", require("./discountRuleRoutes"));
 
 // Rutas de negocio
