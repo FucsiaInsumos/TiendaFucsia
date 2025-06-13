@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { User } = require('../../data');
+const { User, Distributor} = require('../../data');
 const { generateToken } = require('../../middleware/isAuth');
 
 
@@ -81,8 +81,18 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Verificar si el usuario existe
-    const user = await User.findOne({ where: { email } });
+    // Verificar si el usuario existe e incluir información del distribuidor
+    const user = await User.findOne({ 
+      where: { email },
+      include: [
+        {
+          model: Distributor,
+          as: 'distributor',
+          required: false
+        }
+      ]
+    });
+    
     if (!user) {
       return res.status(400).json({ error: true, message: 'Credenciales inválidas' });
     }
@@ -96,10 +106,14 @@ const login = async (req, res) => {
     // Generar token JWT
     const token = generateToken(user);
 
+    // Crear respuesta sin la contraseña
+    const userResponse = { ...user.toJSON() };
+    delete userResponse.password;
+
     res.json({
       error: false,
       message: 'Login exitoso',
-      data: { token, user }
+      data: { token, user: userResponse }
     });
 
   } catch (error) {

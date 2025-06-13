@@ -5,6 +5,7 @@ import productReducer from '../Reducer/productReducer';
 import categoryReducer from '../Reducer/categoryReducer';
 import discountRuleReducer from '../Reducer/discountRuleReducer';
 import distributorReducer from '../Reducer/distributorReducer';
+import cartReducer from '../Reducer/cartReducer';
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -12,6 +13,7 @@ const rootReducer = combineReducers({
   categories: categoryReducer,
   discountRules: discountRuleReducer,
   distributors: distributorReducer,
+  cart: cartReducer, // Nuevo reducer
   // Agrega otros reducers aquí
 });
 

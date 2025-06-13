@@ -20,6 +20,12 @@ import DiscountRuleManager from './Components/DiscountRules/DiscountRuleManager'
 import DistributorManager from './Components/Distributors/DistributorManager';
 import PriceCalculator from './Components/PriceCalculator/PriceCalculator';
 import UserManagement from './components/Dashboard/UserManagement/UserManagement';
+import OrderManagement from './Components/Sales/OrderManagement';
+import PaymentManagement from './Components/Sales/PaymentManagement';
+import StockManagement from './Components/Stock/StockManagement';
+import POS from './Components/POS/POS';
+import CartSidebar from './Components/Cart/CartSidebar';
+import Checkout from './Components/Checkout/Checkout';
 
 function App() {
   const dispatch = useDispatch();
@@ -131,9 +137,51 @@ function App() {
             }
           />
 
+          {/* Rutas de ventas y caja */}
+          <Route
+            path="/caja"
+            element={
+              <PrivateRoute allowedRoles={['Owner', 'Cashier']}>
+                <POS />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/ordenes"
+            element={
+              <PrivateRoute allowedRoles={['Owner', 'Cashier']}>
+                <OrderManagement />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/pagos"
+            element={
+              <PrivateRoute allowedRoles={['Owner', 'Cashier']}>
+                <PaymentManagement />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/stock"
+            element={
+              <PrivateRoute allowedRoles={['Owner', 'Cashier']}>
+                <StockManagement />
+              </PrivateRoute>
+            }
+          />
+
+          <Route path="/checkout" element={<Checkout />} />
+
           {/* Ruta por defecto para 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        
+        {/* Cart Sidebar - siempre disponible */}
+        <CartSidebar />
       </div>
     </BrowserRouter>
   );

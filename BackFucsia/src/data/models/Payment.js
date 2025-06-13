@@ -20,17 +20,32 @@ module.exports = (sequelize) => {
       allowNull: false
     },
     method: {
-      type: DataTypes.ENUM('wompi', 'nequi', 'bancolombia', 'efectivo', 'tarjeta', 'credito', 'daviplata'),
-      allowNull: false
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        isIn: [['wompi', 'nequi', 'bancolombia', 'efectivo', 'tarjeta', 'credito', 'daviplata', 'combinado']]
+      }
     },
     status: {
-      type: DataTypes.ENUM('pending', 'completed', 'failed', 'refunded'),
-      defaultValue: 'pending'
+      type: DataTypes.STRING,
+      defaultValue: 'pending',
+      validate: {
+        isIn: [['pending', 'completed', 'failed', 'refunded']]
+      }
     },
-    
+    paymentDetails: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      comment: 'Detalles específicos del método de pago (referencia, confirmación, etc.)'
+    },
     dueDate: {
       type: DataTypes.DATE,
-      allowNull: true // Solo para pagos a crédito
+      allowNull: true
+    },
+    transactionId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'ID de transacción del proveedor de pago'
     }
   });
 };

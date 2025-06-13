@@ -45,7 +45,10 @@ app.use('*', (req, res) => {
     message: 'Not found',
   });
 });
-
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
 // Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

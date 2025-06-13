@@ -17,23 +17,30 @@ module.exports = (sequelize) => {
     },
     quantity: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      comment: 'Cantidad (positiva para entrada, negativa para salida)'
     },
     type: {
-      type: DataTypes.ENUM('entrada', 'salida', 'ajuste', 'devolucion'),
-      allowNull: false
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        isIn: [['entrada', 'salida', 'ajuste', 'transferencia']]
+      }
     },
     reason: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      comment: 'Razón del movimiento (venta, compra, ajuste, etc.)'
     },
     previousStock: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      comment: 'Stock anterior al movimiento'
     },
     currentStock: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      comment: 'Stock actual después del movimiento'
     },
     userId: {
       type: DataTypes.STRING,
@@ -41,7 +48,8 @@ module.exports = (sequelize) => {
       references: {
         model: 'Users',
         key: 'n_document'
-      }
+      },
+      comment: 'Usuario que realizó el movimiento'
     },
     orderId: {
       type: DataTypes.UUID,
@@ -49,7 +57,12 @@ module.exports = (sequelize) => {
       references: {
         model: 'Orders',
         key: 'id'
-      }
+      },
+      comment: 'Orden relacionada (si aplica)'
+    },
+    notes: {
+      type: DataTypes.TEXT,
+      allowNull: true
     }
   });
 };

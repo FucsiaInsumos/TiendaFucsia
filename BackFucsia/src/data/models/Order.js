@@ -7,6 +7,12 @@ module.exports = (sequelize) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
     },
+    orderNumber: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      comment: 'Número de orden secuencial'
+    },
     userId: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -15,7 +21,7 @@ module.exports = (sequelize) => {
         key: 'n_document'
       }
     },
-    total: {
+    subtotal: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false
     },
@@ -23,24 +29,51 @@ module.exports = (sequelize) => {
       type: DataTypes.DECIMAL(10, 2),
       defaultValue: 0
     },
-    finalTotal: {
+    tax: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0
+    },
+    total: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false
     },
     status: {
-      type: DataTypes.ENUM('pending', 'completed', 'cancelled'),
-      defaultValue: 'pending'
+      type: DataTypes.STRING,
+      defaultValue: 'pending',
+      validate: {
+        isIn: [['pending', 'confirmed', 'processing', 'completed', 'cancelled', 'refunded']]
+      }
     },
     orderType: {
-      type: DataTypes.ENUM('local', 'online', 'distributor'),
-      allowNull: false
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        isIn: [['local', 'online', 'distributor']]
+      }
+    },
+    paymentStatus: {
+      type: DataTypes.STRING,
+      defaultValue: 'pending',
+      validate: {
+        isIn: [['pending', 'partial', 'completed', 'failed']]
+      }
     },
     cashierId: {
       type: DataTypes.STRING,
+      allowNull: true,
       references: {
         model: 'Users',
         key: 'n_document'
       }
+    },
+    notes: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    shippingAddress: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      comment: 'Dirección de envío para pedidos online'
     }
   });
 };

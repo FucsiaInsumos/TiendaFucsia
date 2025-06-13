@@ -8,6 +8,11 @@ router.use("/auth", require("./authRoutes"));
 // Rutas de gestión de usuarios (CRUD desde dashboard)
 router.use("/users", require("./userRoutes"));
 
+// Rutas de gestión de ventas y compras
+router.use("/orders", require("./orderRoutes"));
+router.use("/payments", require("./paymentRoutes"));
+router.use("/stock", require("./stockRoutes"));
+
 // Otras rutas
 router.use("/permission", require("./permissionRouter"));
 router.use("/category", require("./categoryRoutes"));

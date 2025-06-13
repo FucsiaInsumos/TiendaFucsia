@@ -13,6 +13,7 @@ const Dashboard = () => {
   const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
   const [isDiscountsDropdownOpen, setIsDiscountsDropdownOpen] = useState(false);
   const [isUsersDropdownOpen, setIsUsersDropdownOpen] = useState(false);
+  const [isVentasDropdownOpen, setIsVentasDropdownOpen] = useState(false);
 
   const handleCajaMouseEnter = () => {
     setIsCajaDropdownOpen(true);
@@ -43,12 +44,36 @@ const Dashboard = () => {
   const handleUsersMouseLeave = () => {
     setIsUsersDropdownOpen(false);
   };
+  const handleVentasMouseEnter = () => {
+    setIsVentasDropdownOpen(true);
+  };
+
+  const handleVentasMouseLeave = () => {
+    setIsVentasDropdownOpen(false);
+  };
 
   const renderSections = () => {
     switch (user.role) {
       case 'Owner':
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div
+              className="relative bg-white shadow-md rounded-lg p-4 hover:bg-gray-100"
+              onMouseEnter={handleVentasMouseEnter}
+              onMouseLeave={handleVentasMouseLeave}
+            >
+              <Link to="/caja">
+                <h2 className="text-xl font-semibold uppercase mb-2">Ventas y Caja</h2>
+                <p className='text-principalHover font-semibold'>Gestiona ventas y punto de venta</p>
+              </Link>
+              {isVentasDropdownOpen && (
+                <div className="absolute left-0 mt-2 w-56 bg-white shadow-lg rounded-lg z-10">
+                  <Link to="/caja" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">Punto de Venta (POS)</Link>
+                  <Link to="/ordenes" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">Gestionar Órdenes</Link>
+                  <Link to="/pagos" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">Gestionar Pagos</Link>
+                </div>
+              )}
+            </div>
             <div
               className="relative bg-white shadow-md rounded-lg p-4 hover:bg-gray-100"
               onMouseEnter={handleCajaMouseEnter}
@@ -140,18 +165,17 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div
               className="relative bg-white shadow-md rounded-lg p-4 hover:bg-gray-100"
-              onMouseEnter={handleCajaMouseEnter}
-              onMouseLeave={handleCajaMouseLeave}
+              onMouseEnter={handleVentasMouseEnter}
+              onMouseLeave={handleVentasMouseLeave}
             >
               <Link to="/caja">
                 <h2 className="text-xl font-semibold uppercase mb-2">Caja</h2>
-                <p>Accede a la sección de caja</p>
+                <p>Punto de venta y gestión de órdenes</p>
               </Link>
-              {isCajaDropdownOpen && (
+              {isVentasDropdownOpen && (
                 <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg">
-                  <Link to="/cobrar" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">Cobrar</Link>
-                  <Link to="/reservar" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">Reservar</Link>
-                  <Link to="/facturar" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">Facturar</Link>
+                  <Link to="/caja" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">Punto de Venta</Link>
+                  <Link to="/ordenes" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">Ver Órdenes</Link>
                 </div>
               )}
             </div>

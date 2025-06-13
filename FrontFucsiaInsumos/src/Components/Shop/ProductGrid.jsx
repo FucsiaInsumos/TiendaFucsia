@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { Eye, ShoppingCart, Heart, Star } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Eye, ShoppingCart, Heart } from 'lucide-react';
+import { addToCart, toggleCart } from '../../Redux/Reducer/cartReducer';
 import ProductDetailModal from './ProductDetailModal';
 
 const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
+  const dispatch = useDispatch();
+  const { isAuthenticated, user } = useSelector(state => state.auth);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -21,6 +25,54 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
   const closeProductDetail = () => {
     setSelectedProduct(null);
     setIsModalOpen(false);
+  };
+
+  const handleAddToCart = (product, quantity = 1) => {
+    if (product.stock < quantity) {
+      alert('No hay suficiente stock disponible');
+      return;
+    }
+
+    // Obtener información completa del distribuidor
+    let distributorInfo = null;
+    if (user?.role === 'Distributor' && user?.distributor) {
+      distributorInfo = {
+        discountPercentage: user.distributor.discountPercentage || 0,
+        minimumPurchase: user.distributor.minimumPurchase || 0,
+        creditLimit: user.distributor.creditLimit || 0,
+        paymentTerm: user.distributor.paymentTerm || 30
+      };
+      console.log('Distributor info being sent to cart:', distributorInfo);
+    }
+
+    console.log('Adding to cart:', {
+      product: product.name,
+      userRole: user?.role,
+      distributorPrice: product.distributorPrice,
+      regularPrice: product.price,
+      distributorInfo
+    });
+
+    dispatch(addToCart({ 
+      product, 
+      quantity, 
+      userRole: user?.role,
+      distributorInfo: distributorInfo
+    }));
+    dispatch(toggleCart()); // Mostrar el carrito después de agregar
+  };
+
+  const getDisplayPrice = (product) => {
+    if (product.isPromotion && product.promotionPrice) {
+      return product.promotionPrice;
+    }
+    
+    // Si es distribuidor autenticado y tiene precio especial
+    if (isAuthenticated && user?.role === 'Distributor' && product.distributorPrice) {
+      return product.distributorPrice;
+    }
+    
+    return product.price;
   };
 
   if (products.length === 0) {
@@ -48,6 +100,14 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
 
   return (
     <>
+      <div className="mb-6 flex justify-between items-center">
+        <p className="text-gray-600">
+          Mostrando {products.length} producto{products.length !== 1 ? 's' : ''}
+          {selectedSubcategory && ` en "${selectedSubcategory.name}"`}
+          {selectedCategory && !selectedSubcategory && ` en "${selectedCategory.name}"`}
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {products.map(product => (
           <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 group">
@@ -86,6 +146,11 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
                 {product.stock === 0 && (
                   <span className="bg-gray-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
                     AGOTADO
+                  </span>
+                )}
+                {isAuthenticated && user?.role === 'Distributor' && product.distributorPrice && (
+                  <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                    PRECIO ESPECIAL
                   </span>
                 )}
               </div>
@@ -168,6 +233,15 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
                       {formatPrice(product.price)}
                     </span>
                   </div>
+                ) : isAuthenticated && user?.role === 'Distributor' && product.distributorPrice ? (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xl font-bold text-green-600">
+                      {formatPrice(product.distributorPrice)}
+                    </span>
+                    <span className="text-sm text-gray-500 line-through">
+                      {formatPrice(product.price)}
+                    </span>
+                  </div>
                 ) : (
                   <span className="text-xl font-bold text-gray-800">
                     {formatPrice(product.price)}
@@ -176,7 +250,7 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
               </div>
 
               {/* Stock y botón de compra */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4">
                 <div className="text-sm text-gray-600">
                   {product.stock > 0 ? (
                     <span className="text-green-600">En stock ({product.stock})</span>
@@ -185,16 +259,31 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
                   )}
                 </div>
                 
+                {/* Botón Agregar al carrito */}
                 <button
+                  onClick={() => handleAddToCart(product)}
                   disabled={product.stock === 0}
-                  className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`w-full py-3 px-4 rounded-lg font-semibold transition duration-200 flex items-center justify-center space-x-2 ${
                     product.stock === 0
-                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700 transform hover:scale-105 shadow-md hover:shadow-lg'
                   }`}
                 >
-                  <ShoppingCart size={16} className="mr-1" />
-                  {product.stock === 0 ? 'Agotado' : 'Agregar'}
+                  {product.stock === 0 ? (
+                    <>
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd"/>
+                      </svg>
+                      <span>Agotado</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                      </svg>
+                      <span>Agregar al carrito</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
