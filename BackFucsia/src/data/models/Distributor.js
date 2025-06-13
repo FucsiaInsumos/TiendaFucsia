@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  sequelize.define('Distributor', {
+  return sequelize.define('Distributor', {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
@@ -39,7 +39,7 @@ module.exports = (sequelize) => {
     minimumPurchase: {
       type: DataTypes.DECIMAL(10, 2),
       defaultValue: 0,
-      comment: 'Monto mínimo de compra para acceder a precios de distribuidor'
+      
     }
   });
 };

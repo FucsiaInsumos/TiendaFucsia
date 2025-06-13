@@ -1,23 +1,19 @@
 const { Router } = require('express');
-
 const router = Router();
 
-// Rutas de autenticación (registro, login, logout)
+// Rutas de autenticación
 router.use("/auth", require("./authRoutes"));
 
-// Rutas de gestión de usuarios (CRUD desde dashboard)
+// Rutas RESTful (todas en plural)
 router.use("/users", require("./userRoutes"));
+router.use("/categories", require("./categoryRoutes"));      // Cambiar
+router.use("/products", require("./productRoutes"));        // Cambiar
+router.use("/distributors", require("./distributorRoutes")); // Cambiar
+router.use("/discount-rules", require("./discountRuleRoutes"));
 
-// Rutas de gestión de ventas y compras
+// Rutas de negocio
 router.use("/orders", require("./orderRoutes"));
 router.use("/payments", require("./paymentRoutes"));
 router.use("/stock", require("./stockRoutes"));
-
-// Otras rutas
-router.use("/permission", require("./permissionRouter"));
-router.use("/category", require("./categoryRoutes"));
-router.use("/product", require("./productRoutes"));
-router.use('/discount-rules', require('./discountRuleRoutes'));
-router.use("/distributor", require("./distributorRoutes"));
 
 module.exports = router;

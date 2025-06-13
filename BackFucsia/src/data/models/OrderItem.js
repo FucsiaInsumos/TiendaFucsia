@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  sequelize.define('OrderItem', {
+  return sequelize.define('OrderItem', {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
@@ -33,17 +33,17 @@ module.exports = (sequelize) => {
     unitPrice: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
-      comment: 'Precio unitario al momento de la venta'
+      
     },
     appliedDiscount: {
       type: DataTypes.DECIMAL(10, 2),
       defaultValue: 0,
-      comment: 'Descuento aplicado a este item'
+      
     },
     subtotal: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
-      comment: 'Subtotal del item (quantity * unitPrice - appliedDiscount)'
+      
     },
     discountRuleId: {
       type: DataTypes.UUID,
@@ -52,7 +52,7 @@ module.exports = (sequelize) => {
         model: 'DiscountRules',
         key: 'id'
       },
-      comment: 'Regla de descuento aplicada'
+      
     }
   });
 };
