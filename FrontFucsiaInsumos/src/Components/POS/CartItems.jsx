@@ -22,12 +22,12 @@ const CartItems = ({ cart, onUpdateQuantity, onRemoveItem }) => {
 
   return (
     <div className="space-y-3 max-h-96 overflow-y-auto">
-      {cart.map(item => (
-        <div key={item.productId} className="bg-white border border-gray-200 rounded-lg p-3">
+      {cart.map((item, index) => (
+        <div key={`cart-item-${item.productId}-${index}`} className="bg-white border border-gray-200 rounded-lg p-3">
           <div className="flex justify-between items-start mb-2">
             <div className="flex-1">
-              <h4 className="font-medium text-gray-900 text-sm">{item.product.name}</h4>
-              <p className="text-xs text-gray-500">{item.product.sku}</p>
+              <h4 className="font-medium text-gray-900 text-sm">{item.product?.name || 'Producto'}</h4>
+              <p className="text-xs text-gray-500">SKU: {item.product?.sku || 'Sin SKU'}</p>
             </div>
             <button
               onClick={() => onRemoveItem(item.productId)}
@@ -57,7 +57,7 @@ const CartItems = ({ cart, onUpdateQuantity, onRemoveItem }) => {
               <button
                 onClick={() => onUpdateQuantity(item.productId, item.quantity + 1)}
                 className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600"
-                disabled={item.quantity >= item.product.stock}
+                disabled={item.quantity >= (item.product?.stock || 0)}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -109,7 +109,7 @@ const CartItems = ({ cart, onUpdateQuantity, onRemoveItem }) => {
 
           {/* Mostrar stock disponible */}
           <div className="mt-2 text-xs text-gray-500 text-right">
-            Stock disponible: {item.product.stock}
+            Stock disponible: {item.product?.stock || 0}
           </div>
         </div>
       ))}
@@ -118,3 +118,6 @@ const CartItems = ({ cart, onUpdateQuantity, onRemoveItem }) => {
 };
 
 export default CartItems;
+
+
+

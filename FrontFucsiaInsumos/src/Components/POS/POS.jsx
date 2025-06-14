@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ProductSearch from './ProductSearch';
 import CartItems from './CartItems';
@@ -23,18 +23,11 @@ const POS = () => {
     distributorMinimumRequired: 0
   });
   const [loading, setLoading] = useState(false);
+  const isCalculatingRef = useRef(false);
 
   useEffect(() => {
     loadProducts();
   }, []);
-
-  useEffect(() => {
-    if (cart.length > 0) {
-      calculateTotals();
-    } else {
-      setOrderTotal({ subtotal: 0, discount: 0, total: 0 });
-    }
-  }, [cart, selectedCustomer]);
 
   const loadProducts = async () => {
     try {
@@ -46,34 +39,47 @@ const POS = () => {
   };
 
   const addToCart = (product) => {
-    const existingItem = cart.find(item => item.productId === product.id);
+    console.log('=== AGREGANDO PRODUCTO ===');
+    console.log('Producto:', product.name, 'ID:', product.id);
     
-    // Calcular precio efectivo basado en el cliente seleccionado
-    const effectivePrice = calculateEffectivePrice(product, selectedCustomer);
-    
-    if (existingItem) {
-      setCart(cart.map(item => 
-        item.productId === product.id 
-          ? { 
-              ...item, 
-              quantity: item.quantity + 1,
-              subtotal: (item.quantity + 1) * item.unitPrice // Usar el precio ya establecido del item
-            }
-          : item
-      ));
-    } else {
-      setCart([...cart, {
-        productId: product.id,
-        product: product,
-        quantity: 1,
-        unitPrice: effectivePrice.price,
-        subtotal: effectivePrice.price,
-        isDistributorPrice: effectivePrice.isDistributorPrice || false,
-        isPromotion: effectivePrice.isPromotion || false,
-        originalPrice: product.price,
-        priceReverted: false
-      }]);
-    }
+    setCart(prevCart => {
+      console.log('Carrito actual antes de agregar:', prevCart.map(item => ({ id: item.productId, name: item.product?.name })));
+      
+      const existingItem = prevCart.find(item => item.productId === product.id);
+      
+      if (existingItem) {
+        console.log('Producto YA EXISTE, incrementando cantidad');
+        return prevCart.map(item => 
+          item.productId === product.id 
+            ? { 
+                ...item, 
+                quantity: item.quantity + 1,
+                subtotal: (item.quantity + 1) * item.unitPrice
+              }
+            : item
+        );
+      } else {
+        console.log('NUEVO PRODUCTO, agregando al carrito');
+        // Calcular precio efectivo basado en el cliente seleccionado
+        const effectivePrice = calculateEffectivePrice(product, selectedCustomer);
+        
+        const newItem = {
+          productId: product.id,
+          product: product,
+          quantity: 1,
+          unitPrice: effectivePrice.price,
+          subtotal: effectivePrice.price,
+          isDistributorPrice: effectivePrice.isDistributorPrice || false,
+          isPromotion: effectivePrice.isPromotion || false,
+          originalPrice: product.price,
+          priceReverted: false
+        };
+        
+        const newCart = [...prevCart, newItem];
+        console.log('Nuevo carrito creado:', newCart.map(item => ({ id: item.productId, name: item.product?.name })));
+        return newCart;
+      }
+    });
   };
 
   const calculateEffectivePrice = (product, customer) => {
@@ -106,7 +112,7 @@ const POS = () => {
     if (quantity <= 0) {
       removeFromCart(productId);
     } else {
-      setCart(cart.map(item => 
+      setCart(prevCart => prevCart.map(item => 
         item.productId === productId 
           ? { 
               ...item, 
@@ -119,19 +125,43 @@ const POS = () => {
   };
 
   const removeFromCart = (productId) => {
-    setCart(cart.filter(item => item.productId !== productId));
+    setCart(prevCart => prevCart.filter(item => item.productId !== productId));
   };
 
   const clearCart = () => {
+    console.log('Limpiando carrito');
     setCart([]);
     setSelectedCustomer(null);
+    setOrderTotal({
+      subtotal: 0,
+      discount: 0,
+      total: 0,
+      distributorMinimumMet: true,
+      distributorMinimumRequired: 0
+    });
   };
 
-  const calculateTotals = async () => {
-    if (cart.length === 0) {
-      setOrderTotal({ subtotal: 0, discount: 0, total: 0, distributorMinimumMet: true, distributorMinimumRequired: 0 });
+  const calculateTotals = () => {
+    if (isCalculatingRef.current) {
+      console.log('Ya se está calculando, saltando...');
       return;
     }
+
+    isCalculatingRef.current = true;
+
+    if (cart.length === 0) {
+      setOrderTotal({ 
+        subtotal: 0, 
+        discount: 0, 
+        total: 0, 
+        distributorMinimumMet: true, 
+        distributorMinimumRequired: 0 
+      });
+      isCalculatingRef.current = false;
+      return;
+    }
+
+    console.log('Calculando totales para carrito:', cart.length, 'items');
 
     // Si tenemos cliente distribuidor, necesitamos verificar el mínimo
     if (selectedCustomer?.role === 'Distributor' && selectedCustomer.distributor) {
@@ -142,87 +172,94 @@ const POS = () => {
       
       // Calcular el subtotal que tendríamos con precios de distribuidor aplicados
       let subtotalWithDistributorPrices = 0;
-      const potentialCartWithDistributor = cart.map(item => {
+      
+      cart.forEach(item => {
         const distributorPrice = calculateEffectivePrice(item.product, selectedCustomer);
         subtotalWithDistributorPrices += item.quantity * distributorPrice.price;
-        return {
-          ...item,
-          potentialUnitPrice: distributorPrice.price,
-          potentialIsDistributorPrice: distributorPrice.isDistributorPrice,
-          potentialIsPromotion: distributorPrice.isPromotion
-        };
       });
 
       console.log('Subtotal con precios de distribuidor:', subtotalWithDistributorPrices);
       console.log('¿Cumple mínimo?', subtotalWithDistributorPrices >= minimumRequired);
 
-      // Si cumple el mínimo, aplicar precios de distribuidor
-      if (minimumRequired === 0 || subtotalWithDistributorPrices >= minimumRequired) {
-        const updatedCart = cart.map(item => {
-          const newPrice = calculateEffectivePrice(item.product, selectedCustomer);
-          return {
-            ...item,
-            unitPrice: newPrice.price,
-            subtotal: item.quantity * newPrice.price,
-            isDistributorPrice: newPrice.isDistributorPrice,
-            isPromotion: newPrice.isPromotion,
-            priceReverted: false
-          };
+      // Determinar si aplicar precios de distribuidor
+      const shouldApplyDistributorPrices = minimumRequired === 0 || subtotalWithDistributorPrices >= minimumRequired;
+      
+      // Solo recalcular precios si es necesario
+      const needsPriceUpdate = cart.some(item => {
+        const newPrice = shouldApplyDistributorPrices 
+          ? calculateEffectivePrice(item.product, selectedCustomer)
+          : calculateEffectivePriceWithoutDistributor(item.product);
+        
+        return item.unitPrice !== newPrice.price || 
+               item.isDistributorPrice !== (newPrice.isDistributorPrice || false) ||
+               item.priceReverted !== !shouldApplyDistributorPrices;
+      });
+
+      if (needsPriceUpdate) {
+        console.log('Actualizando precios del carrito');
+        setCart(prevCart => {
+          const updatedCart = prevCart.map(item => {
+            if (shouldApplyDistributorPrices) {
+              const newPrice = calculateEffectivePrice(item.product, selectedCustomer);
+              return {
+                ...item,
+                unitPrice: newPrice.price,
+                subtotal: item.quantity * newPrice.price,
+                isDistributorPrice: newPrice.isDistributorPrice,
+                isPromotion: newPrice.isPromotion,
+                priceReverted: false
+              };
+            } else {
+              const normalPrice = calculateEffectivePriceWithoutDistributor(item.product);
+              return {
+                ...item,
+                unitPrice: normalPrice.price,
+                subtotal: item.quantity * normalPrice.price,
+                isDistributorPrice: false,
+                isPromotion: normalPrice.isPromotion,
+                priceReverted: true
+              };
+            }
+          });
+          
+          const newSubtotal = updatedCart.reduce((sum, item) => sum + item.subtotal, 0);
+          
+          setOrderTotal({
+            subtotal: newSubtotal,
+            discount: 0,
+            total: newSubtotal,
+            distributorMinimumMet: shouldApplyDistributorPrices,
+            distributorMinimumRequired: minimumRequired,
+            tempSubtotalDistributorPotential: shouldApplyDistributorPrices ? undefined : subtotalWithDistributorPrices
+          });
+          
+          return updatedCart;
         });
-        
-        setCart(updatedCart);
-        const newSubtotal = updatedCart.reduce((sum, item) => sum + item.subtotal, 0);
-        
-        setOrderTotal({
-          subtotal: newSubtotal,
-          discount: 0,
-          total: newSubtotal,
-          distributorMinimumMet: true,
-          distributorMinimumRequired: minimumRequired
-        });
-        
-        console.log('Precios de distribuidor aplicados. Nuevo total:', newSubtotal);
-        return;
       } else {
-        // No cumple el mínimo, usar precios normales/promoción pero marcar como revertido
-        const updatedCart = cart.map(item => {
-          const normalPrice = calculateEffectivePriceWithoutDistributor(item.product);
-          return {
-            ...item,
-            unitPrice: normalPrice.price,
-            subtotal: item.quantity * normalPrice.price,
-            isDistributorPrice: false,
-            isPromotion: normalPrice.isPromotion,
-            priceReverted: true
-          };
-        });
-        
-        setCart(updatedCart);
-        const newSubtotal = updatedCart.reduce((sum, item) => sum + item.subtotal, 0);
-        
+        // Solo actualizar totales
+        const currentSubtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
         setOrderTotal({
-          subtotal: newSubtotal,
+          subtotal: currentSubtotal,
           discount: 0,
-          total: newSubtotal,
-          distributorMinimumMet: false,
+          total: currentSubtotal,
+          distributorMinimumMet: shouldApplyDistributorPrices,
           distributorMinimumRequired: minimumRequired,
-          tempSubtotalDistributorPotential: subtotalWithDistributorPrices
+          tempSubtotalDistributorPotential: shouldApplyDistributorPrices ? undefined : subtotalWithDistributorPrices
         });
-        
-        console.log('Mínimo no cumplido. Aplicando precios normales. Total:', newSubtotal);
-        return;
       }
+    } else {
+      // Cálculo normal para clientes regulares
+      const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+      setOrderTotal({
+        subtotal,
+        discount: 0,
+        total: subtotal,
+        distributorMinimumMet: true,
+        distributorMinimumRequired: 0
+      });
     }
 
-    // Cálculo normal para clientes regulares
-    const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
-    setOrderTotal({
-      subtotal,
-      discount: 0,
-      total: subtotal,
-      distributorMinimumMet: true,
-      distributorMinimumRequired: 0
-    });
+    isCalculatingRef.current = false;
   };
 
   const calculateEffectivePriceWithoutDistributor = (product) => {
@@ -242,13 +279,38 @@ const POS = () => {
     };
   };
 
-  // Recalcular cuando cambie el cliente seleccionado
+  // Efecto para calcular totales cuando cambie el carrito o cliente
+  useEffect(() => {
+    if (cart.length === 0) {
+      setOrderTotal({
+        subtotal: 0,
+        discount: 0,
+        total: 0,
+        distributorMinimumMet: true,
+        distributorMinimumRequired: 0
+      });
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      calculateTotals();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [cart.length, selectedCustomer?.n_document]);
+
+  // Efecto adicional para recalcular cuando cambien las cantidades
   useEffect(() => {
     if (cart.length > 0) {
-      console.log('Cliente cambió o carrito se actualizó, recalculando...');
-      calculateTotals();
+      const cartItemsString = cart.map(item => `${item.productId}:${item.quantity}`).join('|');
+      
+      const timeoutId = setTimeout(() => {
+        calculateTotals();
+      }, 200);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [selectedCustomer]); // Solo cuando cambie el cliente
+  }, [cart.map(item => `${item.productId}:${item.quantity}`).join('|')]);
 
   const handleCheckout = () => {
     if (cart.length === 0) {
@@ -285,7 +347,6 @@ const POS = () => {
         clearCart();
         setShowPaymentModal(false);
         
-        // Aquí podrías abrir un modal para imprimir ticket
         console.log('Orden creada:', response.data);
       }
     } catch (error) {
@@ -426,3 +487,4 @@ const POS = () => {
 };
 
 export default POS;
+

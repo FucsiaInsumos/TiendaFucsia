@@ -21,6 +21,7 @@ const ProductSearch = ({ products, onAddToCart, selectedCustomer }) => {
 
   const handleProductSelect = (product) => {
     if (product.stock > 0) {
+      console.log('ProductSearch: Seleccionando producto:', product.name, 'ID:', product.id);
       onAddToCart(product);
       setSearchTerm('');
       setFilteredProducts([]);

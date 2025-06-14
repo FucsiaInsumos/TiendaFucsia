@@ -230,7 +230,11 @@ const Checkout = () => {
                           : "Cliente Distribuidor"}
                       </p>
                       <div className={`text-xs mt-1 ${isDistributorMinimumMet && distributorPricesApplied ? 'text-green-700' : 'text-yellow-700'}`}>
-                        <p>Mínimo de compra para precios de distribuidor: {formatPrice(user.distributor.minimumPurchase)}</p>
+                        <p>Mínimo de compra para precios de distribuidor: {
+                          user.distributor.minimumPurchase && !isNaN(parseFloat(user.distributor.minimumPurchase)) 
+                            ? formatPrice(parseFloat(user.distributor.minimumPurchase))
+                            : formatPrice(distributorMinimumRequired || 0)
+                        }</p>
                         
                         {!isDistributorMinimumMet && distributorMinimumRequired > 0 && (
                           <>
@@ -238,7 +242,7 @@ const Checkout = () => {
                               <span className="font-semibold">Nota:</span> Para acceder a los precios de distribuidor, el valor de tu pedido (calculado con dichos precios especiales) debe ser de al menos {formatPrice(distributorMinimumRequired)}.
                             </p>
                             <p className="text-yellow-700 font-medium">
-                              ↳ Tu pedido con precios de distribuidor sumaría: {formatPrice(tempSubtotalDistributorPotential)}.
+                              ↳ Tu pedido con precios de distribuidor sumaría: {formatPrice(tempSubtotalDistributorPotential || 0)}.
                             </p>
                             <p className="mt-1">Total actual del carrito (con precios normales/promoción): <span className="font-semibold">{formatPrice(total)}</span></p>
                           </>
@@ -556,7 +560,7 @@ const Checkout = () => {
                       ) : !isDistributorMinimumMet && distributorMinimumRequired > 0 ? (
                         <>
                           <p className="text-red-600">Mínimo de compra ({formatPrice(distributorMinimumRequired)}) no alcanzado para precios de distribuidor.</p>
-                          <p className="text-sm text-gray-700"> (Tu pedido con precios de distribuidor sumaría: {formatPrice(tempSubtotalDistributorPotential)})</p>
+                          <p className="text-sm text-gray-700"> (Tu pedido con precios de distribuidor sumaría: {formatPrice(tempSubtotalDistributorPotential || 0)})</p>
                         </>
                       ) : (
                         <p>Precios normales o de promoción aplicados.</p>
