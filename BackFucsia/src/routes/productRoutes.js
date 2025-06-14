@@ -2,13 +2,13 @@ const { Router } = require('express');
 const multer = require('multer');
 const {
   createProduct,
-  getProducts,
+  getProducts, // Esta función maneja GET /products y GET /products?name=...
   getProductById,
   updateProduct,
   deleteProduct,
-  filterProducts,
-  calculateProductPrice
+  calculatePrice,
 } = require('../controllers/Product/productController');
+const { verifyToken } = require('../middleware/isAuth'); // Asumiendo que tienes autenticación
 
 const router = Router();
 
@@ -21,8 +21,7 @@ router.post(
     upload.array('images', 5), 
     createProduct
 );
-router.get('/', getProducts);
-router.get('/filter', filterProducts);
+router.get('/', getProducts); // Correcto: esta ruta manejará /products y /products?name=...
 router.get('/:id', getProductById);
 router.put(
     '/:id', 
@@ -30,8 +29,13 @@ router.put(
     updateProduct
 );
 router.delete('/:id', deleteProduct);
+router.post('/calculate-price', calculatePrice);
 
-// Nueva ruta para calcular precios
-router.post('/calculate-price', calculateProductPrice);
+// Aplicar verifyToken a todas las rutas de productos si es necesario
+// router.use(verifyToken);
+
+module.exports = router;
+// Aplicar verifyToken a todas las rutas de productos si es necesario
+// router.use(verifyToken);
 
 module.exports = router;

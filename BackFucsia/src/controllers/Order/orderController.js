@@ -35,13 +35,14 @@ const createOrder = async (req, res) => {
   try {
     const {
       userId,
-      items,
+      items, // Se espera que items venga con { productId, quantity }
       orderType,
       paymentMethod,
       paymentDetails = {},
       notes,
       shippingAddress,
-      cashierId
+      cashierId,
+      pickupInfo // Añadido para ordenes online
     } = req.body;
 
     // Validaciones básicas
@@ -55,21 +56,12 @@ const createOrder = async (req, res) => {
 
     // Verificar que el usuario existe y obtener info del distribuidor
     const customer = await User.findByPk(userId, {
-      include: [
-        {
-          model: Distributor,
-          as: 'distributor',
-          required: false
-        }
-      ]
+      include: [{ model: Distributor, as: 'distributor', required: false }]
     });
     
     if (!customer) {
       await transaction.rollback();
-      return res.status(404).json({
-        error: true,
-        message: 'Usuario no encontrado'
-      });
+      return res.status(404).json({ error: true, message: 'Usuario no encontrado' });
     }
 
     // Generar número de orden
@@ -77,78 +69,98 @@ const createOrder = async (req, res) => {
 
     // Calcular totales y verificar stock
     let subtotal = 0;
-    let totalDiscount = 0;
-    const processedItems = [];
-    let distributorItemsTotal = 0;
+    const processedOrderItems = []; // Para guardar los datos finales de OrderItem
+    let orderValueForDistributorMinimumCheck = 0;
 
-    for (const item of items) {
-      const { productId, quantity } = item;
-      
+    // Primera pasada: Calcular precios y el valor total para la verificación del mínimo de distribuidor
+    for (const cartItem of items) {
+      const { productId, quantity } = cartItem;
       const product = await Product.findByPk(productId);
+
       if (!product) {
         await transaction.rollback();
-        return res.status(404).json({
-          error: true,
-          message: `Producto ${productId} no encontrado`
-        });
+        return res.status(404).json({ error: true, message: `Producto ${productId} no encontrado` });
       }
-
-      // Verificar stock
       if (product.stock < quantity) {
         await transaction.rollback();
-        return res.status(400).json({
-          error: true,
-          message: `Stock insuficiente para ${product.name}. Disponible: ${product.stock}`
-        });
+        return res.status(400).json({ error: true, message: `Stock insuficiente para ${product.name}. Disponible: ${product.stock}` });
       }
 
-      // Determinar precio base
-      let unitPrice = product.price;
-      let isDistributorPrice = false;
+      let effectivePrice = product.price; // Precio normal como base
+      let isPromotion = false;
 
-      // Verificar promoción primero
-      if (product.isPromotion && product.promotionPrice) {
-        unitPrice = product.promotionPrice;
-      } 
-      // Luego verificar precio de distribuidor
-      else if (customer.role === 'Distributor' && product.distributorPrice && customer.distributor) {
-        unitPrice = product.distributorPrice;
-        isDistributorPrice = true;
-        distributorItemsTotal += quantity * unitPrice;
+      // Aplicar promoción si es mejor
+      if (product.isPromotion && product.promotionPrice && product.promotionPrice < effectivePrice) {
+        effectivePrice = product.promotionPrice;
+        isPromotion = true;
       }
 
-      const itemSubtotal = quantity * unitPrice;
-      subtotal += itemSubtotal;
-
-      processedItems.push({
+      // Si es distribuidor, el precio para el chequeo del mínimo es el de distribuidor si es mejor
+      if (customer.role === 'Distributor' && customer.distributor && product.distributorPrice) {
+        if (product.distributorPrice < effectivePrice) {
+          orderValueForDistributorMinimumCheck += quantity * product.distributorPrice;
+        } else {
+          orderValueForDistributorMinimumCheck += quantity * effectivePrice;
+        }
+      } else {
+        orderValueForDistributorMinimumCheck += quantity * effectivePrice;
+      }
+      
+      processedOrderItems.push({
         productId,
         quantity,
-        unitPrice,
-        subtotal: itemSubtotal,
-        appliedDiscount: 0,
-        product,
-        isDistributorPrice
+        productData: product, // Para actualizar stock
+        // Precios y flags se determinarán en la segunda pasada
+        unitPrice: 0, 
+        itemSubtotal: 0,
+        isPromotionApplied: isPromotion, // Basado en la primera evaluación
+        isDistributorPriceApplied: false,
+        originalPrice: product.price // Guardar precio de lista
       });
     }
 
-    // VALIDACIÓN CRÍTICA: Verificar monto mínimo para distribuidores
-    if (customer.role === 'Distributor' && customer.distributor && distributorItemsTotal > 0) {
-      const minimumPurchase = parseFloat(customer.distributor.minimumPurchase) || 0;
-      
-      if (distributorItemsTotal < minimumPurchase) {
-        await transaction.rollback();
-        return res.status(400).json({
-          error: true,
-          message: `Como distribuidor, necesitas un mínimo de compra de $${minimumPurchase.toLocaleString('es-CO')}. Tu total actual es $${distributorItemsTotal.toLocaleString('es-CO')}`,
-          data: {
-            currentTotal: distributorItemsTotal,
-            minimumRequired: minimumPurchase,
-            shortfall: minimumPurchase - distributorItemsTotal
-          }
-        });
+    let applyDistributorPrices = false;
+    let distributorMinimumRequiredValue = 0; // Para la respuesta
+
+    if (customer.role === 'Distributor' && customer.distributor) {
+      distributorMinimumRequiredValue = parseFloat(customer.distributor.minimumPurchase) || 0;
+      if (distributorMinimumRequiredValue > 0 && orderValueForDistributorMinimumCheck >= distributorMinimumRequiredValue) {
+        applyDistributorPrices = true;
+      } else {
+        applyDistributorPrices = false; // No cumple el mínimo, no se aplican precios de distribuidor
+        // No bloqueamos la orden, simplemente no se aplican precios de distribuidor.
+        // El mensaje al cliente sobre esto se manejará en el frontend basado en la info de calculatePrice
+        // o se podría añadir una nota a la orden.
       }
     }
 
+    // Segunda pasada: Establecer precios finales y calcular subtotal
+    for (const pItem of processedOrderItems) {
+      let finalUnitPrice = pItem.originalPrice; // Empezar con precio normal
+
+      // Aplicar promoción si es mejor que el normal
+      if (pItem.productData.isPromotion && pItem.productData.promotionPrice && pItem.productData.promotionPrice < finalUnitPrice) {
+        finalUnitPrice = pItem.productData.promotionPrice;
+        pItem.isPromotionApplied = true; // Confirmar flag
+      } else {
+        pItem.isPromotionApplied = false; // No aplicó o no era mejor
+      }
+
+      // Si aplican precios de distribuidor y es mejor que el precio actual (normal o promo)
+      if (applyDistributorPrices && pItem.productData.distributorPrice && pItem.productData.distributorPrice < finalUnitPrice) {
+        finalUnitPrice = pItem.productData.distributorPrice;
+        pItem.isDistributorPriceApplied = true;
+        pItem.isPromotionApplied = false; // Precio de distribuidor anula promo si es mejor
+      }
+      
+      pItem.unitPrice = finalUnitPrice;
+      pItem.itemSubtotal = pItem.quantity * pItem.unitPrice;
+      subtotal += pItem.itemSubtotal;
+    }
+    
+    // Aquí iría la lógica para aplicar DiscountRule sobre los `processedOrderItems` y `subtotal`
+    // Por ahora, totalDiscount = 0
+    let totalDiscount = 0; 
     const total = subtotal - totalDiscount;
 
     // Crear la orden
@@ -157,40 +169,44 @@ const createOrder = async (req, res) => {
       userId,
       subtotal,
       discount: totalDiscount,
-      tax: 0,
+      tax: 0, // Calcular impuestos si es necesario
       total,
-      status: 'pending',
+      status: 'pending', // Estado inicial
       orderType: orderType || 'local',
       paymentStatus: 'pending',
       cashierId: cashierId || null,
       notes,
-      shippingAddress
+      shippingAddress, // Para envíos
+      pickupInfo: orderType === 'online' ? pickupInfo : null // Para retiro en tienda
     }, { transaction });
 
-    // Crear items de la orden
-    for (const item of processedItems) {
+    for (const pItem of processedOrderItems) {
       await OrderItem.create({
         orderId: order.id,
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        appliedDiscount: item.appliedDiscount,
-        subtotal: item.subtotal
+        productId: pItem.productId,
+        quantity: pItem.quantity,
+        unitPrice: pItem.unitPrice,
+        // Podríamos añadir más campos aquí si es necesario, como:
+        // originalPrice: pItem.originalPrice,
+        // isPromotion: pItem.isPromotionApplied,
+        // isDistributorPrice: pItem.isDistributorPriceApplied,
+        subtotal: pItem.itemSubtotal, // Este es quantity * unitPrice
+        appliedDiscount: 0 // Para futuras reglas de descuento
       }, { transaction });
 
       // Actualizar stock
-      await item.product.update({
-        stock: item.product.stock - item.quantity
+      await pItem.productData.update({
+        stock: pItem.productData.stock - pItem.quantity
       }, { transaction });
 
       // Registrar movimiento de stock
       await StockMovement.create({
-        productId: item.productId,
-        quantity: -item.quantity,
+        productId: pItem.productId,
+        quantity: -pItem.quantity,
         type: 'salida',
-        reason: customer.role === 'Distributor' ? 'Venta a distribuidor' : 'Venta',
-        previousStock: item.product.stock,
-        currentStock: item.product.stock - item.quantity,
+        reason: `Venta orden ${orderNumber}`,
+        previousStock: pItem.productData.stock + pItem.quantity, // Stock antes de esta venta
+        currentStock: pItem.productData.stock, // Stock después de esta venta (ya actualizado)
         userId: cashierId || userId,
         orderId: order.id
       }, { transaction });
@@ -238,8 +254,10 @@ const createOrder = async (req, res) => {
 
     res.status(201).json({
       error: false,
-      message: customer.role === 'Distributor' ? 
-        'Orden de distribuidor creada exitosamente' : 
+      message: customer.role === 'Distributor' && applyDistributorPrices ? 
+        'Orden de distribuidor creada exitosamente con precios especiales' :
+        customer.role === 'Distributor' && !applyDistributorPrices && distributorMinimumRequiredValue > 0 ?
+        'Orden de distribuidor creada con precios normales/promoción (mínimo no alcanzado)' :
         'Orden creada exitosamente',
       data: completeOrder
     });
@@ -494,6 +512,16 @@ const cancelOrder = async (req, res) => {
       message: 'Error interno del servidor'
     });
   }
+};
+
+// Helper para formatear precio en mensajes de error del backend
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(price);
 };
 
 module.exports = {

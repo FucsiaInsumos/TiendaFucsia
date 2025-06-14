@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { loginSuccess } from './Redux/Actions/authActions';
+import { recalculateCartOnUserChange } from './Redux/Reducer/cartReducer'; // Asegúrate que la ruta sea correcta
 import PrivateRoute from './Components/PrivateRoute';
 
 // Importa tus componentes
@@ -30,27 +31,35 @@ import OrderConfirmation from './Components/Checkout/OrderConfirmation';
 
 function App() {
   const dispatch = useDispatch();
+  const { user: currentUser } = useSelector(state => state.auth);
 
   useEffect(() => {
-    // Verificar si hay un token guardado al iniciar la app
     const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
+    const storedUser = localStorage.getItem('user');
     
-    if (token && user) {
+    if (token && storedUser) {
       try {
-        const parsedUser = JSON.parse(user);
+        const parsedUser = JSON.parse(storedUser);
         dispatch(loginSuccess({ 
           token, 
           data: { user: parsedUser } 
         }));
+        // El recalculate se hará en el siguiente useEffect al cambiar currentUser
       } catch (error) {
         console.error('Error parsing user from localStorage:', error);
-        // Limpiar localStorage si hay datos corruptos
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        dispatch(recalculateCartOnUserChange(null)); 
       }
+    } else {
+      dispatch(recalculateCartOnUserChange(null));
     }
   }, [dispatch]);
+
+  useEffect(() => {
+    // Este efecto se dispara cada vez que currentUser (del store de auth) cambia.
+    dispatch(recalculateCartOnUserChange(currentUser));
+  }, [currentUser, dispatch]);
 
   return (
     <BrowserRouter>

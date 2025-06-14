@@ -183,3 +183,27 @@ export const calculateProductPrices = (calculationData) => async (dispatch) => {
     throw error;
   }
 };
+
+// Nueva acción para calcular precios para el POS o carrito
+export const calculatePricesForCartAPI = (items, userId) => async (dispatch) => {
+  try {
+    // La ruta es /product/calculate-price porque en routes/index.js tienes router.use("/product", productRoutes)
+    // y en productRoutes.js tienes router.post("/calculate-price", calculatePriceController)
+    const response = await api.post('/product/calculate-price', { items, userId });
+    
+    if (response.data && response.data.error === false) {
+      return response.data.data; // Devuelve la parte 'data' de la respuesta exitosa
+    } else {
+      // Si la API devuelve un error controlado (error: true)
+      const errorMessage = response.data?.message || 'Error al calcular precios desde la API.';
+      console.error('API Error en calculatePricesForCartAPI:', errorMessage);
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || 'Error de red o servidor al calcular precios.';
+    console.error('Catch Error en calculatePricesForCartAPI:', errorMessage, error.response?.data);
+    // Aquí podrías despachar una acción de error si es necesario para tu UI
+    // dispatch({ type: 'CALCULATE_PRICE_FAILURE', payload: errorMessage });
+    throw error; // Relanzar para que el componente que llama pueda manejarlo
+  }
+};

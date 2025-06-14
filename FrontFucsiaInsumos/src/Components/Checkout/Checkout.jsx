@@ -8,7 +8,16 @@ import WompiWidget from '../../components/Checkout/WompiWidget';
 const Checkout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { items, total, subtotal } = useSelector(state => state.cart);
+  // Obtener los nuevos flags del estado del carrito
+  const { 
+    items, 
+    total, 
+    subtotal, 
+    isDistributorMinimumMet, 
+    distributorMinimumRequired,
+    distributorPricesApplied,
+    tempSubtotalDistributorPotential // Obtener el nuevo valor
+  } = useSelector(state => state.cart);
   const { isAuthenticated, user } = useSelector(state => state.auth);
   
   const [loading, setLoading] = useState(false);
@@ -197,17 +206,28 @@ const Checkout = () => {
                     <strong>Documento:</strong> {user.n_document}
                   </p>
                   {user.role === 'Distributor' && user.distributor && (
-                    <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-sm text-green-600 font-medium">
-                        ✓ Cliente Distribuidor - Precios especiales aplicados
+                    <div className={`mt-2 p-3 border rounded-lg ${isDistributorMinimumMet && distributorPricesApplied ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+                      <p className={`text-sm font-medium ${isDistributorMinimumMet && distributorPricesApplied ? 'text-green-700' : 'text-yellow-800'}`}>
+                        {isDistributorMinimumMet && distributorPricesApplied 
+                          ? "✓ Cliente Distribuidor - Precios especiales aplicados" 
+                          : "Cliente Distribuidor"}
                       </p>
-                      <div className="text-xs text-green-700 mt-1">
-                        <p>Mínimo de compra: {formatPrice(user.distributor.minimumPurchase)}</p>
-                        <p>Total actual: {formatPrice(total)}</p>
-                        {total < user.distributor.minimumPurchase && (
-                          <p className="text-red-600 font-medium">
-                            ⚠️ Faltan {formatPrice(user.distributor.minimumPurchase - total)} para el mínimo
-                          </p>
+                      <div className={`text-xs mt-1 ${isDistributorMinimumMet && distributorPricesApplied ? 'text-green-700' : 'text-yellow-700'}`}>
+                        <p>Mínimo de compra para precios de distribuidor: {formatPrice(user.distributor.minimumPurchase)}</p>
+                        
+                        {!isDistributorMinimumMet && distributorMinimumRequired > 0 && (
+                          <>
+                            <p className="text-yellow-700 mt-1">
+                              <span className="font-semibold">Nota:</span> Para acceder a los precios de distribuidor, el valor de tu pedido (calculado con dichos precios especiales) debe ser de al menos {formatPrice(distributorMinimumRequired)}.
+                            </p>
+                            <p className="text-yellow-700 font-medium">
+                              ↳ Tu pedido con precios de distribuidor sumaría: {formatPrice(tempSubtotalDistributorPotential)}.
+                            </p>
+                            <p className="mt-1">Total actual del carrito (con precios normales/promoción): <span className="font-semibold">{formatPrice(total)}</span></p>
+                          </>
+                        )}
+                        {isDistributorMinimumMet && distributorPricesApplied && (
+                           <p>Total actual del carrito (con precios de distribuidor aplicados): <span className="font-semibold">{formatPrice(total)}</span></p>
                         )}
                       </div>
                     </div>
@@ -430,27 +450,39 @@ const Checkout = () => {
                     {items.map(item => (
                       <div key={item.id} className="flex justify-between items-center">
                         <div className="flex items-center space-x-3">
-                          {item.image && (
+                          {item.image ? ( 
                             <img
-                              src={item.image}
+                              src={item.image} 
                               alt={item.name}
                               className="w-12 h-12 object-cover rounded"
                             />
+                          ) : (
+                            <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                              {/* Placeholder icon */}
+                            </div>
                           )}
                           <div>
                             <h4 className="font-medium text-gray-900">{item.name}</h4>
                             <p className="text-sm text-gray-600">
+                              {/* item.price es el precio efectivo */}
                               {formatPrice(item.price)} × {item.quantity}
                             </p>
-                            {item.isPromotion && (
-                              <span className="text-xs bg-red-100 text-red-800 px-1 rounded">OFERTA</span>
-                            )}
-                            {item.isDistributorPrice && (
-                              <span className="text-xs bg-green-100 text-green-800 px-1 rounded">DISTRIBUIDOR</span>
-                            )}
-                            {item.priceReverted && (
-                              <span className="text-xs bg-yellow-100 text-yellow-800 px-1 rounded">PRECIO NORMAL</span>
-                            )}
+                            <div className="text-xs mt-0.5">
+                              {item.isDistributorPrice && (
+                                <span className="bg-green-100 text-green-800 px-1 rounded font-medium">PRECIO DISTRIBUIDOR</span>
+                              )}
+                              {item.isPromotion && !item.isDistributorPrice && (
+                                <span className="bg-red-100 text-red-800 px-1 rounded font-medium">OFERTA</span>
+                              )}
+                              {item.priceReverted && (
+                                 <span className="bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded font-medium text-[10px]">Mínimo no cumplido</span>
+                              )}
+                               {(item.isPromotion || item.isDistributorPrice) && item.originalPrice && item.originalPrice > item.price && (
+                                <span className="text-xs text-gray-500 line-through ml-1">
+                                  {formatPrice(item.originalPrice)}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="text-right">
@@ -463,6 +495,21 @@ const Checkout = () => {
 
                 {/* Totales */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                  {user?.role === 'Distributor' && user?.distributor && (
+                    <div className="text-xs text-gray-600 bg-blue-50 p-2 rounded mb-3">
+                      <p className="font-medium text-blue-800">Estatus Distribuidor:</p>
+                      {distributorPricesApplied && isDistributorMinimumMet ? (
+                        <p className="text-green-600">Precios de distribuidor aplicados.</p>
+                      ) : !isDistributorMinimumMet && distributorMinimumRequired > 0 ? (
+                        <>
+                          <p className="text-red-600">Mínimo de compra ({formatPrice(distributorMinimumRequired)}) no alcanzado para precios de distribuidor.</p>
+                          <p className="text-sm text-gray-700"> (Tu pedido con precios de distribuidor sumaría: {formatPrice(tempSubtotalDistributorPotential)})</p>
+                        </>
+                      ) : (
+                        <p>Precios normales o de promoción aplicados.</p>
+                      )}
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
@@ -482,7 +529,8 @@ const Checkout = () => {
                 {/* Botón de confirmación */}
                 <button
                   type="submit"
-                  disabled={loading || (user?.role === 'Distributor' && user.distributor && total < user.distributor.minimumPurchase)}
+                  // La condición de deshabilitar para distribuidores debe usar isDistributorMinimumMet
+                  disabled={loading || (user?.role === 'Distributor' && user.distributor && !isDistributorMinimumMet && distributorMinimumRequired > 0)}
                   className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
                 >
                   {loading ? (
@@ -492,8 +540,8 @@ const Checkout = () => {
                     </div>
                   ) : orderData.paymentMethod === 'wompi' ? (
                     'Pagar Online'
-                  ) : user?.role === 'Distributor' && user.distributor && total < user.distributor.minimumPurchase ? (
-                    `Mínimo requerido: ${formatPrice(user.distributor.minimumPurchase)}`
+                  ) : user?.role === 'Distributor' && user.distributor && !isDistributorMinimumMet && distributorMinimumRequired > 0 ? (
+                    `Mínimo requerido: ${formatPrice(distributorMinimumRequired)}`
                   ) : (
                     `Confirmar Pedido - ${formatPrice(total)}`
                   )}

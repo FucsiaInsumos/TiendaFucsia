@@ -1,6 +1,8 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+// Asegúrate que la acción recalculateCartOnUserChange NO se importe aquí si no se usa directamente.
+// Las acciones que modifican el carrito (addToCart, updateQuantity, removeFromCart) ya reciben 'user'.
 import { removeFromCart, updateQuantity, setCartOpen, clearCart, clearDistributorWarning } from '../../Redux/Reducer/cartReducer';
 
 const CartSidebar = () => {
@@ -10,10 +12,12 @@ const CartSidebar = () => {
     items, 
     total, 
     isOpen, 
-    distributorMinimumNotMet, 
-    distributorMinimumRequired 
+    isDistributorMinimumMet, 
+    distributorMinimumRequired,
+    distributorPricesApplied,
+    tempSubtotalDistributorPotential // Obtener el nuevo valor
   } = useSelector(state => state.cart);
-  const { isAuthenticated, user } = useSelector(state => state.auth);
+  const { isAuthenticated, user } = useSelector(state => state.auth); // 'user' es el objeto de usuario logueado
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-CO', {
@@ -24,14 +28,15 @@ const CartSidebar = () => {
 
   const handleUpdateQuantity = (productId, newQuantity) => {
     if (newQuantity <= 0) {
-      handleRemoveItem(productId);
+      // Pasar el 'user' actual para que el reducer pueda recalcular correctamente
+      dispatch(removeFromCart({ productId, user }));
     } else {
-      dispatch(updateQuantity({ productId, quantity: newQuantity }));
+      dispatch(updateQuantity({ productId, quantity: newQuantity, user }));
     }
   };
 
   const handleRemoveItem = (productId) => {
-    dispatch(removeFromCart(productId));
+    dispatch(removeFromCart({ productId, user }));
   };
 
   const handleCheckout = () => {
@@ -89,24 +94,23 @@ const CartSidebar = () => {
         {/* Items - Scrolleable */}
         <div className="flex-1 overflow-y-auto p-4 min-h-0">
           {/* Advertencia de monto mínimo para distribuidores */}
-          {distributorMinimumNotMet && distributorMinimumRequired && (
+          {user?.role === 'Distributor' && !isDistributorMinimumMet && distributorMinimumRequired > 0 && (
             <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="flex items-start">
                 <svg className="w-5 h-5 text-yellow-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
                 </svg>
                 <div>
-                  <h4 className="text-sm font-medium text-yellow-800">Monto mínimo no alcanzado</h4>
+                  <h4 className="text-sm font-medium text-yellow-800">Mínimo de compra no alcanzado</h4>
                   <p className="text-sm text-yellow-700 mt-1">
-                    Para acceder a precios de distribuidor necesitas un mínimo de {formatPrice(distributorMinimumRequired)}.
-                    Se han aplicado precios normales.
+                    Para acceder a precios de distribuidor, tu pedido (con dichos precios) debe sumar al menos {formatPrice(distributorMinimumRequired)}.
                   </p>
-                  <button
-                    onClick={() => dispatch(clearDistributorWarning())}
-                    className="text-sm text-yellow-800 hover:text-yellow-900 underline mt-1"
-                  >
-                    Entendido
-                  </button>
+                  <p className="text-sm text-yellow-600 font-medium">
+                    Actualmente, tu pedido con precios de distribuidor sumaría: {formatPrice(tempSubtotalDistributorPotential)}.
+                  </p>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    Por ello, se aplican precios normales o de promoción.
+                  </p>
                 </div>
               </div>
             </div>
@@ -152,35 +156,32 @@ const CartSidebar = () => {
                     <h4 className="text-sm font-medium text-gray-900 truncate">{item.name}</h4>
                     <p className="text-xs text-gray-500">SKU: {item.sku}</p>
                     <div className="flex items-center space-x-2 mt-1">
+                      {/* 'item.price' ahora es el precio efectivo calculado por el reducer */}
                       <span className={`text-sm font-semibold ${
-                        item.priceReverted ? 'text-red-600' : 
-                        item.isDistributorPrice ? 'text-green-600' : 'text-blue-600'
+                        item.isDistributorPrice ? 'text-green-600' :
+                        item.isPromotion ? 'text-red-600' : 'text-blue-600'
                       }`}>
                         {formatPrice(item.price)}
                       </span>
                       
-                      {/* Mostrar precio original si es diferente */}
-                      {item.isDistributorPrice && item.originalPrice !== item.price && (
+                      {/* Mostrar precio original si es diferente al efectivo y no es el mismo que el de promoción/distribuidor */}
+                      {(item.isPromotion || item.isDistributorPrice) && item.originalPrice && item.originalPrice > item.price && (
                         <span className="text-xs text-gray-500 line-through">
                           {formatPrice(item.originalPrice)}
                         </span>
                       )}
-                      
-                      {item.isPromotion && (
-                        <span className="text-xs bg-red-100 text-red-800 px-1 rounded font-medium">OFERTA</span>
+                    </div>
+                    <div className="text-xs mt-1">
+                      {item.isDistributorPrice && (
+                        <span className="bg-green-100 text-green-800 px-1 rounded font-medium">PRECIO DISTRIBUIDOR</span>
                       )}
-                      {item.isDistributorPrice && !item.priceReverted && (
-                        <span className="text-xs bg-green-100 text-green-800 px-1 rounded font-medium">DISTRIBUIDOR</span>
+                      {item.isPromotion && !item.isDistributorPrice && ( // Solo mostrar oferta si no es precio de distribuidor
+                        <span className="bg-red-100 text-red-800 px-1 rounded font-medium">OFERTA</span>
                       )}
-                      {item.priceReverted && (
-                        <span className="text-xs bg-yellow-100 text-yellow-800 px-1 rounded font-medium">PRECIO NORMAL</span>
+                      {item.priceReverted && ( // Flag si el precio de distribuidor no se aplicó por mínimo
+                         <span className="bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded font-medium text-[10px]">Mínimo no cumplido</span>
                       )}
                     </div>
-                    {item.priceReverted && (
-                      <p className="text-xs text-yellow-600 mt-1">
-                        Precio revertido: monto mínimo no alcanzado
-                      </p>
-                    )}
                   </div>
 
                   <div className="flex flex-col items-end space-y-2 flex-shrink-0">
@@ -238,19 +239,26 @@ const CartSidebar = () => {
           <div className="border-t p-4 bg-gray-50 space-y-4 flex-shrink-0">
             {/* Información adicional para distribuidores */}
             {user?.role === 'Distributor' && user?.distributor && (
-              <div className="text-xs text-gray-600 bg-green-50 p-2 rounded mb-2">
-                <p className="font-medium text-green-800">💼 Información de Distribuidor:</p>
-                <p>Mínimo de compra: <span className="font-medium">{formatPrice(user.distributor.minimumPurchase)}</span></p>
-                <p>Total actual: <span className="font-medium">{formatPrice(total)}</span></p>
-                {distributorMinimumNotMet && (
-                  <p className="text-red-600 font-medium mt-1">
-                    ⚠️ Faltan {formatPrice(user.distributor.minimumPurchase - total)} para descuentos
-                  </p>
+              <div className="text-xs text-gray-600 bg-blue-50 p-2 rounded mb-2">
+                <p className="font-medium text-blue-800">💼 Estatus Distribuidor:</p>
+                <p>Mínimo requerido: <span className="font-medium">{formatPrice(user.distributor.minimumPurchase)}</span></p>
+                
+                {distributorPricesApplied && isDistributorMinimumMet && (
+                  <>
+                    <p>Total actual (con precios de distribuidor): <span className="font-medium">{formatPrice(total)}</span></p>
+                    <p className="text-green-600 font-medium mt-1">
+                      ✅ Mínimo alcanzado - Precios de distribuidor aplicados.
+                    </p>
+                  </>
                 )}
-                {!distributorMinimumNotMet && total >= user.distributor.minimumPurchase && (
-                  <p className="text-green-600 font-medium mt-1">
-                    ✅ Mínimo alcanzado - Precios de distribuidor aplicados
-                  </p>
+                {!isDistributorMinimumMet && distributorMinimumRequired > 0 && (
+                  <>
+                    <p>Total con precios de distribuidor sería: <span className="font-medium">{formatPrice(tempSubtotalDistributorPotential)}</span></p>
+                    <p className="text-red-600 font-medium mt-1">
+                      ⚠️ Mínimo no alcanzado. Se aplican precios normales/promo.
+                    </p>
+                     <p>Total actual (con precios normales/promo): <span className="font-medium">{formatPrice(total)}</span></p>
+                  </>
                 )}
               </div>
             )}
