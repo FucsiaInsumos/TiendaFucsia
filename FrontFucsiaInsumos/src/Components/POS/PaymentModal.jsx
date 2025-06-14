@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 
-const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading }) => {
+const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading, selectedCustomer }) => {
   const [selectedMethod, setSelectedMethod] = useState('efectivo');
   const [paymentDetails, setPaymentDetails] = useState({});
   const [notes, setNotes] = useState('');
+  const [extraDiscount, setExtraDiscount] = useState(0); // Nuevo estado para descuento extra
 
   const paymentMethods = [
     { value: 'efectivo', label: 'Efectivo', icon: '💵' },
@@ -30,13 +31,27 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading 
     }));
   };
 
+  const calculateFinalTotal = () => {
+    const extraDiscountAmount = (orderTotal.total * extraDiscount) / 100;
+    return Math.max(0, orderTotal.total - extraDiscountAmount);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    const finalTotal = calculateFinalTotal();
+    const extraDiscountAmount = orderTotal.total - finalTotal;
+    
     const paymentData = {
       method: selectedMethod,
-      details: paymentDetails,
-      notes: notes.trim()
+      details: {
+        ...paymentDetails,
+        originalTotal: orderTotal.total,
+        extraDiscount: extraDiscountAmount,
+        finalTotal: finalTotal
+      },
+      notes: notes.trim(),
+      extraDiscountPercentage: extraDiscount
     };
 
     onPaymentComplete(paymentData);
@@ -192,14 +207,58 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading 
 
                   {/* Resumen del total */}
                   <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <div className="flex justify-between items-center text-lg font-semibold">
-                      <span>Total a pagar:</span>
-                      <span className="text-indigo-600">{formatPrice(orderTotal.total)}</span>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span>Subtotal:</span>
+                        <span>{formatPrice(orderTotal.subtotal)}</span>
+                      </div>
+                      
+                      {orderTotal.discount > 0 && (
+                        <div className="flex justify-between items-center text-green-600">
+                          <span>Descuento aplicado:</span>
+                          <span>-{formatPrice(orderTotal.discount)}</span>
+                        </div>
+                      )}
+                      
+                      {/* Campo de descuento extra */}
+                      <div className="border-t pt-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Descuento adicional (%)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="50"
+                          step="0.1"
+                          value={extraDiscount}
+                          onChange={(e) => setExtraDiscount(parseFloat(e.target.value) || 0)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="0"
+                        />
+                        {extraDiscount > 0 && (
+                          <p className="text-xs text-green-600 mt-1">
+                            Descuento extra: -{formatPrice((orderTotal.total * extraDiscount) / 100)}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="flex justify-between items-center text-lg font-semibold border-t pt-2">
+                        <span>Total a pagar:</span>
+                        <span className="text-indigo-600">{formatPrice(calculateFinalTotal())}</span>
+                      </div>
                     </div>
-                    {orderTotal.discount > 0 && (
-                      <div className="flex justify-between items-center text-sm text-green-600 mt-1">
-                        <span>Descuento aplicado:</span>
-                        <span>-{formatPrice(orderTotal.discount)}</span>
+                    
+                    {/* Información del cliente distribuidor */}
+                    {selectedCustomer?.role === 'Distributor' && (
+                      <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
+                        <p className="text-xs text-blue-800 font-medium">
+                          Cliente Distribuidor: {selectedCustomer.first_name} {selectedCustomer.last_name}
+                        </p>
+                        {selectedCustomer.distributor && (
+                          <p className="text-xs text-blue-600">
+                            Descuento base: {selectedCustomer.distributor.discountPercentage}%
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>

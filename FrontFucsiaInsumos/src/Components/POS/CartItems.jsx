@@ -72,6 +72,33 @@ const CartItems = ({ cart, onUpdateQuantity, onRemoveItem }) => {
               <div className="text-xs text-gray-500">
                 {formatPrice(item.unitPrice)} c/u
               </div>
+              
+              {/* Mostrar información de descuentos aplicados */}
+              <div className="text-xs mt-1">
+                {item.isDistributorPrice && (
+                  <span className="bg-green-100 text-green-800 px-1 rounded font-medium text-[10px]">
+                    PRECIO DISTRIBUIDOR
+                  </span>
+                )}
+                {item.isPromotion && !item.isDistributorPrice && (
+                  <span className="bg-red-100 text-red-800 px-1 rounded font-medium text-[10px]">
+                    PROMOCIÓN
+                  </span>
+                )}
+                {item.priceReverted && (
+                  <span className="bg-yellow-100 text-yellow-800 px-1 rounded font-medium text-[10px]">
+                    MÍNIMO NO CUMPLIDO
+                  </span>
+                )}
+              </div>
+              
+              {/* Mostrar precio original si hay descuento */}
+              {(item.isDistributorPrice || item.isPromotion) && item.originalPrice && item.originalPrice > item.unitPrice && (
+                <div className="text-xs text-gray-400 line-through">
+                  {formatPrice(item.originalPrice)} c/u
+                </div>
+              )}
+              
               {item.appliedDiscount > 0 && (
                 <div className="text-xs text-green-600">
                   Desc: -{formatPrice(item.appliedDiscount)}
