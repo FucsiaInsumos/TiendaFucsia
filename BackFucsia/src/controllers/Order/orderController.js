@@ -39,10 +39,11 @@ const createOrder = async (req, res) => {
       orderType,
       paymentMethod,
       paymentDetails = {},
-      notes,
+      notes: originalNotes, // Cambiar el nombre para evitar conflicto
       shippingAddress,
       cashierId,
-      pickupInfo // Añadido para ordenes online
+      pickupInfo, // Añadido para ordenes online
+      extraDiscountPercentage = 0 // Nuevo: descuento extra del POS
     } = req.body;
 
     // Validaciones básicas
@@ -137,9 +138,6 @@ const createOrder = async (req, res) => {
         applyDistributorPrices = true;
       } else {
         applyDistributorPrices = false; // No cumple el mínimo, no se aplican precios de distribuidor
-        // No bloqueamos la orden, simplemente no se aplican precios de distribuidor.
-        // El mensaje al cliente sobre esto se manejará en el frontend basado en la info de calculatePrice
-        // o se podría añadir una nota a la orden.
       }
     }
 
@@ -167,9 +165,23 @@ const createOrder = async (req, res) => {
       subtotal += pItem.itemSubtotal;
     }
     
-    // Aquí iría la lógica para aplicar DiscountRule sobre los `processedOrderItems` y `subtotal`
-    // Por ahora, totalDiscount = 0
-    let totalDiscount = 0; 
+    // Calcular descuentos
+    let totalDiscount = 0;
+    let extraDiscountAmount = 0;
+    let finalNotes = originalNotes || ''; // Variable para manejar las notas
+    
+    // Aplicar descuento extra del POS si existe
+    if (extraDiscountPercentage > 0 && orderType === 'local') {
+      extraDiscountAmount = subtotal * (parseFloat(extraDiscountPercentage) / 100);
+      totalDiscount += extraDiscountAmount;
+      
+      // Agregar nota sobre el descuento aplicado
+      const discountNote = `\nDescuento POS aplicado: ${extraDiscountPercentage}% (${formatPrice(extraDiscountAmount)})`;
+      finalNotes = finalNotes + discountNote;
+      
+      console.log(`Descuento extra aplicado: ${extraDiscountPercentage}% = ${formatPrice(extraDiscountAmount)}`);
+    }
+    
     const total = subtotal - totalDiscount;
 
     // Crear la orden
@@ -184,7 +196,7 @@ const createOrder = async (req, res) => {
       orderType: orderType || 'local',
       paymentStatus: 'pending',
       cashierId: cashierId || null,
-      notes,
+      notes: finalNotes, // Usar la variable finalNotes
       shippingAddress, // Para envíos
       pickupInfo: orderType === 'online' ? pickupInfo : null // Para retiro en tienda
     }, { transaction });
@@ -195,12 +207,8 @@ const createOrder = async (req, res) => {
         productId: pItem.productId,
         quantity: pItem.quantity,
         unitPrice: pItem.unitPrice,
-        // Podríamos añadir más campos aquí si es necesario, como:
-        // originalPrice: pItem.originalPrice,
-        // isPromotion: pItem.isPromotionApplied,
-        // isDistributorPrice: pItem.isDistributorPriceApplied,
         subtotal: pItem.itemSubtotal, // Este es quantity * unitPrice
-        appliedDiscount: 0 // Para futuras reglas de descuento
+        appliedDiscount: 0 // Para futuras reglas de descuento por item
       }, { transaction });
 
       // Actualizar stock
@@ -223,12 +231,21 @@ const createOrder = async (req, res) => {
 
     // Crear pago si se especifica método
     if (paymentMethod) {
+      // Para pagos locales con descuento extra, ajustar el monto del pago
+      const paymentAmount = paymentDetails.finalTotal || total;
+      
       await Payment.create({
         orderId: order.id,
-        amount: total,
+        amount: paymentAmount,
         method: paymentMethod,
         status: paymentMethod === 'credito' ? 'pending' : 'completed',
-        paymentDetails,
+        paymentDetails: {
+          ...paymentDetails,
+          originalTotal: subtotal,
+          extraDiscountPercentage: extraDiscountPercentage || 0,
+          extraDiscountAmount: extraDiscountAmount,
+          finalTotal: total
+        },
         dueDate: paymentMethod === 'credito' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null
       }, { transaction });
 
@@ -261,13 +278,20 @@ const createOrder = async (req, res) => {
       ]
     });
 
+    let successMessage = 'Orden creada exitosamente';
+    if (customer.role === 'Distributor' && applyDistributorPrices) {
+      successMessage = 'Orden de distribuidor creada exitosamente con precios especiales';
+    } else if (customer.role === 'Distributor' && !applyDistributorPrices && distributorMinimumRequiredValue > 0) {
+      successMessage = 'Orden de distribuidor creada con precios normales/promoción (mínimo no alcanzado)';
+    }
+    
+    if (extraDiscountAmount > 0) {
+      successMessage += ` - Descuento POS aplicado: ${extraDiscountPercentage}%`;
+    }
+
     res.status(201).json({
       error: false,
-      message: customer.role === 'Distributor' && applyDistributorPrices ? 
-        'Orden de distribuidor creada exitosamente con precios especiales' :
-        customer.role === 'Distributor' && !applyDistributorPrices && distributorMinimumRequiredValue > 0 ?
-        'Orden de distribuidor creada con precios normales/promoción (mínimo no alcanzado)' :
-        'Orden creada exitosamente',
+      message: successMessage,
       data: completeOrder
     });
 

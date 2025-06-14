@@ -109,19 +109,37 @@ const POS = () => {
   };
 
   const updateCartItem = (productId, quantity) => {
+    console.log(`Actualizando item ${productId} a cantidad ${quantity}`);
+    
     if (quantity <= 0) {
       removeFromCart(productId);
-    } else {
-      setCart(prevCart => prevCart.map(item => 
-        item.productId === productId 
-          ? { 
-              ...item, 
-              quantity, 
-              subtotal: quantity * item.unitPrice 
-            }
-          : item
-      ));
+      return;
     }
+
+    setCart(prevCart => {
+      const updatedCart = prevCart.map(item => {
+        if (item.productId === productId) {
+          const newSubtotal = parseInt(quantity) * parseFloat(item.unitPrice);
+          console.log(`Item ${productId}: nueva cantidad ${quantity}, precio unitario ${item.unitPrice}, nuevo subtotal ${newSubtotal}`);
+          
+          return {
+            ...item, 
+            quantity: parseInt(quantity),
+            subtotal: newSubtotal
+          };
+        }
+        return item;
+      });
+      
+      console.log('Carrito después de actualizar cantidad:', updatedCart.map(item => ({ 
+        id: item.productId, 
+        name: item.product?.name, 
+        qty: item.quantity, 
+        subtotal: item.subtotal 
+      })));
+      
+      return updatedCart;
+    });
   };
 
   const removeFromCart = (productId) => {
@@ -140,6 +158,36 @@ const POS = () => {
       distributorMinimumRequired: 0
     });
   };
+
+  // Efecto para calcular totales cuando cambie el carrito o cliente - SIMPLIFICADO
+  useEffect(() => {
+    // Solo ejecutar si no estamos ya calculando
+    if (isCalculatingRef.current) {
+      return;
+    }
+
+    if (cart.length === 0) {
+      setOrderTotal({
+        subtotal: 0,
+        discount: 0,
+        total: 0,
+        distributorMinimumMet: true,
+        distributorMinimumRequired: 0
+      });
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      calculateTotals();
+    }, 200); // Timeout más corto
+
+    return () => clearTimeout(timeoutId);
+  }, [
+    cart.length, 
+    selectedCustomer?.n_document,
+    // Agregar dependencia de las cantidades y subtotales para que recalcule cuando cambien
+    cart.map(item => `${item.productId}:${item.quantity}:${item.subtotal}`).join('|')
+  ]);
 
   const calculateTotals = () => {
     if (isCalculatingRef.current) {
@@ -161,7 +209,24 @@ const POS = () => {
       return;
     }
 
-    console.log('Calculando totales para carrito:', cart.length, 'items');
+    console.log('=== CALCULANDO TOTALES ===');
+    console.log('Items del carrito:', cart.map(item => ({ 
+      id: item.productId, 
+      name: item.product?.name, 
+      qty: item.quantity, 
+      unitPrice: item.unitPrice,
+      subtotal: item.subtotal 
+    })));
+
+    // Primero calculamos el subtotal actual del carrito
+    let currentSubtotal = 0;
+    cart.forEach(item => {
+      const itemSubtotal = parseFloat(item.subtotal) || (parseFloat(item.unitPrice) * parseInt(item.quantity));
+      currentSubtotal += itemSubtotal;
+      console.log(`Item: ${item.product?.name}, Unit: ${item.unitPrice}, Qty: ${item.quantity}, Subtotal: ${itemSubtotal}`);
+    });
+
+    console.log('Subtotal calculado:', currentSubtotal);
 
     // Si tenemos cliente distribuidor, necesitamos verificar el mínimo
     if (selectedCustomer?.role === 'Distributor' && selectedCustomer.distributor) {
@@ -175,7 +240,8 @@ const POS = () => {
       
       cart.forEach(item => {
         const distributorPrice = calculateEffectivePrice(item.product, selectedCustomer);
-        subtotalWithDistributorPrices += item.quantity * distributorPrice.price;
+        const itemTotal = parseFloat(distributorPrice.price) * parseInt(item.quantity);
+        subtotalWithDistributorPrices += itemTotal;
       });
 
       console.log('Subtotal con precios de distribuidor:', subtotalWithDistributorPrices);
@@ -184,15 +250,14 @@ const POS = () => {
       // Determinar si aplicar precios de distribuidor
       const shouldApplyDistributorPrices = minimumRequired === 0 || subtotalWithDistributorPrices >= minimumRequired;
       
-      // Solo recalcular precios si es necesario
+      // Solo recalcular precios si es necesario Y si realmente cambió algo
       const needsPriceUpdate = cart.some(item => {
         const newPrice = shouldApplyDistributorPrices 
           ? calculateEffectivePrice(item.product, selectedCustomer)
           : calculateEffectivePriceWithoutDistributor(item.product);
         
-        return item.unitPrice !== newPrice.price || 
-               item.isDistributorPrice !== (newPrice.isDistributorPrice || false) ||
-               item.priceReverted !== !shouldApplyDistributorPrices;
+        return parseFloat(item.unitPrice) !== parseFloat(newPrice.price) || 
+               item.isDistributorPrice !== (newPrice.isDistributorPrice || false);
       });
 
       if (needsPriceUpdate) {
@@ -201,20 +266,22 @@ const POS = () => {
           const updatedCart = prevCart.map(item => {
             if (shouldApplyDistributorPrices) {
               const newPrice = calculateEffectivePrice(item.product, selectedCustomer);
+              const newSubtotal = parseInt(item.quantity) * parseFloat(newPrice.price);
               return {
                 ...item,
-                unitPrice: newPrice.price,
-                subtotal: item.quantity * newPrice.price,
+                unitPrice: parseFloat(newPrice.price),
+                subtotal: newSubtotal,
                 isDistributorPrice: newPrice.isDistributorPrice,
                 isPromotion: newPrice.isPromotion,
                 priceReverted: false
               };
             } else {
               const normalPrice = calculateEffectivePriceWithoutDistributor(item.product);
+              const newSubtotal = parseInt(item.quantity) * parseFloat(normalPrice.price);
               return {
                 ...item,
-                unitPrice: normalPrice.price,
-                subtotal: item.quantity * normalPrice.price,
+                unitPrice: parseFloat(normalPrice.price),
+                subtotal: newSubtotal,
                 isDistributorPrice: false,
                 isPromotion: normalPrice.isPromotion,
                 priceReverted: true
@@ -222,22 +289,27 @@ const POS = () => {
             }
           });
           
-          const newSubtotal = updatedCart.reduce((sum, item) => sum + item.subtotal, 0);
+          // Recalcular subtotal con los nuevos precios
+          const newSubtotal = updatedCart.reduce((sum, item) => sum + parseFloat(item.subtotal), 0);
           
-          setOrderTotal({
-            subtotal: newSubtotal,
-            discount: 0,
-            total: newSubtotal,
-            distributorMinimumMet: shouldApplyDistributorPrices,
-            distributorMinimumRequired: minimumRequired,
-            tempSubtotalDistributorPotential: shouldApplyDistributorPrices ? undefined : subtotalWithDistributorPrices
-          });
+          // No llamar setOrderTotal aquí para evitar loops, se actualizará en el próximo render
+          setTimeout(() => {
+            setOrderTotal({
+              subtotal: newSubtotal,
+              discount: 0,
+              total: newSubtotal,
+              distributorMinimumMet: shouldApplyDistributorPrices,
+              distributorMinimumRequired: minimumRequired,
+              tempSubtotalDistributorPotential: shouldApplyDistributorPrices ? undefined : subtotalWithDistributorPrices
+            });
+          }, 0);
+          
+          console.log('Carrito actualizado con subtotal:', newSubtotal);
           
           return updatedCart;
         });
       } else {
-        // Solo actualizar totales
-        const currentSubtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+        // Solo actualizar totales sin cambiar precios
         setOrderTotal({
           subtotal: currentSubtotal,
           discount: 0,
@@ -246,17 +318,20 @@ const POS = () => {
           distributorMinimumRequired: minimumRequired,
           tempSubtotalDistributorPotential: shouldApplyDistributorPrices ? undefined : subtotalWithDistributorPrices
         });
+        
+        console.log('Totales actualizados sin cambiar precios, subtotal:', currentSubtotal);
       }
     } else {
       // Cálculo normal para clientes regulares
-      const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
       setOrderTotal({
-        subtotal,
+        subtotal: currentSubtotal,
         discount: 0,
-        total: subtotal,
+        total: currentSubtotal,
         distributorMinimumMet: true,
         distributorMinimumRequired: 0
       });
+      
+      console.log('Cliente regular, subtotal:', currentSubtotal);
     }
 
     isCalculatingRef.current = false;
@@ -279,39 +354,6 @@ const POS = () => {
     };
   };
 
-  // Efecto para calcular totales cuando cambie el carrito o cliente
-  useEffect(() => {
-    if (cart.length === 0) {
-      setOrderTotal({
-        subtotal: 0,
-        discount: 0,
-        total: 0,
-        distributorMinimumMet: true,
-        distributorMinimumRequired: 0
-      });
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      calculateTotals();
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [cart.length, selectedCustomer?.n_document]);
-
-  // Efecto adicional para recalcular cuando cambien las cantidades
-  useEffect(() => {
-    if (cart.length > 0) {
-      const cartItemsString = cart.map(item => `${item.productId}:${item.quantity}`).join('|');
-      
-      const timeoutId = setTimeout(() => {
-        calculateTotals();
-      }, 200);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [cart.map(item => `${item.productId}:${item.quantity}`).join('|')]);
-
   const handleCheckout = () => {
     if (cart.length === 0) {
       alert('El carrito está vacío');
@@ -327,6 +369,8 @@ const POS = () => {
   const handlePaymentComplete = async (paymentData) => {
     setLoading(true);
     try {
+      console.log('Datos de pago recibidos:', paymentData); // Debug
+
       const orderData = {
         userId: selectedCustomer.n_document,
         items: cart.map(item => ({
@@ -337,8 +381,11 @@ const POS = () => {
         paymentMethod: paymentData.method,
         paymentDetails: paymentData.details,
         cashierId: user.n_document,
-        notes: paymentData.notes
+        notes: paymentData.notes,
+        extraDiscountPercentage: paymentData.extraDiscountPercentage || 0 // Agregar el descuento extra
       };
+
+      console.log('Datos de orden enviados al backend:', orderData); // Debug
 
       const response = await dispatch(createOrder(orderData));
       
@@ -408,7 +455,11 @@ const POS = () => {
                       🏢 Cliente Distribuidor: {selectedCustomer.first_name} {selectedCustomer.last_name}
                     </p>
                     <p className="text-xs text-gray-600 mt-1">
-                      Mínimo requerido: {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(orderTotal.distributorMinimumRequired)}
+                      Mínimo requerido: {new Intl.NumberFormat('es-CO', { 
+                        style: 'currency', 
+                        currency: 'COP',
+                        minimumFractionDigits: 0
+                      }).format(orderTotal.distributorMinimumRequired || 0)}
                     </p>
                     {!orderTotal.distributorMinimumMet && orderTotal.tempSubtotalDistributorPotential && (
                       <>
@@ -416,7 +467,11 @@ const POS = () => {
                           ⚠️ Mínimo no alcanzado - Aplicando precios regulares/promoción
                         </p>
                         <p className="text-xs text-gray-600">
-                          Con precios de distribuidor sumaría: {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(orderTotal.tempSubtotalDistributorPotential)}
+                          Con precios de distribuidor sumaría: {new Intl.NumberFormat('es-CO', { 
+                            style: 'currency', 
+                            currency: 'COP',
+                            minimumFractionDigits: 0
+                          }).format(orderTotal.tempSubtotalDistributorPotential)}
                         </p>
                       </>
                     )}
@@ -431,17 +486,29 @@ const POS = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal:</span>
-                    <span>${orderTotal.subtotal.toLocaleString('es-CO')}</span>
+                    <span>{new Intl.NumberFormat('es-CO', { 
+                      style: 'currency', 
+                      currency: 'COP',
+                      minimumFractionDigits: 0
+                    }).format(orderTotal.subtotal || 0)}</span>
                   </div>
                   {orderTotal.discount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Descuento:</span>
-                      <span>-${orderTotal.discount.toLocaleString('es-CO')}</span>
+                      <span>-{new Intl.NumberFormat('es-CO', { 
+                        style: 'currency', 
+                        currency: 'COP',
+                        minimumFractionDigits: 0
+                      }).format(orderTotal.discount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-xl font-bold border-t pt-2">
                     <span>Total:</span>
-                    <span>${orderTotal.total.toLocaleString('es-CO')}</span>
+                    <span>{new Intl.NumberFormat('es-CO', { 
+                      style: 'currency', 
+                      currency: 'COP',
+                      minimumFractionDigits: 0
+                    }).format(orderTotal.total || 0)}</span>
                   </div>
                 </div>
               </div>
@@ -476,7 +543,7 @@ const POS = () => {
         <PaymentModal
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
-          orderTotal={orderTotal}
+          orderTotal={orderTotal} // Este ya incluye el total correcto
           onPaymentComplete={handlePaymentComplete}
           loading={loading}
           selectedCustomer={selectedCustomer}

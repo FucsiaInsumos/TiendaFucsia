@@ -32,6 +32,8 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
   };
 
   const calculateFinalTotal = () => {
+    // El orderTotal.total ya incluye cualquier descuento de distribuidor aplicado en POS
+    // Aquí solo aplicamos el descuento extra del modal de pago
     const extraDiscountAmount = (orderTotal.total * extraDiscount) / 100;
     return Math.max(0, orderTotal.total - extraDiscountAmount);
   };
@@ -47,12 +49,14 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
       details: {
         ...paymentDetails,
         originalTotal: orderTotal.total,
-        extraDiscount: extraDiscountAmount,
+        extraDiscountAmount: extraDiscountAmount,
         finalTotal: finalTotal
       },
       notes: notes.trim(),
-      extraDiscountPercentage: extraDiscount
+      extraDiscountPercentage: extraDiscount // Asegurar que se envíe el porcentaje
     };
+
+    console.log('Datos de pago enviados:', paymentData); // Debug
 
     onPaymentComplete(paymentData);
   };
@@ -60,6 +64,8 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
   const renderPaymentFields = () => {
     switch (selectedMethod) {
       case 'efectivo':
+        const finalTotal = calculateFinalTotal(); // Obtener el total final con descuento
+        
         return (
           <div className="space-y-4">
             <div>
@@ -69,18 +75,23 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
               <input
                 type="number"
                 step="0.01"
-                min={orderTotal.total}
+                min={finalTotal} // Usar el total final con descuento
                 value={paymentDetails.amountReceived || ''}
                 onChange={(e) => handlePaymentDetailsChange('amountReceived', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder={formatPrice(orderTotal.total)}
+                placeholder={formatPrice(finalTotal)} // Mostrar el total final como placeholder
               />
             </div>
             {paymentDetails.amountReceived && (
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-800">
-                  Cambio: {formatPrice(Math.max(0, parseFloat(paymentDetails.amountReceived || 0) - orderTotal.total))}
-                </p>
+                <div className="text-sm text-green-800">
+                  <p className="font-medium">Detalle del pago:</p>
+                  <p>Total a pagar: {formatPrice(finalTotal)}</p>
+                  <p>Monto recibido: {formatPrice(parseFloat(paymentDetails.amountReceived))}</p>
+                  <p className="font-bold border-t pt-1 mt-1">
+                    Cambio: {formatPrice(Math.max(0, parseFloat(paymentDetails.amountReceived || 0) - finalTotal))}
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -208,15 +219,24 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
                   {/* Resumen del total */}
                   <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                     <div className="space-y-2">
-                      <div className="flex justify-between items-center">
+                      <div className="flex justify-between">
                         <span>Subtotal:</span>
                         <span>{formatPrice(orderTotal.subtotal)}</span>
                       </div>
                       
+                      {/* Mostrar descuentos aplicados previamente */}
                       {orderTotal.discount > 0 && (
-                        <div className="flex justify-between items-center text-green-600">
+                        <div className="flex justify-between text-green-600">
                           <span>Descuento aplicado:</span>
                           <span>-{formatPrice(orderTotal.discount)}</span>
+                        </div>
+                      )}
+                      
+                      {/* Mostrar subtotal después de descuentos previos */}
+                      {orderTotal.discount > 0 && (
+                        <div className="flex justify-between border-t pt-2">
+                          <span>Subtotal con descuentos:</span>
+                          <span>{formatPrice(orderTotal.total)}</span>
                         </div>
                       )}
                       
@@ -243,7 +263,7 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
                       </div>
                       
                       <div className="flex justify-between items-center text-lg font-semibold border-t pt-2">
-                        <span>Total a pagar:</span>
+                        <span>Total final a pagar:</span>
                         <span className="text-indigo-600">{formatPrice(calculateFinalTotal())}</span>
                       </div>
                     </div>

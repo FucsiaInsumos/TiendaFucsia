@@ -67,10 +67,10 @@ const CartItems = ({ cart, onUpdateQuantity, onRemoveItem }) => {
 
             <div className="text-right">
               <div className="text-sm font-semibold text-gray-900">
-                {formatPrice(item.subtotal || (item.quantity * item.unitPrice))}
+                {formatPrice(parseFloat(item.subtotal) || (parseFloat(item.unitPrice) * parseInt(item.quantity)))}
               </div>
               <div className="text-xs text-gray-500">
-                {formatPrice(item.unitPrice)} c/u
+                {formatPrice(parseFloat(item.unitPrice) || 0)} c/u
               </div>
               
               {/* Mostrar información de descuentos aplicados */}
@@ -93,15 +93,15 @@ const CartItems = ({ cart, onUpdateQuantity, onRemoveItem }) => {
               </div>
               
               {/* Mostrar precio original si hay descuento */}
-              {(item.isDistributorPrice || item.isPromotion) && item.originalPrice && item.originalPrice > item.unitPrice && (
+              {(item.isDistributorPrice || item.isPromotion) && item.originalPrice && parseFloat(item.originalPrice) > parseFloat(item.unitPrice) && (
                 <div className="text-xs text-gray-400 line-through">
-                  {formatPrice(item.originalPrice)} c/u
+                  {formatPrice(parseFloat(item.originalPrice))} c/u
                 </div>
               )}
               
               {item.appliedDiscount > 0 && (
                 <div className="text-xs text-green-600">
-                  Desc: -{formatPrice(item.appliedDiscount)}
+                  Desc: -{formatPrice(parseFloat(item.appliedDiscount))}
                 </div>
               )}
             </div>
