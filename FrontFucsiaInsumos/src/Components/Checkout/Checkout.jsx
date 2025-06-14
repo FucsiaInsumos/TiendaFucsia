@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { createOrder } from '../../Redux/Actions/salesActions';
 import { clearCart } from '../../Redux/Reducer/cartReducer';
+import WompiWidget from '../../components/Checkout/WompiWidget';
 
 const Checkout = () => {
   const dispatch = useDispatch();
@@ -12,15 +13,17 @@ const Checkout = () => {
   
   const [loading, setLoading] = useState(false);
   const [orderData, setOrderData] = useState({
-    paymentMethod: 'efectivo', // Cambiar default a efectivo para retiro local
+    paymentMethod: 'efectivo',
     notes: '',
-    pickupInfo: { // Cambiar de shippingAddress a pickupInfo
+    pickupInfo: {
       customerName: '',
       phone: '',
       pickupDate: '',
       notes: ''
     }
   });
+  const [showWompiWidget, setShowWompiWidget] = useState(false);
+  const [wompiReference, setWompiReference] = useState('');
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -39,6 +42,12 @@ const Checkout = () => {
       style: 'currency',
       currency: 'COP'
     }).format(price);
+  };
+
+  const generateWompiReference = () => {
+    const timestamp = Date.now();
+    const randomNum = Math.floor(Math.random() * 1000);
+    return `FUCSIA-${user.n_document}-${timestamp}-${randomNum}`;
   };
 
   const handleInputChange = (e) => {
@@ -60,8 +69,49 @@ const Checkout = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handlePaymentMethodChange = (method) => {
+    setOrderData(prev => ({
+      ...prev,
+      paymentMethod: method
+    }));
+
+    // Si selecciona Wompi, generar referencia y mostrar widget
+    if (method === 'wompi') {
+      const reference = generateWompiReference();
+      setWompiReference(reference);
+      setShowWompiWidget(true);
+    } else {
+      setShowWompiWidget(false);
+    }
+  };
+
+  const handleWompiSuccess = (transaction) => {
+    console.log('Wompi payment successful:', transaction);
+    
+    // Actualizar los datos de la orden con la información del pago
+    setOrderData(prev => ({
+      ...prev,
+      paymentDetails: {
+        gateway: 'wompi',
+        transactionId: transaction.id,
+        reference: transaction.reference,
+        status: transaction.status,
+        amount: transaction.amount_in_cents,
+        timestamp: new Date().toISOString()
+      }
+    }));
+
+    // Proceder a crear la orden
+    handleSubmitWithPayment();
+  };
+
+  const handleWompiError = (error) => {
+    console.error('Wompi payment error:', error);
+    setShowWompiWidget(false);
+    // El toast ya se encarga del mensaje de error
+  };
+
+  const handleSubmitWithPayment = async () => {
     setLoading(true);
 
     try {
@@ -71,23 +121,20 @@ const Checkout = () => {
           productId: item.id,
           quantity: item.quantity
         })),
-        orderType: 'local', // Cambiar a local para retiro
+        orderType: 'online',
         paymentMethod: orderData.paymentMethod,
-        paymentDetails: {
+        paymentDetails: orderData.paymentDetails || {
           method: orderData.paymentMethod,
           timestamp: new Date().toISOString()
         },
         notes: orderData.notes,
-        pickupInfo: orderData.pickupInfo // Cambiar de shippingAddress
+        pickupInfo: orderData.pickupInfo
       };
 
       const response = await dispatch(createOrder(orderPayload));
       
       if (response.error === false) {
-        // Limpiar carrito
         dispatch(clearCart());
-        
-        // Redirigir a página de confirmación
         navigate(`/order-confirmation/${response.data.id}`, {
           state: { order: response.data }
         });
@@ -98,6 +145,19 @@ const Checkout = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Si es pago con Wompi y no tenemos transacción, mostrar widget
+    if (orderData.paymentMethod === 'wompi' && !orderData.paymentDetails?.transactionId) {
+      setShowWompiWidget(true);
+      return;
+    }
+
+    // Para otros métodos de pago, proceder directamente
+    handleSubmitWithPayment();
   };
 
   if (!isAuthenticated || items.length === 0) {
@@ -136,22 +196,20 @@ const Checkout = () => {
                   <p className="text-sm text-gray-600">
                     <strong>Documento:</strong> {user.n_document}
                   </p>
-                  {user.role === 'Distributor' && (
+                  {user.role === 'Distributor' && user.distributor && (
                     <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                       <p className="text-sm text-green-600 font-medium">
                         ✓ Cliente Distribuidor - Precios especiales aplicados
                       </p>
-                      {user.distributor && (
-                        <div className="text-xs text-green-700 mt-1">
-                          <p>Mínimo de compra: {formatPrice(user.distributor.minimumPurchase)}</p>
-                          <p>Total actual: {formatPrice(total)}</p>
-                          {total < user.distributor.minimumPurchase && (
-                            <p className="text-red-600 font-medium">
-                              ⚠️ Faltan {formatPrice(user.distributor.minimumPurchase - total)} para el mínimo
-                            </p>
-                          )}
-                        </div>
-                      )}
+                      <div className="text-xs text-green-700 mt-1">
+                        <p>Mínimo de compra: {formatPrice(user.distributor.minimumPurchase)}</p>
+                        <p>Total actual: {formatPrice(total)}</p>
+                        {total < user.distributor.minimumPurchase && (
+                          <p className="text-red-600 font-medium">
+                            ⚠️ Faltan {formatPrice(user.distributor.minimumPurchase - total)} para el mínimo
+                          </p>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -239,7 +297,7 @@ const Checkout = () => {
                         name="paymentMethod"
                         value="efectivo"
                         checked={orderData.paymentMethod === 'efectivo'}
-                        onChange={handleInputChange}
+                        onChange={(e) => handlePaymentMethodChange(e.target.value)}
                         className="mr-3"
                       />
                       <div className="flex items-center">
@@ -257,7 +315,7 @@ const Checkout = () => {
                         name="paymentMethod"
                         value="tarjeta"
                         checked={orderData.paymentMethod === 'tarjeta'}
-                        onChange={handleInputChange}
+                        onChange={(e) => handlePaymentMethodChange(e.target.value)}
                         className="mr-3"
                       />
                       <div className="flex items-center">
@@ -273,9 +331,27 @@ const Checkout = () => {
                       <input
                         type="radio"
                         name="paymentMethod"
+                        value="wompi"
+                        checked={orderData.paymentMethod === 'wompi'}
+                        onChange={(e) => handlePaymentMethodChange(e.target.value)}
+                        className="mr-3"
+                      />
+                      <div className="flex items-center">
+                        <span className="text-lg mr-2">🌐</span>
+                        <div>
+                          <div className="font-medium">Pago Online (Wompi)</div>
+                          <div className="text-sm text-gray-500">PSE, Tarjetas, Nequi</div>
+                        </div>
+                      </div>
+                    </label>
+
+                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
                         value="transferencia"
                         checked={orderData.paymentMethod === 'transferencia'}
-                        onChange={handleInputChange}
+                        onChange={(e) => handlePaymentMethodChange(e.target.value)}
                         className="mr-3"
                       />
                       <div className="flex items-center">
@@ -294,7 +370,7 @@ const Checkout = () => {
                           name="paymentMethod"
                           value="credito"
                           checked={orderData.paymentMethod === 'credito'}
-                          onChange={handleInputChange}
+                          onChange={(e) => handlePaymentMethodChange(e.target.value)}
                           className="mr-3"
                         />
                         <div className="flex items-center">
@@ -308,6 +384,26 @@ const Checkout = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Widget de Wompi */}
+                {showWompiWidget && (
+                  <div className="mt-6 p-4 border border-blue-200 rounded-lg bg-blue-50">
+                    <h4 className="font-semibold text-blue-900 mb-3">Completar Pago Online</h4>
+                    <WompiWidget
+                      orderId={null}
+                      reference={wompiReference}
+                      amount={Math.round(total * 100)}
+                      currency="COP"
+                      customerEmail={user.email}
+                      customerName={`${user.first_name} ${user.last_name}`}
+                      customerDocument={user.n_document}
+                      customerPhone={user.phone || orderData.pickupInfo.phone}
+                      onSuccess={handleWompiSuccess}
+                      onError={handleWompiError}
+                      onClose={() => setShowWompiWidget(false)}
+                    />
+                  </div>
+                )}
 
                 {/* Notas adicionales */}
                 <div className="mt-6">
@@ -349,8 +445,11 @@ const Checkout = () => {
                             {item.isPromotion && (
                               <span className="text-xs bg-red-100 text-red-800 px-1 rounded">OFERTA</span>
                             )}
-                            {user?.role === 'Distributor' && item.distributorPrice && (
+                            {item.isDistributorPrice && (
                               <span className="text-xs bg-green-100 text-green-800 px-1 rounded">DISTRIBUIDOR</span>
+                            )}
+                            {item.priceReverted && (
+                              <span className="text-xs bg-yellow-100 text-yellow-800 px-1 rounded">PRECIO NORMAL</span>
                             )}
                           </div>
                         </div>
@@ -391,6 +490,8 @@ const Checkout = () => {
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                       Procesando...
                     </div>
+                  ) : orderData.paymentMethod === 'wompi' ? (
+                    'Pagar Online'
                   ) : user?.role === 'Distributor' && user.distributor && total < user.distributor.minimumPurchase ? (
                     `Mínimo requerido: ${formatPrice(user.distributor.minimumPurchase)}`
                   ) : (
@@ -417,3 +518,4 @@ const Checkout = () => {
 };
 
 export default Checkout;
+

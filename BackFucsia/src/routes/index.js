@@ -15,5 +15,6 @@ router.use("/discount-rules", require("./discountRuleRoutes"));
 router.use("/orders", require("./orderRoutes"));
 router.use("/payments", require("./paymentRoutes"));
 router.use("/stock", require("./stockRoutes"));
+router.use("/wompi", require("./wompiRoutes"));
 
 module.exports = router;

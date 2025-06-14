@@ -7,7 +7,7 @@ import PrivateRoute from './Components/PrivateRoute';
 // Importa tus componentes
 import Navbar from './Components/Navbar';
 import Login from './Components/Auth/Login';
-import RegisterForm from './components/Auth/RegisterForm';
+import RegisterForm from './Components/Auth/RegisterForm';
 import Dashboard from './Components/Dashboard/Dashboard';
 import Tienda from './Components/Tienda/Tienda';
 import NotFound from './Components/NotFound';
@@ -19,13 +19,14 @@ import ProductCatalog from './Components/Shop/ProductCatalog';
 import DiscountRuleManager from './Components/DiscountRules/DiscountRuleManager';
 import DistributorManager from './Components/Distributors/DistributorManager';
 import PriceCalculator from './Components/PriceCalculator/PriceCalculator';
-import UserManagement from './components/Dashboard/UserManagement/UserManagement';
+import UserManagement from './Components/Dashboard/UserManagement/UserManagement';
 import OrderManagement from './Components/Sales/OrderManagement';
 import PaymentManagement from './Components/Sales/PaymentManagement';
 import StockManagement from './Components/Stock/StockManagement';
 import POS from './Components/POS/POS';
 import CartSidebar from './Components/Cart/CartSidebar';
 import Checkout from './Components/Checkout/Checkout';
+import OrderConfirmation from './Components/Checkout/OrderConfirmation';
 
 function App() {
   const dispatch = useDispatch();
@@ -175,6 +176,7 @@ function App() {
           />
 
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
 
           {/* Ruta por defecto para 404 */}
           <Route path="*" element={<NotFound />} />

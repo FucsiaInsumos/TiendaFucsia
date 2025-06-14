@@ -117,22 +117,18 @@ const cartSlice = createSlice({
       
       if (distributorItems.length > 0) {
         const distributorInfo = distributorItems[0]?.distributorInfo;
-        console.log('Distributor info:', distributorInfo);
         
         if (distributorInfo && distributorInfo.minimumPurchase > 0) {
           const distributorTotal = distributorItems.reduce((sum, item) => sum + item.total, 0);
-          console.log('Distributor total:', distributorTotal, 'vs minimum:', distributorInfo.minimumPurchase);
           
           if (distributorTotal < distributorInfo.minimumPurchase) {
             console.log('Minimum not met, reverting prices...');
             
-            // Revertir a precios normales
-            state.items = state.items.map(item => {
+            // Revertir a precios normales SIN volver a llamar validateDistributorMinimum
+            const updatedItems = state.items.map(item => {
               if (item.isDistributorPrice) {
-                // Calcular precio normal (promoción o precio regular)
-                const normalPrice = item.isPromotion && item.originalPrice ? 
-                  Math.min(item.originalPrice, item.promotionPrice || item.originalPrice) : 
-                  item.originalPrice;
+                const normalPrice = item.isPromotion && item.promotionPrice ? 
+                  item.promotionPrice : item.originalPrice;
                 
                 return {
                   ...item,
@@ -142,29 +138,28 @@ const cartSlice = createSlice({
                   priceReverted: true
                 };
               }
-              return item;
+              return { ...item, priceReverted: false };
             });
             
+            state.items = updatedItems;
             state.distributorMinimumNotMet = true;
             state.distributorMinimumRequired = distributorInfo.minimumPurchase;
             
             // Recalcular totales después de revertir precios
-            cartSlice.caseReducers.calculateTotals(state);
+            state.subtotal = state.items.reduce((sum, item) => sum + item.total, 0);
+            state.total = state.subtotal - state.discount;
           } else {
             console.log('Minimum met, keeping distributor prices');
             state.distributorMinimumNotMet = false;
             state.distributorMinimumRequired = null;
             
-            // Asegurar que los items mantengan el precio de distribuidor
+            // Limpiar flags de reversión sin cambiar precios
             state.items = state.items.map(item => ({
               ...item,
               priceReverted: false
             }));
           }
         }
-      } else {
-        state.distributorMinimumNotMet = false;
-        state.distributorMinimumRequired = null;
       }
     },
 
@@ -192,7 +187,6 @@ export const {
   removeFromCart,
   updateQuantity,
   clearCart,
-  calculateTotals,
   validateDistributorMinimum,
   clearDistributorWarning,
   toggleCart,
