@@ -1,9 +1,8 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-// Asegúrate que la acción recalculateCartOnUserChange NO se importe aquí si no se usa directamente.
-// Las acciones que modifican el carrito (addToCart, updateQuantity, removeFromCart) ya reciben 'user'.
-import { removeFromCart, updateQuantity, setCartOpen, clearCart, clearDistributorWarning } from '../../Redux/Reducer/cartReducer';
+import {getDiscountRules} from '../../Redux/Actions/discountRuleActions';
+import { removeFromCart, updateQuantity, setCartOpen, clearCart, clearDistributorWarning, applyDiscounts } from '../../Redux/Reducer/cartReducer';
 
 const CartSidebar = () => {
   const dispatch = useDispatch();
@@ -11,13 +10,29 @@ const CartSidebar = () => {
   const { 
     items, 
     total, 
+    subtotal,
+    discount,
+    appliedDiscounts,
     isOpen, 
     isDistributorMinimumMet, 
     distributorMinimumRequired,
     distributorPricesApplied,
-    tempSubtotalDistributorPotential // Obtener el nuevo valor
+    tempSubtotalDistributorPotential
   } = useSelector(state => state.cart);
-  const { isAuthenticated, user } = useSelector(state => state.auth); // 'user' es el objeto de usuario logueado
+  const { isAuthenticated, user } = useSelector(state => state.auth);
+  const { discountRules } = useSelector(state => state.discountRules);
+
+  // Cargar reglas de descuento al montar el componente
+  useEffect(() => {
+    dispatch(getDiscountRules());
+  }, [dispatch]);
+
+  // Aplicar descuentos cuando cambien los items del carrito, usuario o reglas
+  useEffect(() => {
+    if (items.length > 0 && discountRules.length > 0) {
+      dispatch(applyDiscounts({ user, discountRules }));
+    }
+  }, [items.length, user?.n_document, discountRules.length, dispatch]);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-CO', {
@@ -26,17 +41,16 @@ const CartSidebar = () => {
     }).format(price);
   };
 
-  const handleUpdateQuantity = (productId, newQuantity) => {
+   const handleUpdateQuantity = (productId, newQuantity) => {
     if (newQuantity <= 0) {
-      // Pasar el 'user' actual para que el reducer pueda recalcular correctamente
-      dispatch(removeFromCart({ productId, user }));
+      dispatch(removeFromCart({ productId, user, discountRules }));
     } else {
-      dispatch(updateQuantity({ productId, quantity: newQuantity, user }));
+      dispatch(updateQuantity({ productId, quantity: newQuantity, user, discountRules }));
     }
   };
 
   const handleRemoveItem = (productId) => {
-    dispatch(removeFromCart({ productId, user }));
+    dispatch(removeFromCart({ productId, user, discountRules }));
   };
 
   const handleCheckout = () => {
@@ -156,7 +170,6 @@ const CartSidebar = () => {
                     <h4 className="text-sm font-medium text-gray-900 truncate">{item.name}</h4>
                     <p className="text-xs text-gray-500">SKU: {item.sku}</p>
                     <div className="flex items-center space-x-2 mt-1">
-                      {/* 'item.price' ahora es el precio efectivo calculado por el reducer */}
                       <span className={`text-sm font-semibold ${
                         item.isDistributorPrice ? 'text-green-600' :
                         item.isPromotion ? 'text-red-600' : 'text-blue-600'
@@ -164,7 +177,6 @@ const CartSidebar = () => {
                         {formatPrice(item.price)}
                       </span>
                       
-                      {/* Mostrar precio original si es diferente al efectivo y no es el mismo que el de promoción/distribuidor */}
                       {(item.isPromotion || item.isDistributorPrice) && item.originalPrice && item.originalPrice > item.price && (
                         <span className="text-xs text-gray-500 line-through">
                           {formatPrice(item.originalPrice)}
@@ -175,17 +187,16 @@ const CartSidebar = () => {
                       {item.isDistributorPrice && (
                         <span className="bg-green-100 text-green-800 px-1 rounded font-medium">PRECIO DISTRIBUIDOR</span>
                       )}
-                      {item.isPromotion && !item.isDistributorPrice && ( // Solo mostrar oferta si no es precio de distribuidor
+                      {item.isPromotion && !item.isDistributorPrice && (
                         <span className="bg-red-100 text-red-800 px-1 rounded font-medium">OFERTA</span>
                       )}
-                      {item.priceReverted && ( // Flag si el precio de distribuidor no se aplicó por mínimo
+                      {item.priceReverted && (
                          <span className="bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded font-medium text-[10px]">Mínimo no cumplido</span>
                       )}
                     </div>
                   </div>
 
                   <div className="flex flex-col items-end space-y-2 flex-shrink-0">
-                    {/* Controles de cantidad */}
                     <div className="flex items-center border border-gray-300 rounded-lg">
                       <button
                         onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
@@ -207,12 +218,10 @@ const CartSidebar = () => {
                       </button>
                     </div>
                     
-                    {/* Total del item */}
                     <div className="text-sm font-semibold text-gray-900">
                       {formatPrice(item.total)}
                     </div>
                     
-                    {/* Botón eliminar */}
                     <button
                       onClick={() => handleRemoveItem(item.id)}
                       className="text-red-500 hover:text-red-700 text-xs flex items-center space-x-1 transition-colors"
@@ -223,7 +232,6 @@ const CartSidebar = () => {
                       <span>Eliminar</span>
                     </button>
                     
-                    {/* Stock disponible */}
                     <div className="text-xs text-gray-500">
                       Stock: {item.stock}
                     </div>
@@ -234,7 +242,7 @@ const CartSidebar = () => {
           )}
         </div>
 
-        {/* Footer - Fijo */}
+        {/* Footer */}
         {items.length > 0 && (
           <div className="border-t p-4 bg-gray-50 space-y-4 flex-shrink-0">
             {/* Información adicional para distribuidores */}
@@ -263,8 +271,37 @@ const CartSidebar = () => {
               </div>
             )}
 
+            {/* Resumen de precios */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Subtotal:</span>
+                <span>{formatPrice(subtotal)}</span>
+              </div>
+              
+              {/* Mostrar descuentos aplicados */}
+              {appliedDiscounts && appliedDiscounts.length > 0 && (
+                <div className="space-y-1">
+                  {appliedDiscounts.map((discountItem, index) => (
+                    <div key={index} className="flex justify-between text-sm text-green-600">
+                      <span className="flex items-center">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                        </svg>
+                        {discountItem.name}:
+                      </span>
+                      <span>-{formatPrice(discountItem.amount)}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between text-sm font-medium text-green-600 pt-1 border-t border-green-200">
+                    <span>Total descuentos:</span>
+                    <span>-{formatPrice(discount)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Total */}
-            <div className="flex justify-between items-center text-lg font-semibold">
+            <div className="flex justify-between items-center text-lg font-semibold pt-2 border-t">
               <span>Total:</span>
               <span className="text-blue-600">{formatPrice(total)}</span>
             </div>
@@ -303,5 +340,6 @@ const CartSidebar = () => {
     </div>
   );
 };
+
 
 export default CartSidebar;

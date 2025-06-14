@@ -1,5 +1,95 @@
 const { Op } = require('sequelize');
 const { Order, OrderItem, Payment, Product, User, DiscountRule, StockMovement, Distributor, conn } = require('../../data');
+// Función para aplicar reglas de descuento
+const applyDiscountRules = async (items, user) => {
+  try {
+    const now = new Date();
+    const userType = user?.role === 'Distributor' ? 'distributors' : 'customers';
+    
+    // Obtener todas las reglas de descuento activas y aplicables
+    const discountRules = await DiscountRule.findAll({
+      where: {
+        isActive: true,
+        [Op.or]: [
+          { applicableFor: 'all' },
+          { applicableFor: userType }
+        ],
+        [Op.or]: [
+          { startDate: null },
+          { startDate: { [Op.lte]: now } }
+        ],
+        [Op.or]: [
+          { endDate: null },
+          { endDate: { [Op.gte]: now } }
+        ]
+      },
+      order: [['priority', 'DESC'], ['createdAt', 'DESC']]
+    });
+
+    if (!discountRules || discountRules.length === 0) {
+      return { totalDiscount: 0, appliedDiscounts: [] };
+    }
+
+    // Calcular totales del carrito
+    const cartSubtotal = items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+    const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+
+    let totalDiscount = 0;
+    const appliedDiscounts = [];
+
+    // Aplicar reglas de descuento
+    for (const rule of discountRules) {
+      let ruleApplies = false;
+      let discountAmount = 0;
+
+      // Verificar condiciones de la regla
+      switch (rule.conditionType) {
+        case 'quantity':
+          ruleApplies = totalQuantity >= (rule.minQuantity || 0) && 
+                       (!rule.maxQuantity || totalQuantity <= rule.maxQuantity);
+          break;
+        case 'amount':
+          ruleApplies = cartSubtotal >= (parseFloat(rule.minAmount) || 0) && 
+                       (!rule.maxAmount || cartSubtotal <= parseFloat(rule.maxAmount));
+          break;
+        case 'both':
+          ruleApplies = totalQuantity >= (rule.minQuantity || 0) && 
+                       cartSubtotal >= (parseFloat(rule.minAmount) || 0) &&
+                       (!rule.maxQuantity || totalQuantity <= rule.maxQuantity) &&
+                       (!rule.maxAmount || cartSubtotal <= parseFloat(rule.maxAmount));
+          break;
+      }
+
+      // Si aplica la regla, calcular descuento
+      if (ruleApplies) {
+        if (rule.discountType === 'percentage') {
+          discountAmount = cartSubtotal * (parseFloat(rule.discountValue) / 100);
+        } else if (rule.discountType === 'fixed_amount') {
+          discountAmount = Math.min(parseFloat(rule.discountValue), cartSubtotal);
+        }
+
+        if (discountAmount > 0) {
+          totalDiscount += discountAmount;
+          appliedDiscounts.push({
+            id: rule.id,
+            name: rule.name,
+            type: rule.discountType,
+            value: rule.discountValue,
+            amount: discountAmount
+          });
+
+          console.log(`Descuento aplicado: ${rule.name} - ${formatPrice(discountAmount)}`);
+        }
+      }
+    }
+
+    return { totalDiscount, appliedDiscounts };
+  } catch (error) {
+    console.error('Error aplicando reglas de descuento:', error);
+    return { totalDiscount: 0, appliedDiscounts: [] };
+  }
+};
+
 
 // Generar número de orden secuencial
 const generateOrderNumber = async () => {
@@ -165,8 +255,13 @@ const createOrder = async (req, res) => {
       subtotal += pItem.itemSubtotal;
     }
     
-    // Calcular descuentos
-    let totalDiscount = 0;
+     // **NUEVA SECCIÓN - Aplicar reglas de descuento automáticamente**
+    const discountResult = await applyDiscountRules(processedOrderItems, customer);
+    let rulesDiscount = discountResult.totalDiscount;
+    const appliedDiscountRules = discountResult.appliedDiscounts;
+    
+    // Calcular descuentos totales
+    let totalDiscount = rulesDiscount;
     let extraDiscountAmount = 0;
     let finalNotes = originalNotes || ''; // Variable para manejar las notas
     
@@ -181,10 +276,16 @@ const createOrder = async (req, res) => {
       
       console.log(`Descuento extra aplicado: ${extraDiscountPercentage}% = ${formatPrice(extraDiscountAmount)}`);
     }
+
+    // Agregar notas sobre reglas de descuento aplicadas
+    if (appliedDiscountRules.length > 0) {
+      const rulesNote = `\nDescuentos aplicados: ${appliedDiscountRules.map(r => `${r.name} (-${formatPrice(r.amount)})`).join(', ')}`;
+      finalNotes = finalNotes + rulesNote;
+    }
     
     const total = subtotal - totalDiscount;
 
-    // Crear la orden
+    // Crear la orden con campos de descuento
     const order = await Order.create({
       orderNumber,
       userId,
@@ -198,7 +299,8 @@ const createOrder = async (req, res) => {
       cashierId: cashierId || null,
       notes: finalNotes, // Usar la variable finalNotes
       shippingAddress, // Para envíos
-      pickupInfo: orderType === 'online' ? pickupInfo : null // Para retiro en tienda
+      pickupInfo: orderType === 'online' ? pickupInfo : null, // Para retiro en tienda
+      appliedDiscounts: appliedDiscountRules // NUEVO CAMPO - Guardar descuentos aplicados como JSON
     }, { transaction });
 
     for (const pItem of processedOrderItems) {
@@ -242,6 +344,8 @@ const createOrder = async (req, res) => {
         paymentDetails: {
           ...paymentDetails,
           originalTotal: subtotal,
+          rulesDiscount: rulesDiscount, // NUEVO
+          appliedDiscountRules: appliedDiscountRules, // NUEVO
           extraDiscountPercentage: extraDiscountPercentage || 0,
           extraDiscountAmount: extraDiscountAmount,
           finalTotal: total
@@ -289,6 +393,10 @@ const createOrder = async (req, res) => {
       successMessage += ` - Descuento POS aplicado: ${extraDiscountPercentage}%`;
     }
 
+    if (appliedDiscountRules.length > 0) {
+      successMessage += ` - Descuentos por reglas aplicados: ${formatPrice(rulesDiscount)}`;
+    }
+
     res.status(201).json({
       error: false,
       message: successMessage,
@@ -305,6 +413,7 @@ const createOrder = async (req, res) => {
     });
   }
 };
+
 
 // Obtener órdenes del usuario actual (para clientes)
 const getMyOrders = async (req, res) => {

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginSuccess } from './Redux/Actions/authActions';
 import { recalculateCartOnUserChange } from './Redux/Reducer/cartReducer'; // Asegúrate que la ruta sea correcta
+import { getDiscountRules } from './Redux/Actions/discountRuleActions';
 import PrivateRoute from './Components/PrivateRoute';
 
 // Importa tus componentes
@@ -33,10 +34,19 @@ import MyOrders from './Components/Customer/MyOrders';
 function App() {
   const dispatch = useDispatch();
   const { user: currentUser } = useSelector(state => state.auth);
+ const {discountRules} = useSelector(state => state.discountRules);
+ 
+ useEffect(() => {
+    dispatch(getDiscountRules());
+  }, [dispatch]);
+
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
+   
+
+
     
     if (token && storedUser) {
       try {
