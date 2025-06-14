@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Eye, ShoppingCart, Heart } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { addToCart, toggleCart } from '../../Redux/Reducer/cartReducer';
 import ProductDetailModal from './ProductDetailModal';
 
@@ -111,8 +111,11 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {products.map(product => (
           <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 group">
-            {/* Imagen del producto */}
-            <div className="relative h-48 bg-gray-200 overflow-hidden">
+            {/* Imagen del producto - Ahora clickeable */}
+            <div 
+              className="relative h-48 bg-gray-200 overflow-hidden cursor-pointer"
+              onClick={() => openProductDetail(product)}
+            >
               {product.image_url && product.image_url.length > 0 ? (
                 <img
                   src={product.image_url[0]}
@@ -155,29 +158,22 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
                 )}
               </div>
 
-              {/* Botones de acción */}
-              <div className="absolute top-2 right-2 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => openProductDetail(product)}
-                  className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50"
-                  title="Ver detalles"
-                >
-                  <Eye size={16} className="text-gray-600" />
-                </button>
-                <button
-                  className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50"
-                  title="Agregar a favoritos"
-                >
-                  <Heart size={16} className="text-gray-600" />
-                </button>
-              </div>
-
               {/* Indicador de múltiples imágenes */}
               {product.image_url && product.image_url.length > 1 && (
                 <div className="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white px-2 py-1 rounded-full text-xs">
                   +{product.image_url.length - 1}
                 </div>
               )}
+
+              {/* Overlay para indicar que es clickeable */}
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+                <div className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                </div>
+              </div>
             </div>
 
             {/* Información del producto */}
@@ -253,9 +249,9 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
               <div className="flex items-center justify-between mb-4">
                 <div className="text-sm text-gray-600">
                   {product.stock > 0 ? (
-                    <span className="text-green-600">En stock ({product.stock})</span>
+                    <span className="text-green-600">Stock ({product.stock})</span>
                   ) : (
-                    <span className="text-red-600">Agotado</span>
+                    <span className="text-red-600"></span>
                   )}
                 </div>
                 
@@ -281,7 +277,7 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
                       </svg>
-                      <span>Agregar al carrito</span>
+                      <span>Agregar</span>
                     </>
                   )}
                 </button>
@@ -296,9 +292,13 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
         product={selectedProduct}
         isOpen={isModalOpen}
         onClose={closeProductDetail}
+        onAddToCart={handleAddToCart}
       />
     </>
   );
 };
 
 export default ProductGrid;
+
+
+

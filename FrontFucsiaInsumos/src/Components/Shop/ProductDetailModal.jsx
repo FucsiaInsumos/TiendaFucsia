@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { X, ChevronLeft, ChevronRight, ShoppingCart, Heart, Share2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ShoppingCart} from 'lucide-react';
 
 const ProductDetailModal = ({ product, isOpen, onClose, onAddToCart }) => {
   const { isAuthenticated, user } = useSelector(state => state.auth);
@@ -39,6 +39,10 @@ const ProductDetailModal = ({ product, isOpen, onClose, onAddToCart }) => {
   };
 
   const handleAddToCart = () => {
+    if (product.stock < quantity) {
+      alert('No hay suficiente stock disponible');
+      return;
+    }
     onAddToCart(product, quantity);
     onClose();
   };
@@ -212,28 +216,46 @@ const ProductDetailModal = ({ product, isOpen, onClose, onAddToCart }) => {
 
             {/* Selector de cantidad y botón agregar */}
             {product.stock > 0 && (
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center border border-gray-300 rounded-lg">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 py-2 text-gray-600 hover:text-gray-800"
-                  >
-                    -
-                  </button>
-                  <span className="px-4 py-2 border-l border-r border-gray-300">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                    className="px-3 py-2 text-gray-600 hover:text-gray-800"
-                  >
-                    +
-                  </button>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <label className="text-sm font-medium text-gray-700">Cantidad:</label>
+                  <div className="flex items-center border border-gray-300 rounded-lg">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors"
+                    >
+                      -
+                    </button>
+                    <span className="px-4 py-2 border-l border-r border-gray-300 min-w-[3rem] text-center">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                      className="px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
                 
                 <button
                   onClick={handleAddToCart}
-                  className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition duration-200"
+                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 flex items-center justify-center space-x-2"
                 >
-                  Agregar al carrito ({formatPrice(getDisplayPrice() * quantity)})
+                  <ShoppingCart size={20} />
+                  <span>Agregar al carrito ({formatPrice(getDisplayPrice() * quantity)})</span>
+                </button>
+              </div>
+            )}
+
+            {product.stock === 0 && (
+              <div className="text-center py-4">
+                <button
+                  disabled
+                  className="w-full bg-gray-300 text-gray-500 py-3 px-6 rounded-lg font-semibold cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd"/>
+                  </svg>
+                  <span>Producto Agotado</span>
                 </button>
               </div>
             )}
