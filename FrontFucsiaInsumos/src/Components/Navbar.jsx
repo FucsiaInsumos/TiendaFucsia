@@ -61,15 +61,13 @@ const Navbar = () => {
                 alt="Fucsia Logo" 
                 className="h-12 w-auto mr-3" 
               />
-              <span className="text-white text-xl font-bold hidden sm:block">
-                Fucsia Insumos
-              </span>
+              
             </Link>
             
-            <div className="hidden md:flex space-x-6">
+            <div className="hidden md:flex space-x-12 ml-10">
               <Link 
                 to="/catalogo" 
-                className="hover:text-blue-200 transition duration-200 font-medium"
+                className="hover:text-blue-200 transition duration-200 font-medium "
               >
                 Catálogo
               </Link>
