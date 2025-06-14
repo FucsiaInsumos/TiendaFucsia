@@ -1,11 +1,16 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  sequelize.define('Product', {
+  return sequelize.define('Product', {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
+    },
+    sku: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true
     },
     name: {
       type: DataTypes.STRING,
@@ -14,9 +19,18 @@ module.exports = (sequelize) => {
     description: {
       type: DataTypes.TEXT
     },
+    purchasePrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false
+    },
     price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false
+    },
+    distributorPrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      
     },
     stock: {
       type: DataTypes.INTEGER,
@@ -47,7 +61,12 @@ module.exports = (sequelize) => {
       defaultValue: []
     },
     image_url: {
-      type: DataTypes.STRING
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      defaultValue: []
+    },
+    specificAttributes: {
+      type: DataTypes.JSONB,
+      allowNull: true
     },
     isActive: {
       type: DataTypes.BOOLEAN,

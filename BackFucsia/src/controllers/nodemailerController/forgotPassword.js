@@ -23,7 +23,7 @@ exports.forgotPassword = async (req, res) => {
 
     const resetUrl = `${req.protocol}://${req.get('host')}/resetPassword/${resetToken}`;
 
-    const message = `Recibió este correo electrónico porque usted (o alguien más) solicitó restablecer la contraseña. Haga clic en el siguiente enlace para restablecer su contraseña: \n\n ${resetUrl}`;
+    const message = `Recibió este correo electrónico de Fucsia porque usted (o alguien más) solicitó restablecer la contraseña. Haga clic en el siguiente enlace para restablecer su contraseña: \n\n ${resetUrl}`;
 
     const mailOptions = {
       from: process.env.SMTP_USER,

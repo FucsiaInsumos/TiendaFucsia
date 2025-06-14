@@ -6,7 +6,6 @@ const cors = require('cors');
 const path = require('path');
 const { passport } = require('./passport');
 const { JWT_SECRET_KEY } = require('./config/envs');
-const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
@@ -36,9 +35,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
+// Routes - Todas las rutas ahora están organizadas en routes/index.js
 app.use('/', routes);
-app.use('/auth', authRoutes);
 
 // Not Found Middleware
 app.use('*', (req, res) => {
@@ -51,12 +49,12 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');
 });
-
 // Error Handling Middleware
 app.use((err, req, res, next) => {
-  res.status(err.statusCode || 500).send({
+  console.error(err.stack);
+  res.status(500).send({
     error: true,
-    message: err.message,
+    message: err.message || 'Something broke!',
   });
 });
 

@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  sequelize.define('StockMovement', {
+ return sequelize.define('StockMovement', {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
@@ -17,23 +17,27 @@ module.exports = (sequelize) => {
     },
     quantity: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+     
     },
     type: {
-      type: DataTypes.ENUM('entrada', 'salida', 'ajuste', 'devolucion'),
+      type: DataTypes.ENUM('entrada', 'salida', 'ajuste', 'transferencia'),
       allowNull: false
     },
     reason: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      
     },
     previousStock: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+     
     },
     currentStock: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      
     },
     userId: {
       type: DataTypes.STRING,
@@ -41,7 +45,8 @@ module.exports = (sequelize) => {
       references: {
         model: 'Users',
         key: 'n_document'
-      }
+      },
+     
     },
     orderId: {
       type: DataTypes.UUID,
@@ -49,7 +54,12 @@ module.exports = (sequelize) => {
       references: {
         model: 'Orders',
         key: 'id'
-      }
+      },
+     
+    },
+    notes: {
+      type: DataTypes.TEXT,
+      allowNull: true
     }
   });
 };

@@ -8,6 +8,5 @@ conn.sync({ alter : true }).then(async () => {
   app.listen(PORT, () => {
     console.log(`🚀 listening on port: ${PORT} 🚀`);
   });
- 
 });
 

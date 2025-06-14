@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  sequelize.define(
+  return sequelize.define(
     'User',
     {
       n_document: {
@@ -10,8 +10,9 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
       wdoctype: {
-        type: DataTypes.ENUM('RC', 'TI', 'CC','TE', 'CE', 'NIT','PAS', 'DEX', 'PEP','PPT', 'FI', 'NUIP'),
+        type: DataTypes.ENUM('RC', 'TI', 'CC','TE', 'CE', 'NIT','PAS', 'DEX', 'PEP','PPT', 'FI', 'NUIP'), // Cambiado de ENUM a STRING
         allowNull: true,
+        
       },
       first_name: {
         type: DataTypes.STRING,
@@ -39,17 +40,19 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
       },
       role: {
-        type: DataTypes.ENUM('Customer', 'Distributor', 'Cashier', 'Owner'),
+        type: DataTypes.ENUM('Customer', 'Distributor', 'Cashier', 'Owner'), // Cambiado de ENUM a STRING
         defaultValue: 'Customer',
+      
       },
       isActive: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
       },
       wlegalorganizationtype: {
-        type: DataTypes.ENUM('person', 'company'),
+        type: DataTypes.ENUM('person', 'company'), // Cambiado de ENUM a STRING
         allowNull: true,
         defaultValue: 'person',
+      
       },
       scostumername: {
         type: DataTypes.STRING,
@@ -57,20 +60,22 @@ module.exports = (sequelize) => {
         
       },
       stributaryidentificationkey: {
-        type: DataTypes.ENUM('O-1', 'O-4', 'ZZ', 'ZA'),
+        type: DataTypes.ENUM('O-1', 'O-4', 'ZZ', 'ZA'), // Cambiado de ENUM a STRING
         allowNull: true,
         defaultValue: 'O-1',
-        
+       
       },
       sfiscalresponsibilities: {
-        type: DataTypes.ENUM('O-13', 'O-15', 'O-23', 'O-47', 'R-99-PN'),
+        type: DataTypes.ENUM('O-13', 'O-15', 'O-23', 'O-47', 'R-99-PN'), // Cambiado de ENUM a STRING
         allowNull: true,
         defaultValue: 'R-99-PN',
+       
       },
       sfiscalregime: {
-        type: DataTypes.ENUM('48', "49"),
+        type: DataTypes.ENUM('48', '49'), // Cambiado de ENUM a STRING
         allowNull: true,
         defaultValue: '48',
+       
       },
       
 

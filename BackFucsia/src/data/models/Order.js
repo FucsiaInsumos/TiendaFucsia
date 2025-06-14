@@ -1,11 +1,17 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  sequelize.define('Order', {
+  return sequelize.define('Order', {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
+    },
+    orderNumber: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      
     },
     userId: {
       type: DataTypes.STRING,
@@ -15,7 +21,7 @@ module.exports = (sequelize) => {
         key: 'n_document'
       }
     },
-    total: {
+    subtotal: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false
     },
@@ -23,12 +29,17 @@ module.exports = (sequelize) => {
       type: DataTypes.DECIMAL(10, 2),
       defaultValue: 0
     },
-    finalTotal: {
+    tax: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0
+    },
+    total: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false
     },
     status: {
-      type: DataTypes.ENUM('pending', 'completed', 'cancelled'),
+      type: DataTypes.ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled', 'completed', 'confirmed'), // Añadido 'confirmed'
+      allowNull: false,
       defaultValue: 'pending'
     },
     orderType: {
@@ -37,10 +48,20 @@ module.exports = (sequelize) => {
     },
     cashierId: {
       type: DataTypes.STRING,
+      allowNull: true,
       references: {
         model: 'Users',
         key: 'n_document'
       }
+    },
+    notes: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    shippingAddress: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      
     }
   });
 };

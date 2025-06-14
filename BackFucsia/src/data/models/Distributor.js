@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  sequelize.define('Distributor', {
+  return sequelize.define('Distributor', {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
@@ -35,6 +35,11 @@ module.exports = (sequelize) => {
     paymentTerm: {
       type: DataTypes.INTEGER, // días
       defaultValue: 30
+    },
+    minimumPurchase: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0,
+      
     }
   });
 };
