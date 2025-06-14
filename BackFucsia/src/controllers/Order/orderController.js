@@ -54,6 +54,15 @@ const createOrder = async (req, res) => {
       });
     }
 
+    // Validación específica: Ventas online solo pueden usar Wompi
+    if (orderType === 'online' && paymentMethod !== 'wompi') {
+      await transaction.rollback();
+      return res.status(400).json({
+        error: true,
+        message: 'Las compras online solo pueden pagarse con Wompi por seguridad'
+      });
+    }
+
     // Verificar que el usuario existe y obtener info del distribuidor
     const customer = await User.findByPk(userId, {
       include: [{ model: Distributor, as: 'distributor', required: false }]

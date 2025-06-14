@@ -34,6 +34,10 @@ const Checkout = () => {
   const [showWompiWidget, setShowWompiWidget] = useState(false);
   const [wompiReference, setWompiReference] = useState('');
 
+  // Determinar si es venta online (asumiendo que si está en /checkout es online)
+  // Si tienes otra forma de identificarlo, ajusta esta lógica
+  const isOnlineSale = window.location.pathname.includes('/checkout') || window.location.pathname.includes('/online');
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login?redirect=checkout');
@@ -44,7 +48,15 @@ const Checkout = () => {
       navigate('/catalogo');
       return;
     }
-  }, [isAuthenticated, items.length, navigate]);
+
+    // Si es venta online, forzar método de pago a Wompi
+    if (isOnlineSale) {
+      setOrderData(prev => ({
+        ...prev,
+        paymentMethod: 'wompi'
+      }));
+    }
+  }, [isAuthenticated, items.length, navigate, isOnlineSale]);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-CO', {
@@ -79,6 +91,11 @@ const Checkout = () => {
   };
 
   const handlePaymentMethodChange = (method) => {
+    // Si es venta online, solo permitir Wompi
+    if (isOnlineSale && method !== 'wompi') {
+      return; // No hacer nada, mantener wompi
+    }
+    
     setOrderData(prev => ({
       ...prev,
       paymentMethod: method
@@ -310,108 +327,144 @@ const Checkout = () => {
                 {/* Método de pago */}
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold mb-4">Método de Pago</h3>
+                  
+                  {/* Mostrar mensaje para ventas online */}
+                  {isOnlineSale && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-blue-800 text-sm">
+                        <span className="font-medium">🌐 Compra Online:</span> Para tu seguridad, los pagos online se procesan únicamente a través de Wompi (PSE, tarjetas, Nequi, etc.)
+                      </p>
+                    </div>
+                  )}
+                  
                   <div className="space-y-3">
-                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="efectivo"
-                        checked={orderData.paymentMethod === 'efectivo'}
-                        onChange={(e) => handlePaymentMethodChange(e.target.value)}
-                        className="mr-3"
-                      />
-                      <div className="flex items-center">
-                        <span className="text-lg mr-2">💵</span>
-                        <div>
-                          <div className="font-medium">Efectivo</div>
-                          <div className="text-sm text-gray-500">Pago al retirar en local</div>
-                        </div>
-                      </div>
-                    </label>
-
-                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="tarjeta"
-                        checked={orderData.paymentMethod === 'tarjeta'}
-                        onChange={(e) => handlePaymentMethodChange(e.target.value)}
-                        className="mr-3"
-                      />
-                      <div className="flex items-center">
-                        <span className="text-lg mr-2">💳</span>
-                        <div>
-                          <div className="font-medium">Tarjeta</div>
-                          <div className="text-sm text-gray-500">Débito o crédito en local</div>
-                        </div>
-                      </div>
-                    </label>
-
-                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="wompi"
-                        checked={orderData.paymentMethod === 'wompi'}
-                        onChange={(e) => handlePaymentMethodChange(e.target.value)}
-                        className="mr-3"
-                      />
-                      <div className="flex items-center">
-                        <span className="text-lg mr-2">🌐</span>
-                        <div>
-                          <div className="font-medium">Pago Online (Wompi)</div>
-                          <div className="text-sm text-gray-500">PSE, Tarjetas, Nequi</div>
-                        </div>
-                      </div>
-                    </label>
-
-                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="transferencia"
-                        checked={orderData.paymentMethod === 'transferencia'}
-                        onChange={(e) => handlePaymentMethodChange(e.target.value)}
-                        className="mr-3"
-                      />
-                      <div className="flex items-center">
-                        <span className="text-lg mr-2">🏦</span>
-                        <div>
-                          <div className="font-medium">Transferencia</div>
-                          <div className="text-sm text-gray-500">Pago anticipado por transferencia</div>
-                        </div>
-                      </div>
-                    </label>
-
-                    {user.role === 'Distributor' && (
-                      <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                    {/* Solo mostrar Wompi para ventas online */}
+                    {isOnlineSale ? (
+                      <label className="flex items-center p-3 border-2 border-green-500 bg-green-50 rounded-lg cursor-pointer">
                         <input
                           type="radio"
                           name="paymentMethod"
-                          value="credito"
-                          checked={orderData.paymentMethod === 'credito'}
-                          onChange={(e) => handlePaymentMethodChange(e.target.value)}
+                          value="wompi"
+                          checked={true}
+                          readOnly
                           className="mr-3"
                         />
                         <div className="flex items-center">
-                          <span className="text-lg mr-2">📄</span>
+                          <span className="text-lg mr-2">🌐</span>
                           <div>
-                            <div className="font-medium">Crédito</div>
-                            <div className="text-sm text-gray-500">Pago a 30 días</div>
+                            <div className="font-medium text-green-800">Pago Online Seguro (Wompi)</div>
+                            <div className="text-sm text-green-600">PSE, Tarjetas de Crédito/Débito, Nequi, Daviplata</div>
                           </div>
                         </div>
                       </label>
+                    ) : (
+                      // Mostrar todas las opciones para ventas locales
+                      <>
+                        <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="efectivo"
+                            checked={orderData.paymentMethod === 'efectivo'}
+                            onChange={(e) => handlePaymentMethodChange(e.target.value)}
+                            className="mr-3"
+                          />
+                          <div className="flex items-center">
+                            <span className="text-lg mr-2">💵</span>
+                            <div>
+                              <div className="font-medium">Efectivo</div>
+                              <div className="text-sm text-gray-500">Pago al retirar en local</div>
+                            </div>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="tarjeta"
+                            checked={orderData.paymentMethod === 'tarjeta'}
+                            onChange={(e) => handlePaymentMethodChange(e.target.value)}
+                            className="mr-3"
+                          />
+                          <div className="flex items-center">
+                            <span className="text-lg mr-2">💳</span>
+                            <div>
+                              <div className="font-medium">Tarjeta</div>
+                              <div className="text-sm text-gray-500">Débito o crédito en local</div>
+                            </div>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="wompi"
+                            checked={orderData.paymentMethod === 'wompi'}
+                            onChange={(e) => handlePaymentMethodChange(e.target.value)}
+                            className="mr-3"
+                          />
+                          <div className="flex items-center">
+                            <span className="text-lg mr-2">🌐</span>
+                            <div>
+                              <div className="font-medium">Pago Online (Wompi)</div>
+                              <div className="text-sm text-gray-500">PSE, Tarjetas, Nequi</div>
+                            </div>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="transferencia"
+                            checked={orderData.paymentMethod === 'transferencia'}
+                            onChange={(e) => handlePaymentMethodChange(e.target.value)}
+                            className="mr-3"
+                          />
+                          <div className="flex items-center">
+                            <span className="text-lg mr-2">🏦</span>
+                            <div>
+                              <div className="font-medium">Transferencia</div>
+                              <div className="text-sm text-gray-500">Pago anticipado por transferencia</div>
+                            </div>
+                          </div>
+                        </label>
+
+                        {user.role === 'Distributor' && (
+                          <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="credito"
+                              checked={orderData.paymentMethod === 'credito'}
+                              onChange={(e) => handlePaymentMethodChange(e.target.value)}
+                              className="mr-3"
+                            />
+                            <div className="flex items-center">
+                              <span className="text-lg mr-2">📄</span>
+                              <div>
+                                <div className="font-medium">Crédito</div>
+                                <div className="text-sm text-gray-500">Pago a 30 días</div>
+                              </div>
+                            </div>
+                          </label>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
 
-                {/* Widget de Wompi */}
-                {showWompiWidget && (
+                {/* Widget de Wompi - Mostrar automáticamente para ventas online */}
+                {(showWompiWidget || (isOnlineSale && orderData.paymentMethod === 'wompi')) && (
                   <div className="mt-6 p-4 border border-blue-200 rounded-lg bg-blue-50">
-                    <h4 className="font-semibold text-blue-900 mb-3">Completar Pago Online</h4>
+                    <h4 className="font-semibold text-blue-900 mb-3">
+                      {isOnlineSale ? 'Completar Pago Online' : 'Completar Pago Online'}
+                    </h4>
                     <WompiWidget
                       orderId={null}
-                      reference={wompiReference}
+                      reference={wompiReference || generateWompiReference()}
                       amount={Math.round(total * 100)}
                       currency="COP"
                       customerEmail={user.email}
@@ -420,7 +473,7 @@ const Checkout = () => {
                       customerPhone={user.phone || orderData.pickupInfo.phone}
                       onSuccess={handleWompiSuccess}
                       onError={handleWompiError}
-                      onClose={() => setShowWompiWidget(false)}
+                      onClose={() => !isOnlineSale && setShowWompiWidget(false)} // No permitir cerrar en ventas online
                     />
                   </div>
                 )}
