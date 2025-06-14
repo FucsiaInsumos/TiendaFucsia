@@ -64,6 +64,18 @@ export const cancelOrder = (orderId, reason) => async (dispatch) => {
   }
 };
 
+// Obtener órdenes del usuario actual (para clientes)
+export const getMyOrders = (params = {}) => async (dispatch) => {
+  try {
+    const response = await api.get('/orders/my-orders', { params });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Error al obtener mis órdenes';
+    console.error('Get my orders error:', errorMessage);
+    throw error;
+  }
+};
+
 // =============================================================================
 // PAYMENT ACTIONS
 // =============================================================================

@@ -306,9 +306,87 @@ const createOrder = async (req, res) => {
   }
 };
 
+// Obtener órdenes del usuario actual (para clientes)
+const getMyOrders = async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 10, 
+      status, 
+      orderType, 
+      paymentStatus,
+      startDate,
+      endDate
+    } = req.query;
+
+    // El userId viene del token decodificado en el middleware
+    const userId = req.user.id;
+
+    const whereClause = { userId }; // Solo órdenes del usuario actual
+    if (status) whereClause.status = status;
+    if (orderType) whereClause.orderType = orderType;
+    if (paymentStatus) whereClause.paymentStatus = paymentStatus;
+    
+    if (startDate || endDate) {
+      whereClause.createdAt = {};
+      if (startDate) whereClause.createdAt[Op.gte] = new Date(startDate);
+      if (endDate) whereClause.createdAt[Op.lte] = new Date(endDate);
+    }
+
+    const orders = await Order.findAndCountAll({
+      where: whereClause,
+      include: [
+        {
+          model: OrderItem,
+          as: 'items',
+          include: [{ model: Product, as: 'product' }]
+        },
+        {
+          model: Payment,
+          as: 'payments'
+        },
+        {
+          model: User,
+          as: 'customer',
+          attributes: { exclude: ['password'] }
+        }
+      ],
+      limit: parseInt(limit),
+      offset: (parseInt(page) - 1) * parseInt(limit),
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.json({
+      error: false,
+      message: 'Mis órdenes obtenidas exitosamente',
+      data: {
+        orders: orders.rows,
+        totalOrders: orders.count,
+        totalPages: Math.ceil(orders.count / parseInt(limit)),
+        currentPage: parseInt(page)
+      }
+    });
+
+  } catch (error) {
+    console.error('Error al obtener mis órdenes:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
 // Obtener todas las órdenes
 const getOrders = async (req, res) => {
   try {
+    // Verificar que el usuario tenga permisos para ver todas las órdenes
+    if (req.user.role !== 'Owner' && req.user.role !== 'Admin' && req.user.role !== 'Cashier') {
+      return res.status(403).json({
+        error: true,
+        message: 'No tienes permisos para ver todas las órdenes'
+      });
+    }
+
     const { 
       page = 1, 
       limit = 10, 
@@ -560,6 +638,7 @@ const formatPrice = (price) => {
 module.exports = {
   createOrder,
   getOrders,
+  getMyOrders, // Nueva función
   getOrderById,
   updateOrderStatus,
   cancelOrder

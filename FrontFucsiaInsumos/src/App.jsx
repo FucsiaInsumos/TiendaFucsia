@@ -28,6 +28,7 @@ import POS from './Components/POS/POS';
 import CartSidebar from './Components/Cart/CartSidebar';
 import Checkout from './Components/Checkout/Checkout';
 import OrderConfirmation from './Components/Checkout/OrderConfirmation';
+import MyOrders from './Components/Customer/MyOrders';
 
 function App() {
   const dispatch = useDispatch();
@@ -186,6 +187,26 @@ function App() {
 
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+
+          {/* Nueva ruta para que usuarios comunes y distribuidores vean sus órdenes */}
+          <Route
+            path="/mis-ordenes"
+            element={
+              <PrivateRoute allowedRoles={['Customer', 'Distributor']}>
+                <MyOrders />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Renombrar la ruta existente de órdenes para que sea más específica para admin */}
+          <Route
+            path="/admin/ordenes"
+            element={
+              <PrivateRoute allowedRoles={['Owner', 'Cashier']}>
+                <OrderManagement />
+              </PrivateRoute>
+            }
+          />
 
           {/* Ruta por defecto para 404 */}
           <Route path="*" element={<NotFound />} />
