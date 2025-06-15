@@ -176,27 +176,39 @@ const MyOrders = () => {
             </p>
           </div>
         ) : (
-          orders.map(order => (
-            <div key={order.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Orden #{order.orderNumber}
-                  </h3>
-                  <div className="flex items-center text-sm text-gray-500 mt-1">
-                    <Calendar size={16} className="mr-1" />
-                    {formatDate(order.createdAt)}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-                    {getStatusText(order.status)}
-                  </span>
-                  <div className="text-lg font-bold text-gray-800 mt-1">
-                    {formatPrice(order.total)}
-                  </div>
-                </div>
-              </div>
+         orders.map(order => (
+  <div key={order.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+    <div className="flex justify-between items-start mb-4">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-800">
+          Orden #{order.orderNumber}
+        </h3>
+        <div className="flex items-center text-sm text-gray-500 mt-1">
+          <Calendar size={16} className="mr-1" />
+          {formatDate(order.createdAt)}
+        </div>
+      </div>
+      <div className="text-right">
+        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
+          {getStatusText(order.status)}
+        </span>
+        <div className="text-lg font-bold text-gray-800 mt-1">
+          {formatPrice(order.total)}
+        </div>
+        {/* NUEVA LÍNEA - Mostrar descuento si existe */}
+        {order.discount > 0 && (
+          <div className="text-sm text-green-600 font-medium">
+            Ahorro: {formatPrice(order.discount)}
+          </div>
+        )}
+        {/* NUEVA LÍNEA - Mostrar subtotal original si hay descuento */}
+        {order.discount > 0 && (
+          <div className="text-xs text-gray-500 line-through">
+            Antes: {formatPrice(order.subtotal)}
+          </div>
+        )}
+      </div>
+    </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
@@ -285,25 +297,49 @@ const MyOrders = () => {
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="font-semibold mb-2">Resumen de Costos</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Subtotal:</span>
-                      <span>{formatPrice(selectedOrder.subtotal)}</span>
-                    </div>
-                    {selectedOrder.discount > 0 && (
-                      <div className="flex justify-between text-green-600">
-                        <span>Descuento:</span>
-                        <span>-{formatPrice(selectedOrder.discount)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between font-semibold text-lg pt-2 border-t">
-                      <span>Total:</span>
-                      <span>{formatPrice(selectedOrder.total)}</span>
-                    </div>
-                  </div>
-                </div>
+               <div>
+  <h3 className="font-semibold mb-2">Resumen de Costos</h3>
+  <div className="space-y-2 text-sm">
+    <div className="flex justify-between">
+      <span>Subtotal:</span>
+      <span>{formatPrice(selectedOrder.subtotal)}</span>
+    </div>
+    
+    {/* NUEVA SECCIÓN - Descuentos aplicados detallados */}
+    {selectedOrder.discount > 0 && (
+      <>
+        {selectedOrder.appliedDiscounts && selectedOrder.appliedDiscounts.length > 0 ? (
+          // Si tenemos los descuentos detallados
+          <>
+            <div className="text-sm font-medium text-gray-700 border-t pt-2">Descuentos aplicados:</div>
+            {selectedOrder.appliedDiscounts.map((discountItem, index) => (
+              <div key={index} className="flex justify-between text-sm text-green-600 pl-4">
+                <span className="flex items-center">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                  </svg>
+                  {discountItem.name}:
+                </span>
+                <span>-{formatPrice(discountItem.amount)}</span>
+              </div>
+            ))}
+          </>
+        ) : (
+          // Si solo tenemos el total de descuentos
+          <div className="flex justify-between text-sm text-green-600">
+            <span>Descuentos aplicados:</span>
+            <span>-{formatPrice(selectedOrder.discount)}</span>
+          </div>
+        )}
+      </>
+    )}
+    
+    <div className="flex justify-between text-lg font-semibold border-t pt-2">
+      <span>Total:</span>
+      <span>{formatPrice(selectedOrder.total)}</span>
+    </div>
+  </div>
+</div>
               </div>
 
               <div>

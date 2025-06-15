@@ -6,14 +6,12 @@ const applyDiscountRules = async (items, user) => {
     const now = new Date();
     const userType = user?.role === 'Distributor' ? 'distributors' : 'customers';
     
-    // Obtener todas las reglas de descuento activas y aplicables
-    const discountRules = await DiscountRule.findAll({
+    console.log(`🔍 Aplicando descuentos para usuario: ${user?.role || 'sin rol'} -> tipo: ${userType}`);
+    
+    // Obtener todas las reglas de descuento activas
+    const allDiscountRules = await DiscountRule.findAll({
       where: {
         isActive: true,
-        [Op.or]: [
-          { applicableFor: 'all' },
-          { applicableFor: userType }
-        ],
         [Op.or]: [
           { startDate: null },
           { startDate: { [Op.lte]: now } }
@@ -26,9 +24,31 @@ const applyDiscountRules = async (items, user) => {
       order: [['priority', 'DESC'], ['createdAt', 'DESC']]
     });
 
+    // FILTRO MANUAL ADICIONAL (por si el WHERE de Sequelize no funciona bien)
+    const discountRules = allDiscountRules.filter(rule => {
+      return rule.applicableFor === 'all' || rule.applicableFor === userType;
+    });
+
+    console.log(`📋 Reglas obtenidas de BD (todas):`, allDiscountRules.map(r => ({
+      name: r.name,
+      applicableFor: r.applicableFor,
+      discountType: r.discountType,
+      discountValue: r.discountValue
+    })));
+
+    console.log(`✅ Reglas aplicables después del filtro:`, discountRules.map(r => ({
+      name: r.name,
+      applicableFor: r.applicableFor,
+      discountType: r.discountType,
+      discountValue: r.discountValue
+    })));
+
     if (!discountRules || discountRules.length === 0) {
+      console.log('❌ No hay reglas de descuento aplicables');
       return { totalDiscount: 0, appliedDiscounts: [] };
     }
+
+   
 
     // Calcular totales del carrito
     const cartSubtotal = items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
@@ -37,26 +57,30 @@ const applyDiscountRules = async (items, user) => {
     let totalDiscount = 0;
     const appliedDiscounts = [];
 
-    // Aplicar reglas de descuento
+     // Aplicar reglas de descuento
     for (const rule of discountRules) {
       let ruleApplies = false;
       let discountAmount = 0;
+
+      console.log(`🔄 Evaluando regla: ${rule.name} (${rule.applicableFor})`);
 
       // Verificar condiciones de la regla
       switch (rule.conditionType) {
         case 'quantity':
           ruleApplies = totalQuantity >= (rule.minQuantity || 0) && 
                        (!rule.maxQuantity || totalQuantity <= rule.maxQuantity);
+          console.log(`   Condición cantidad: ${totalQuantity} >= ${rule.minQuantity || 0} && ${totalQuantity} <= ${rule.maxQuantity || '∞'} = ${ruleApplies}`);
           break;
         case 'amount':
           ruleApplies = cartSubtotal >= (parseFloat(rule.minAmount) || 0) && 
                        (!rule.maxAmount || cartSubtotal <= parseFloat(rule.maxAmount));
+          console.log(`   Condición monto: ${cartSubtotal} >= ${rule.minAmount || 0} && ${cartSubtotal} <= ${rule.maxAmount || '∞'} = ${ruleApplies}`);
           break;
         case 'both':
-          ruleApplies = totalQuantity >= (rule.minQuantity || 0) && 
-                       cartSubtotal >= (parseFloat(rule.minAmount) || 0) &&
-                       (!rule.maxQuantity || totalQuantity <= rule.maxQuantity) &&
-                       (!rule.maxAmount || cartSubtotal <= parseFloat(rule.maxAmount));
+          const quantityOk = totalQuantity >= (rule.minQuantity || 0) && (!rule.maxQuantity || totalQuantity <= rule.maxQuantity);
+          const amountOk = cartSubtotal >= (parseFloat(rule.minAmount) || 0) && (!rule.maxAmount || cartSubtotal <= parseFloat(rule.maxAmount));
+          ruleApplies = quantityOk && amountOk;
+          console.log(`   Condición ambas: cantidad=${quantityOk} && monto=${amountOk} = ${ruleApplies}`);
           break;
       }
 
@@ -78,10 +102,15 @@ const applyDiscountRules = async (items, user) => {
             amount: discountAmount
           });
 
-          console.log(`Descuento aplicado: ${rule.name} - ${formatPrice(discountAmount)}`);
+          console.log(`✅ Descuento aplicado: ${rule.name} - ${formatPrice(discountAmount)}`);
         }
+      } else {
+        console.log(`❌ Regla ${rule.name} NO aplica - No cumple condiciones`);
       }
     }
+
+    console.log(`💰 Total descuentos aplicados: ${formatPrice(totalDiscount)}`);
+    console.log(`📝 Descuentos detallados:`, appliedDiscounts.map(d => `${d.name}: ${formatPrice(d.amount)}`));
 
     return { totalDiscount, appliedDiscounts };
   } catch (error) {
@@ -89,7 +118,6 @@ const applyDiscountRules = async (items, user) => {
     return { totalDiscount: 0, appliedDiscounts: [] };
   }
 };
-
 
 // Generar número de orden secuencial
 const generateOrderNumber = async () => {
@@ -163,6 +191,13 @@ const createOrder = async (req, res) => {
       await transaction.rollback();
       return res.status(404).json({ error: true, message: 'Usuario no encontrado' });
     }
+    // AHORA SÍ puedes hacer los console.log
+    console.log('📦 Items recibidos del frontend:', items);
+    console.log('👤 Usuario:', { 
+      role: customer?.role, 
+      hasDistributor: !!customer?.distributor,
+      minimumPurchase: customer?.distributor?.minimumPurchase 
+    });
 
     // Generar número de orden
     const orderNumber = await generateOrderNumber();
@@ -185,25 +220,36 @@ const createOrder = async (req, res) => {
         await transaction.rollback();
         return res.status(400).json({ error: true, message: `Stock insuficiente para ${product.name}. Disponible: ${product.stock}` });
       }
+       console.log(`🏷️ Producto ${product.name}:`, {
+    precio_normal: product.price,
+    precio_distribuidor: product.distributorPrice,
+    precio_promocion: product.promotionPrice,
+    es_promocion: product.isPromotion
+  });
 
       let effectivePrice = product.price; // Precio normal como base
       let isPromotion = false;
 
       // Aplicar promoción si es mejor
-      if (product.isPromotion && product.promotionPrice && product.promotionPrice < effectivePrice) {
-        effectivePrice = product.promotionPrice;
+      if (product.isPromotion && product.promotionPrice && parseFloat(product.promotionPrice) < effectivePrice) {
+        effectivePrice = parseFloat(product.promotionPrice);
         isPromotion = true;
+        console.log(`   🎯 Aplicando precio promoción: ${effectivePrice}`);
       }
 
       // Si es distribuidor, el precio para el chequeo del mínimo es el de distribuidor si es mejor
       if (customer.role === 'Distributor' && customer.distributor && product.distributorPrice) {
-        if (product.distributorPrice < effectivePrice) {
-          orderValueForDistributorMinimumCheck += quantity * product.distributorPrice;
+        const distributorPrice = parseFloat(product.distributorPrice);
+        if (distributorPrice < effectivePrice) {
+          orderValueForDistributorMinimumCheck += quantity * distributorPrice;
+          console.log(`   💼 Precio distribuidor más bajo: ${distributorPrice} (para chequeo mínimo)`);
         } else {
           orderValueForDistributorMinimumCheck += quantity * effectivePrice;
+          console.log(`   💼 Precio actual mejor que distribuidor: ${effectivePrice} (para chequeo mínimo)`);
         }
       } else {
         orderValueForDistributorMinimumCheck += quantity * effectivePrice;
+        console.log(`   👤 Usuario normal o sin precio distribuidor (para chequeo mínimo)`);
       }
       
       processedOrderItems.push({
@@ -219,43 +265,57 @@ const createOrder = async (req, res) => {
       });
     }
 
-    let applyDistributorPrices = false;
-    let distributorMinimumRequiredValue = 0; // Para la respuesta
-
-    if (customer.role === 'Distributor' && customer.distributor) {
-      distributorMinimumRequiredValue = parseFloat(customer.distributor.minimumPurchase) || 0;
-      if (distributorMinimumRequiredValue > 0 && orderValueForDistributorMinimumCheck >= distributorMinimumRequiredValue) {
-        applyDistributorPrices = true;
-      } else {
-        applyDistributorPrices = false; // No cumple el mínimo, no se aplican precios de distribuidor
-      }
-    }
-
+  let applyDistributorPrices = false;
+let distributorMinimumRequiredValue = 0; // Para la respuesta
+if (customer.role === 'Distributor' && customer.distributor) {
+  distributorMinimumRequiredValue = parseFloat(customer.distributor.minimumPurchase) || 0;
+  console.log(`💼 Chequeo distribuidor: valor pedido=${orderValueForDistributorMinimumCheck}, mínimo requerido=${distributorMinimumRequiredValue}`);
+  
+  // CORRECCIÓN: Si el mínimo es 0 o no está definido, siempre aplicar precios de distribuidor
+  if (distributorMinimumRequiredValue <= 0 || orderValueForDistributorMinimumCheck >= distributorMinimumRequiredValue) {
+    applyDistributorPrices = true;
+    console.log(`✅ Aplicando precios de distribuidor - ${distributorMinimumRequiredValue <= 0 ? 'Sin mínimo requerido' : 'Mínimo cumplido'}`);
+  } else {
+    applyDistributorPrices = false;
+    console.log(`❌ NO aplicando precios de distribuidor - Mínimo no cumplido (requiere: ${distributorMinimumRequiredValue}, actual: ${orderValueForDistributorMinimumCheck})`);
+  }
+}
     // Segunda pasada: Establecer precios finales y calcular subtotal
     for (const pItem of processedOrderItems) {
       let finalUnitPrice = pItem.originalPrice; // Empezar con precio normal
+      console.log(`\n🔄 Procesando ${pItem.productData.name}:`);
+      console.log(`   Precio base: ${finalUnitPrice}`);
 
       // Aplicar promoción si es mejor que el normal
-      if (pItem.productData.isPromotion && pItem.productData.promotionPrice && pItem.productData.promotionPrice < finalUnitPrice) {
-        finalUnitPrice = pItem.productData.promotionPrice;
+      if (pItem.productData.isPromotion && pItem.productData.promotionPrice && parseFloat(pItem.productData.promotionPrice) < finalUnitPrice) {
+        finalUnitPrice = parseFloat(pItem.productData.promotionPrice);
         pItem.isPromotionApplied = true; // Confirmar flag
+        console.log(`   ✅ Aplicando promoción: ${finalUnitPrice}`);
       } else {
         pItem.isPromotionApplied = false; // No aplicó o no era mejor
+        console.log(`   ❌ Sin promoción aplicable`);
       }
 
       // Si aplican precios de distribuidor y es mejor que el precio actual (normal o promo)
-      if (applyDistributorPrices && pItem.productData.distributorPrice && pItem.productData.distributorPrice < finalUnitPrice) {
-        finalUnitPrice = pItem.productData.distributorPrice;
+      if (applyDistributorPrices && pItem.productData.distributorPrice && parseFloat(pItem.productData.distributorPrice) < finalUnitPrice) {
+        finalUnitPrice = parseFloat(pItem.productData.distributorPrice);
         pItem.isDistributorPriceApplied = true;
         pItem.isPromotionApplied = false; // Precio de distribuidor anula promo si es mejor
+        console.log(`   ✅ Aplicando precio distribuidor: ${finalUnitPrice}`);
+      } else if (applyDistributorPrices) {
+        console.log(`   ❌ Precio distribuidor no es mejor: ${parseFloat(pItem.productData.distributorPrice || 0)} vs ${finalUnitPrice}`);
       }
       
       pItem.unitPrice = finalUnitPrice;
       pItem.itemSubtotal = pItem.quantity * pItem.unitPrice;
       subtotal += pItem.itemSubtotal;
+      
+      console.log(`   💰 Precio final: ${finalUnitPrice} x ${pItem.quantity} = ${pItem.itemSubtotal}`);
     }
     
-     // **NUEVA SECCIÓN - Aplicar reglas de descuento automáticamente**
+    console.log(`\n🧮 Subtotal calculado: ${subtotal}`);
+
+    // **APLICAR REGLAS DE DESCUENTO**
     const discountResult = await applyDiscountRules(processedOrderItems, customer);
     let rulesDiscount = discountResult.totalDiscount;
     const appliedDiscountRules = discountResult.appliedDiscounts;

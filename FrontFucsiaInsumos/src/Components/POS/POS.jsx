@@ -6,6 +6,7 @@ import PaymentModal from './PaymentModal';
 import CustomerSelector from './CustomerSelector';
 import { createOrder, calculateProductPrices } from '../../Redux/Actions/salesActions';
 import { getProducts } from '../../Redux/Actions/productActions';
+import { getDiscountRules } from '../../Redux/Actions/discountRuleActions';
 
 const POS = () => {
   const dispatch = useDispatch();
@@ -25,9 +26,108 @@ const POS = () => {
   const [loading, setLoading] = useState(false);
   const isCalculatingRef = useRef(false);
 
+   // NUEVO ESTADO para reglas de descuento
+  const [discountRules, setDiscountRules] = useState([]);
+
   useEffect(() => {
     loadProducts();
+    loadDiscountRules(); // NUEVA FUNCIÓN
   }, []);
+
+  // NUEVA FUNCIÓN - Cargar reglas de descuento
+  const loadDiscountRules = async () => {
+    try {
+      const response = await dispatch(getDiscountRules());
+      setDiscountRules(response.data || []);
+      console.log('Reglas de descuento cargadas:', response.data?.length || 0);
+    } catch (error) {
+      console.error('Error loading discount rules:', error);
+      setDiscountRules([]);
+    }
+  };
+
+  // NUEVA FUNCIÓN - Aplicar reglas de descuento (similar al backend)
+  const applyDiscountRules = (cartItems, customer) => {
+    if (!discountRules || discountRules.length === 0) {
+      return { totalDiscount: 0, appliedDiscounts: [] };
+    }
+
+     const userType = customer?.role === 'Distributor' ? 'distributors' : 'customers';
+    const now = new Date();
+    
+    // Filtrar reglas aplicables
+    const applicableRules = discountRules.filter(rule => {
+      // Verificar si está activa
+      if (!rule.isActive) return false;
+      
+      // Verificar fechas
+      if (rule.startDate && new Date(rule.startDate) > now) return false;
+      if (rule.endDate && new Date(rule.endDate) < now) return false;
+      
+      // Verificar tipo de usuario
+      return rule.applicableFor === 'all' || rule.applicableFor === userType;
+    });
+
+    console.log(`Reglas aplicables para ${customer?.role || 'sin cliente'}:`, applicableRules.map(r => r.name));
+
+    // Calcular totales del carrito
+    const cartSubtotal = cartItems.reduce((sum, item) => sum + parseFloat(item.subtotal || 0), 0);
+    const totalQuantity = cartItems.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
+
+    let totalDiscount = 0;
+    const appliedDiscounts = [];
+
+    // Aplicar cada regla aplicable
+    for (const rule of applicableRules) {
+      let ruleApplies = false;
+
+      // Verificar condiciones
+      switch (rule.conditionType) {
+        case 'quantity':
+          ruleApplies = totalQuantity >= (rule.minQuantity || 0) && 
+                       (!rule.maxQuantity || totalQuantity <= rule.maxQuantity);
+          break;
+        case 'amount':
+          ruleApplies = cartSubtotal >= (parseFloat(rule.minAmount) || 0) && 
+                       (!rule.maxAmount || cartSubtotal <= parseFloat(rule.maxAmount));
+          break;
+        case 'both':
+          const quantityOk = totalQuantity >= (rule.minQuantity || 0) && 
+                           (!rule.maxQuantity || totalQuantity <= rule.maxQuantity);
+          const amountOk = cartSubtotal >= (parseFloat(rule.minAmount) || 0) && 
+                          (!rule.maxAmount || cartSubtotal <= parseFloat(rule.maxAmount));
+          ruleApplies = quantityOk && amountOk;
+          break;
+      }
+
+      // Si aplica la regla, calcular descuento
+      if (ruleApplies) {
+        let discountAmount = 0;
+        
+        if (rule.discountType === 'percentage') {
+          discountAmount = cartSubtotal * (parseFloat(rule.discountValue) / 100);
+        } else if (rule.discountType === 'fixed_amount') {
+          discountAmount = Math.min(parseFloat(rule.discountValue), cartSubtotal);
+        }
+
+        if (discountAmount > 0) {
+          totalDiscount += discountAmount;
+          appliedDiscounts.push({
+            id: rule.id,
+            name: rule.name,
+            type: rule.discountType,
+            value: rule.discountValue,
+            amount: discountAmount
+          });
+
+          console.log(`✅ Descuento aplicado: ${rule.name} - ${discountAmount}`);
+        }
+      }
+    }
+
+    return { totalDiscount, appliedDiscounts };
+  };
+
 
   const loadProducts = async () => {
     try {
@@ -189,170 +289,184 @@ const POS = () => {
     cart.map(item => `${item.productId}:${item.quantity}:${item.subtotal}`).join('|')
   ]);
 
-  const calculateTotals = () => {
-    if (isCalculatingRef.current) {
-      console.log('Ya se está calculando, saltando...');
-      return;
-    }
+  // ACTUALIZAR la función calculateTotals existente
+const calculateTotals = () => {
+  if (isCalculatingRef.current) {
+    console.log('Ya se está calculando, saltando...');
+    return;
+  }
 
-    isCalculatingRef.current = true;
+  isCalculatingRef.current = true;
 
-    if (cart.length === 0) {
-      setOrderTotal({ 
-        subtotal: 0, 
-        discount: 0, 
-        total: 0, 
-        distributorMinimumMet: true, 
-        distributorMinimumRequired: 0 
-      });
-      isCalculatingRef.current = false;
-      return;
-    }
+  if (cart.length === 0) {
+    setOrderTotal({ 
+      subtotal: 0, 
+      discount: 0, 
+      total: 0, 
+      distributorMinimumMet: true, 
+      distributorMinimumRequired: 0,
+      appliedDiscounts: []
+    });
+    isCalculatingRef.current = false;
+    return;
+  }
 
-    console.log('=== CALCULANDO TOTALES ===');
-    console.log('Items del carrito:', cart.map(item => ({ 
-      id: item.productId, 
-      name: item.product?.name, 
-      qty: item.quantity, 
-      unitPrice: item.unitPrice,
-      subtotal: item.subtotal 
-    })));
+  console.log('=== CALCULANDO TOTALES CON DESCUENTOS ===');
+  console.log('Cliente seleccionado:', selectedCustomer?.role);
 
-    // Primero calculamos el subtotal actual del carrito
+  try {
+    // Calcular subtotal base
     let currentSubtotal = 0;
     cart.forEach(item => {
       const itemSubtotal = parseFloat(item.subtotal) || (parseFloat(item.unitPrice) * parseInt(item.quantity));
       currentSubtotal += itemSubtotal;
-      console.log(`Item: ${item.product?.name}, Unit: ${item.unitPrice}, Qty: ${item.quantity}, Subtotal: ${itemSubtotal}`);
     });
 
-    console.log('Subtotal calculado:', currentSubtotal);
+    console.log('Subtotal base calculado:', currentSubtotal);
 
-    // Si tenemos cliente distribuidor, necesitamos verificar el mínimo
+    // Si es distribuidor, aplicar lógica especial
     if (selectedCustomer?.role === 'Distributor' && selectedCustomer.distributor) {
+      console.log('Procesando como distribuidor...');
+      
       const minimumRequired = parseFloat(selectedCustomer.distributor.minimumPurchase) || 0;
       
-      console.log('Cliente distribuidor detectado:', selectedCustomer.first_name, selectedCustomer.last_name);
-      console.log('Mínimo requerido:', minimumRequired);
-      
-      // Calcular el subtotal que tendríamos con precios de distribuidor aplicados
+      // Calcular qué sería el subtotal con precios de distribuidor
       let subtotalWithDistributorPrices = 0;
-      
       cart.forEach(item => {
-        const distributorPrice = calculateEffectivePrice(item.product, selectedCustomer);
-        const itemTotal = parseFloat(distributorPrice.price) * parseInt(item.quantity);
-        subtotalWithDistributorPrices += itemTotal;
+        const product = products.find(p => p.id === item.productId);
+        if (product) {
+          let bestPrice = parseFloat(product.price);
+          
+          // Comparar con precio de promoción
+          if (product.isPromotion && product.promotionPrice) {
+            const promoPrice = parseFloat(product.promotionPrice);
+            if (promoPrice < bestPrice) {
+              bestPrice = promoPrice;
+            }
+          }
+          
+          // Comparar con precio de distribuidor
+          if (product.distributorPrice) {
+            const distPrice = parseFloat(product.distributorPrice);
+            if (distPrice < bestPrice) {
+              bestPrice = distPrice;
+            }
+          }
+          
+          subtotalWithDistributorPrices += bestPrice * parseInt(item.quantity);
+        }
       });
 
-      console.log('Subtotal con precios de distribuidor:', subtotalWithDistributorPrices);
-      console.log('¿Cumple mínimo?', subtotalWithDistributorPrices >= minimumRequired);
+      console.log('Subtotal con precios distribuidor:', subtotalWithDistributorPrices);
+      console.log('Mínimo requerido:', minimumRequired);
 
       // Determinar si aplicar precios de distribuidor
-      const shouldApplyDistributorPrices = minimumRequired === 0 || subtotalWithDistributorPrices >= minimumRequired;
+      const shouldApplyDistributorPrices = minimumRequired <= 0 || subtotalWithDistributorPrices >= minimumRequired;
       
-      // Solo recalcular precios si es necesario Y si realmente cambió algo
-      const needsPriceUpdate = cart.some(item => {
-        const newPrice = shouldApplyDistributorPrices 
-          ? calculateEffectivePrice(item.product, selectedCustomer)
-          : calculateEffectivePriceWithoutDistributor(item.product);
+      if (shouldApplyDistributorPrices) {
+        console.log('✅ Aplicando precios de distribuidor');
         
-        return parseFloat(item.unitPrice) !== parseFloat(newPrice.price) || 
-               item.isDistributorPrice !== (newPrice.isDistributorPrice || false);
-      });
-
-      if (needsPriceUpdate) {
-        console.log('Actualizando precios del carrito');
-        setCart(prevCart => {
-          const updatedCart = prevCart.map(item => {
-            if (shouldApplyDistributorPrices) {
-              const newPrice = calculateEffectivePrice(item.product, selectedCustomer);
-              const newSubtotal = parseInt(item.quantity) * parseFloat(newPrice.price);
-              return {
-                ...item,
-                unitPrice: parseFloat(newPrice.price),
-                subtotal: newSubtotal,
-                isDistributorPrice: newPrice.isDistributorPrice,
-                isPromotion: newPrice.isPromotion,
-                priceReverted: false
-              };
-            } else {
-              const normalPrice = calculateEffectivePriceWithoutDistributor(item.product);
-              const newSubtotal = parseInt(item.quantity) * parseFloat(normalPrice.price);
-              return {
-                ...item,
-                unitPrice: parseFloat(normalPrice.price),
-                subtotal: newSubtotal,
-                isDistributorPrice: false,
-                isPromotion: normalPrice.isPromotion,
-                priceReverted: true
-              };
+        // Recalcular carrito con precios de distribuidor
+        const updatedCart = cart.map(item => {
+          const product = products.find(p => p.id === item.productId);
+          if (product) {
+            let bestPrice = parseFloat(product.price);
+            let appliedPriceType = 'normal';
+            
+            // Comparar con precio de promoción
+            if (product.isPromotion && product.promotionPrice) {
+              const promoPrice = parseFloat(product.promotionPrice);
+              if (promoPrice < bestPrice) {
+                bestPrice = promoPrice;
+                appliedPriceType = 'promocion';
+              }
             }
-          });
-          
-          // Recalcular subtotal con los nuevos precios
-          const newSubtotal = updatedCart.reduce((sum, item) => sum + parseFloat(item.subtotal), 0);
-          
-          // No llamar setOrderTotal aquí para evitar loops, se actualizará en el próximo render
-          setTimeout(() => {
-            setOrderTotal({
-              subtotal: newSubtotal,
-              discount: 0,
-              total: newSubtotal,
-              distributorMinimumMet: shouldApplyDistributorPrices,
-              distributorMinimumRequired: minimumRequired,
-              tempSubtotalDistributorPotential: shouldApplyDistributorPrices ? undefined : subtotalWithDistributorPrices
-            });
-          }, 0);
-          
-          console.log('Carrito actualizado con subtotal:', newSubtotal);
-          
-          return updatedCart;
+            
+            // Comparar con precio de distribuidor
+            if (product.distributorPrice) {
+              const distPrice = parseFloat(product.distributorPrice);
+              if (distPrice < bestPrice) {
+                bestPrice = distPrice;
+                appliedPriceType = 'distribuidor';
+              }
+            }
+            
+            return {
+              ...item,
+              unitPrice: bestPrice.toFixed(2),
+              subtotal: (bestPrice * parseInt(item.quantity)).toFixed(2),
+              appliedPriceType
+            };
+          }
+          return item;
         });
-      } else {
-        // Solo actualizar totales sin cambiar precios
-        setOrderTotal({
-          subtotal: currentSubtotal,
-          discount: 0,
-          total: currentSubtotal,
-          distributorMinimumMet: shouldApplyDistributorPrices,
-          distributorMinimumRequired: minimumRequired,
-          tempSubtotalDistributorPotential: shouldApplyDistributorPrices ? undefined : subtotalWithDistributorPrices
-        });
+
+        // Actualizar el carrito con los nuevos precios
+        setCart(updatedCart);
         
-        console.log('Totales actualizados sin cambiar precios, subtotal:', currentSubtotal);
+        // Recalcular subtotal con precios actualizados
+        currentSubtotal = updatedCart.reduce((sum, item) => {
+          return sum + parseFloat(item.subtotal);
+        }, 0);
+        
+        console.log('Subtotal con precios distribuidor aplicados:', currentSubtotal);
+      } else {
+        console.log('❌ No aplicando precios de distribuidor - Mínimo no cumplido');
       }
-    } else {
-      // Cálculo normal para clientes regulares
+
+      // Aplicar reglas de descuento
+      const discountResult = applyDiscountRules(cart, selectedCustomer);
+      const finalTotal = currentSubtotal - discountResult.totalDiscount;
+
+      console.log('Descuentos aplicados:', discountResult.totalDiscount);
+      console.log('Total final:', finalTotal);
+
       setOrderTotal({
         subtotal: currentSubtotal,
-        discount: 0,
-        total: currentSubtotal,
-        distributorMinimumMet: true,
-        distributorMinimumRequired: 0
+        discount: discountResult.totalDiscount,
+        total: finalTotal,
+        distributorMinimumMet: shouldApplyDistributorPrices,
+        distributorMinimumRequired: minimumRequired,
+        tempSubtotalDistributorPotential: shouldApplyDistributorPrices ? undefined : subtotalWithDistributorPrices,
+        appliedDiscounts: discountResult.appliedDiscounts
       });
+
+    } else {
+      // Cliente regular o sin cliente
+      console.log('Procesando como cliente regular...');
       
-      console.log('Cliente regular, subtotal:', currentSubtotal);
+      // Aplicar reglas de descuento
+      const discountResult = applyDiscountRules(cart, selectedCustomer);
+      const finalTotal = currentSubtotal - discountResult.totalDiscount;
+
+      console.log('Subtotal cliente regular:', currentSubtotal);
+      console.log('Descuentos aplicados:', discountResult.totalDiscount);
+      console.log('Total final:', finalTotal);
+
+      setOrderTotal({
+        subtotal: currentSubtotal,
+        discount: discountResult.totalDiscount,
+        total: finalTotal,
+        distributorMinimumMet: true,
+        distributorMinimumRequired: 0,
+        appliedDiscounts: discountResult.appliedDiscounts
+      });
     }
 
+  } catch (error) {
+    console.error('Error en calculateTotals:', error);
+    setOrderTotal({
+      subtotal: currentSubtotal || 0,
+      discount: 0,
+      total: currentSubtotal || 0,
+      distributorMinimumMet: true,
+      distributorMinimumRequired: 0,
+      appliedDiscounts: []
+    });
+  } finally {
     isCalculatingRef.current = false;
-  };
-
-  const calculateEffectivePriceWithoutDistributor = (product) => {
-    // Solo evaluar precio normal vs promoción (sin distribuidor)
-    if (product.isPromotion && product.promotionPrice && product.promotionPrice < product.price) {
-      return {
-        price: product.promotionPrice,
-        isPromotion: true,
-        originalPrice: product.price
-      };
-    }
-    
-    return {
-      price: product.price,
-      isPromotion: false,
-      originalPrice: product.price
-    };
-  };
+  }
+};
 
   const handleCheckout = () => {
     if (cart.length === 0) {
@@ -483,33 +597,62 @@ const POS = () => {
                   </div>
                 )}
                 
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Subtotal:</span>
-                    <span>{new Intl.NumberFormat('es-CO', { 
-                      style: 'currency', 
-                      currency: 'COP',
-                      minimumFractionDigits: 0
-                    }).format(orderTotal.subtotal || 0)}</span>
-                  </div>
-                  {orderTotal.discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Descuento:</span>
-                      <span>-{new Intl.NumberFormat('es-CO', { 
-                        style: 'currency', 
-                        currency: 'COP',
-                        minimumFractionDigits: 0
-                      }).format(orderTotal.discount)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-xl font-bold border-t pt-2">
-                    <span>Total:</span>
-                    <span>{new Intl.NumberFormat('es-CO', { 
-                      style: 'currency', 
-                      currency: 'COP',
-                      minimumFractionDigits: 0
-                    }).format(orderTotal.total || 0)}</span>
-                  </div>
+               <div className="space-y-2">
+  <div className="flex justify-between">
+    <span>Subtotal:</span>
+    <span>{new Intl.NumberFormat('es-CO', { 
+      style: 'currency', 
+      currency: 'COP',
+      minimumFractionDigits: 0
+    }).format(orderTotal.subtotal)}</span>
+  </div>
+                 {orderTotal.discount > 0 && (
+    <>
+      {orderTotal.appliedDiscounts && orderTotal.appliedDiscounts.length > 0 ? (
+        // Mostrar descuentos detallados
+        <>
+          <div className="text-sm font-medium text-gray-700 border-t pt-2">Descuentos aplicados:</div>
+          {orderTotal.appliedDiscounts.map((discount, index) => (
+            <div key={index} className="flex justify-between text-sm text-green-600 pl-4">
+              <span>• {discount.name}:</span>
+              <span>-{new Intl.NumberFormat('es-CO', { 
+                style: 'currency', 
+                currency: 'COP',
+                minimumFractionDigits: 0
+              }).format(discount.amount)}</span>
+            </div>
+          ))}
+        </>
+      ): (
+        // Solo mostrar total de descuentos
+        <div className="flex justify-between text-green-600">
+          <span>Descuentos:</span>
+          <span>-{new Intl.NumberFormat('es-CO', { 
+            style: 'currency', 
+            currency: 'COP',
+            minimumFractionDigits: 0
+          }).format(orderTotal.discount)}</span>
+        </div>
+      )}
+    </>
+  )}
+                  <div className="flex justify-between text-xl font-bold text-indigo-600 border-t pt-2">
+    <span>Total:</span>
+    <span>{new Intl.NumberFormat('es-CO', { 
+      style: 'currency', 
+      currency: 'COP',
+      minimumFractionDigits: 0
+    }).format(orderTotal.total)}</span>
+  </div>
+   {orderTotal.discount > 0 && (
+    <div className="text-sm text-green-600 text-center font-medium">
+      💰 ¡Ahorro total: {new Intl.NumberFormat('es-CO', { 
+        style: 'currency', 
+        currency: 'COP',
+        minimumFractionDigits: 0
+      }).format(orderTotal.discount)}!
+    </div>
+  )}
                 </div>
               </div>
 
