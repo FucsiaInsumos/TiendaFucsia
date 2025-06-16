@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  sequelize.define('Payment', {
+  return sequelize.define('Payment', {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
@@ -20,20 +20,26 @@ module.exports = (sequelize) => {
       allowNull: false
     },
     method: {
-      type: DataTypes.ENUM('wompi', 'nequi', 'bancolombia', 'efectivo', 'tarjeta', 'credito'),
+      type: DataTypes.ENUM('wompi', 'nequi', 'bancolombia', 'efectivo', 'tarjeta', 'credito', 'daviplata'),
       allowNull: false
     },
     status: {
       type: DataTypes.ENUM('pending', 'completed', 'failed', 'refunded'),
       defaultValue: 'pending'
     },
-    referenceId: {
-      type: DataTypes.STRING,
-      unique: true
+    paymentDetails: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      
     },
     dueDate: {
       type: DataTypes.DATE,
-      allowNull: true // Solo para pagos a crédito
+      allowNull: true
+    },
+    transactionId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      
     }
   });
 };

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../Redux/Actions/authActions';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -11,6 +13,7 @@ const Login = () => {
     email: '',
     password: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -29,24 +32,28 @@ const Login = () => {
     }
   };
 
+  const toggleShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 m-6">
+      <div className="max-w-md w-full space-y-8 border-2 p-4">
         {/* Header */}
         <div>
           <img
             className="mx-auto h-12 w-auto"
-            src="/your-logo.png"
+            src="/public/logo.jpg"
             alt="Your Logo"
           />
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-2xl font-extrabold text-gray-900">
             Inicia sesión en tu cuenta
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             ¿No tienes una cuenta?{' '}
             <Link
               to="/register"
-              className="font-medium text-fuchsia-600 hover:text-fuchsia-500"
+              className="font-medium text-principal hover:text-principalHover"
             >
               Regístrate
             </Link>
@@ -68,25 +75,32 @@ const Login = () => {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-fuchsia-500 focus:border-fuchsia-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-principal focus:border-principalHover focus:z-10 sm:text-sm"
                 placeholder="Correo electrónico"
               />
             </div>
-            <div>
+            <div className="relative">
               <label htmlFor="password" className="sr-only">
                 Contraseña
               </label>
               <input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-fuchsia-500 focus:border-fuchsia-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-principal focus:border-principalHover focus:z-10 sm:text-sm"
                 placeholder="Contraseña"
               />
+              <button
+                type="button"
+                onClick={toggleShowPassword}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
+              >
+                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+              </button>
             </div>
           </div>
 
@@ -97,7 +111,7 @@ const Login = () => {
                 id="remember_me"
                 name="remember_me"
                 type="checkbox"
-                className="h-4 w-4 text-fuchsia-600 focus:ring-fuchsia-500 border-gray-300 rounded"
+                className="h-4 w-4 text-principal focus:ring-principalHover border-gray-300 rounded"
               />
               <label htmlFor="remember_me" className="ml-2 block text-sm text-gray-900">
                 Recordarme
@@ -107,7 +121,7 @@ const Login = () => {
             <div className="text-sm">
               <Link
                 to="/forgot-password"
-                className="font-medium text-fuchsia-600 hover:text-fuchsia-500"
+                className="font-medium text-principal hover:text-principalHover"
               >
                 ¿Olvidaste tu contraseña?
               </Link>
@@ -130,7 +144,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-fuchsia-600 hover:bg-fuchsia-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fuchsia-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-principal hover:bg-principalHover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fuchsia-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <svg

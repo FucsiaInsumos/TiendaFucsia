@@ -8,15 +8,15 @@ const LandingSections = () => {
     <div className="p-4 border-b">
       <div className="hidden md:flex space-x-8 items-center">
         <Categories />
-        <h2 className="text-lg font-bold text-gray-800 hover:text-cyan-600 cursor-pointer">Ofertas</h2>
-        <h2 className="text-lg font-bold text-gray-800 hover:text-cyan-600 cursor-pointer">Sobre Nosotros</h2>
-        <h2 className="text-lg font-bold text-gray-800 hover:text-cyan-600 cursor-pointer">Contacto</h2>
-        <h2 className="text-lg font-bold text-gray-800 hover:text-cyan-600 cursor-pointer">Distribuidor??</h2>
+        <h2 className="text-lg font-bold text-gray-800 hover:text-principalHover cursor-pointer">Ofertas</h2>
+        <h2 className="text-lg font-bold text-gray-800 hover:text-principalHover cursor-pointer">Sobre Nosotros</h2>
+        <h2 className="text-lg font-bold text-gray-800 hover:text-principalHover cursor-pointer">Contacto</h2>
+
         
       </div>
       <div className="md:hidden">
         <button
-          className="text-lg font-bold text-gray-800 hover:text-cyan-600 cursor-pointer"
+          className="text-lg font-bold text-gray-800 hover:text-principalHover cursor-pointer"
           onClick={() => setIsOpen(!isOpen)}
         >
           Menú
@@ -24,11 +24,10 @@ const LandingSections = () => {
         {isOpen && (
           <div className="flex flex-col space-y-4 mt-2">
             <Categories />
-            <h2 className="text-lg font-bold text-gray-800 hover:text-cyan-600 cursor-pointer">Ofertas</h2>
-            <h2 className="text-lg font-bold text-gray-800 hover:text-cyan-600 cursor-pointer">Skincare</h2>
-            <h2 className="text-lg font-bold text-gray-800 hover:text-cyan-600 cursor-pointer">Cuidado Capilar</h2>
-            <h2 className="text-lg font-bold text-gray-800 hover:text-cyan-600 cursor-pointer">Make Up Store</h2>
-            <h2 className="text-lg font-bold text-gray-800 hover:text-cyan-600 cursor-pointer">Medicamentos</h2>
+            <h2 className="text-lg font-bold text-gray-800 hover:text-principalHover cursor-pointer">Ofertas</h2>
+            <h2 className="text-lg font-bold text-gray-800 hover:text-principalHover cursor-pointer">Sobre Nosotros</h2>
+            <h2 className="text-lg font-bold text-gray-800 hover:text-principalHover cursor-pointer">Contacto</h2>
+            
           </div>
         )}
       </div>

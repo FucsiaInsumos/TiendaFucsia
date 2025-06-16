@@ -1,10 +1,19 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { combineReducers } from 'redux';
 import authReducer from '../Reducer/authReducer';
-// Importa otros reducers aquí
+import productReducer from '../Reducer/productReducer';
+import categoryReducer from '../Reducer/categoryReducer';
+import discountRuleReducer from '../Reducer/discountRuleReducer';
+import distributorReducer from '../Reducer/distributorReducer';
+import cartReducer from '../Reducer/cartReducer';
 
 const rootReducer = combineReducers({
   auth: authReducer,
+  products: productReducer,
+  categories: categoryReducer,
+  discountRules: discountRuleReducer,
+  distributors: distributorReducer,
+  cart: cartReducer, // Nuevo reducer
   // Agrega otros reducers aquí
 });
 

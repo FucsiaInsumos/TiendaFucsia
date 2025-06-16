@@ -40,7 +40,7 @@ const InfoSections = () => {
           onClick={() => navigate(section.route)}
         >
           <img src={section.icon} alt={section.title} className="w-16 h-16" />
-          <h3 className="text-cyan-500 font-bold text-lg mt-4 text-center">{section.title}</h3>
+          <h3 className="text-principalHover font-bold text-lg mt-4 text-center">{section.title}</h3>
           <p className="text-gray-600 text-sm text-center">{section.description}</p>
         </div>
       ))}

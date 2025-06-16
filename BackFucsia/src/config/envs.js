@@ -3,9 +3,9 @@ require("dotenv").config();
 module.exports = {
   DB_USER: process.env.DB_USER,
   DB_PASSWORD: process.env.DB_PASSWORD,
-  DB_NAME: process.env.DB_NAME,
   DB_HOST: process.env.DB_HOST,
   DB_PORT: process.env.DB_PORT,
+  DB_NAME: process.env.DB_NAME,
   DB_DEPLOY: process.env.DB_DEPLOY,
   JWT_SECRET_KEY: process.env.JWT_SECRET_KEY,
   USERNAME: process.env.USERNAME,
@@ -19,6 +19,9 @@ module.exports = {
   WOMPI_PUBLIC_KEY: process.env.WOMPI_PUBLIC_KEY,
   WOMPI_INTEGRITY_SECRET: process.env.WOMPI_INTEGRITY_SECRET,
   WOMPI_EVENT_KEY: process.env.WOMPI_EVENT_KEY,
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
+  BACKEND_URL: process.env.BACKEND_URL || 'http://localhost:3001', 
+  
   TAXXA_API_URL:  process.env.TAXXA_API_URL,
   TAXXA_EMAIL: process.env.TAXXA_EMAIL,
   TAXXA_PASSWORD: process.env.TAXXA_PASSWORD,

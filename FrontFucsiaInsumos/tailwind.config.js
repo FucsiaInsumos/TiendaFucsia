@@ -8,6 +8,8 @@ export const theme = {
     darkMode: 'selector',
     colors: {
       boton: "#636363",
+      principal:"#e10063",
+      principalHover:"#F54C96",
       secondary: "#6b7280",
       customBlue: "#445868",
       customRed: "#6b4946",
