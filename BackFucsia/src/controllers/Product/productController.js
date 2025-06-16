@@ -83,7 +83,28 @@ const getProducts = async (req, res) => {
           model: Category,
           as: 'category',
           include: [
-            { model: Category, as: 'subcategories' }
+            // ✅ INCLUIR CATEGORÍA PADRE
+            { 
+              model: Category, 
+              as: 'parentCategory', // ✅ AGREGAR ESTO
+              include: [
+                {
+                  model: Category,
+                  as: 'parentCategory' // ✅ Para subcategorías de tercer nivel si existen
+                }
+              ]
+            },
+            // Mantener subcategorías
+            { 
+              model: Category, 
+              as: 'subcategories',
+              include: [
+                {
+                  model: Category,
+                  as: 'subcategories' // Para subcategorías anidadas
+                }
+              ]
+            }
           ]
         }
       ]
@@ -113,7 +134,28 @@ const getProductById = async (req, res) => {
           model: Category,
           as: 'category',
           include: [
-            { model: Category, as: 'subcategories' }
+            // ✅ INCLUIR CATEGORÍA PADRE
+            { 
+              model: Category, 
+              as: 'parentCategory', // ✅ AGREGAR ESTO
+              include: [
+                {
+                  model: Category,
+                  as: 'parentCategory' // ✅ Para subcategorías de tercer nivel si existen
+                }
+              ]
+            },
+            // Mantener subcategorías
+            { 
+              model: Category, 
+              as: 'subcategories',
+              include: [
+                {
+                  model: Category,
+                  as: 'subcategories' // Para subcategorías anidadas
+                }
+              ]
+            }
           ]
         }
       ]
@@ -306,7 +348,28 @@ const filterProducts = async (req, res) => {
           model: Category,
           as: 'category',
           include: [
-            { model: Category, as: 'subcategories' }
+            // ✅ INCLUIR CATEGORÍA PADRE
+            { 
+              model: Category, 
+              as: 'parentCategory',
+              include: [
+                {
+                  model: Category,
+                  as: 'parentCategory'
+                }
+              ]
+            },
+            // Mantener subcategorías
+            { 
+              model: Category, 
+              as: 'subcategories',
+              include: [
+                {
+                  model: Category,
+                  as: 'subcategories'
+                }
+              ]
+            }
           ]
         }
       ]

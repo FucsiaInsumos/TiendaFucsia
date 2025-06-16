@@ -74,7 +74,7 @@ const CatalogDownloader = ({
         'SKU': product.sku || '',
         'Nombre': product.name || '',
         'Descripción': product.description || '',
-        'Categoría': product.category?.name || 'Sin categoría',
+        'Categoría': product.category?.parentCategory?.name || product.category?.name || 'Sin categoría',
         'Stock Disponible': product.stock || 0,
         'Stock Mínimo': product.minStock || 0,
         'Estado': product.isActive ? 'Activo' : 'Inactivo',
