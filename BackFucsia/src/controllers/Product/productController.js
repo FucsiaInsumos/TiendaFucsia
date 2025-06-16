@@ -468,181 +468,213 @@ const calculateProductPrice = async (req, res) => {
   }
 };
 
-// Nueva función para calcular precios (ejemplo básico)
-const calculatePrice = async (req, res) => {
-  try {
-    const { items, userId } = req.body; 
 
-    // Estructura de respuesta por defecto en caso de no haber items o error temprano
-    const defaultResponseData = {
-      items: [],
-      subtotal: 0,
-      taxes: 0,
-      total: 0,
-      isDistributor: false,
-      distributorMinimumRequired: 0,
-      distributorOrderValueForCheck: 0,
-      isDistributorMinimumMet: true,
-      distributorPricesApplied: false,
-    };
+// // Nueva función para calcular precios CORREGIDA
+// const calculatePrice = async (req, res) => {
+//   try {
+//     const { items, userId } = req.body; 
 
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      // Devolver la estructura por defecto si no hay items
-      return res.status(200).json({ 
-        error: false, // No es un error del servidor, simplemente no hay nada que calcular
-        message: 'No se proporcionaron ítems para calcular.',
-        data: defaultResponseData
-      });
-    }
+//     console.log('🧮 [Calculator] Iniciando cálculo de precios');
+//     console.log('📦 [Calculator] Items recibidos:', items);
+//     console.log('👤 [Calculator] Usuario ID:', userId);
 
-    let subtotal = 0;
-    const pricedItems = [];
-    let orderValueForDistributorMinimumCheck = 0;
-    let isDistributorMinimumMet = true; 
-    let distributorMinimumRequiredValue = 0;
-    let distributorPricesAppliedInCalc = false;
+//     // Estructura de respuesta por defecto
+//     const defaultResponseData = {
+//       items: [],
+//       subtotal: 0,
+//       totalDiscount: 0,
+//       total: 0,
+//       isDistributor: false,
+//       distributorInfo: null,
+//       orderValueForDistributorCheck: 0,
+//       appliedDistributorPrices: false,
+//       appliedDiscounts: [],
+//       savings: 0
+//     };
 
-    const customer = userId ? await User.findByPk(userId, {
-      include: [{ model: Distributor, as: 'distributor', required: false }]
-    }) : null;
+//     if (!items || !Array.isArray(items) || items.length === 0) {
+//       return res.status(200).json({ 
+//         error: false,
+//         message: 'No se proporcionaron items para calcular.',
+//         data: defaultResponseData
+//       });
+//     }
 
-    // Primera pasada: Calcular precios potenciales y el valor para el chequeo del mínimo de distribuidor
-    const itemsForPass1Promises = items.map(item => { // Renombrado para claridad
-      return Product.findByPk(item.productId).then(product => {
-        if (!product) {
-          throw new Error(`Producto ${item.productId} no encontrado.`);
-        }
-        
-        let priceForDistributorCheck = product.price;
-        let isPromotion = false;
+//     // Obtener datos del usuario
+//     const customer = userId ? await User.findByPk(userId, {
+//       include: [{ model: Distributor, as: 'distributor', required: false }]
+//     }) : null;
 
-        if (product.isPromotion && product.promotionPrice && product.promotionPrice < priceForDistributorCheck) {
-          priceForDistributorCheck = product.promotionPrice;
-          isPromotion = true;
-        }
+//     console.log('👤 [Calculator] Usuario cargado:', {
+//       id: customer?.id,
+//       role: customer?.role,
+//       hasDistributor: !!customer?.distributor,
+//       distributorInfo: customer?.distributor ? {
+//         discountPercentage: customer.distributor.discountPercentage,
+//         minimumPurchase: customer.distributor.minimumPurchase
+//       } : null
+//     });
 
-        if (customer?.role === 'Distributor' && customer?.distributor && product.distributorPrice) {
-          if (product.distributorPrice < priceForDistributorCheck) {
-            priceForDistributorCheck = product.distributorPrice;
-          }
-        }
-        orderValueForDistributorMinimumCheck += item.quantity * priceForDistributorCheck;
-        
-        return {
-          ...item,
-          productData: product,
-          isPromotionAppliedInitially: isPromotion,
-        };
-      });
-    });
+//     // Primera pasada: Obtener productos y calcular valor para chequeo de mínimo
+//     let orderValueForDistributorCheck = 0;
+//     const itemsWithProducts = [];
 
-    const resolvedItemsPass1 = await Promise.all(itemsForPass1Promises);
+//     for (const item of items) {
+//       const product = await Product.findByPk(item.productId);
+//       if (!product) {
+//         throw new Error(`Producto ${item.productId} no encontrado.`);
+//       }
 
-    if (customer?.role === 'Distributor' && customer?.distributor) {
-      distributorMinimumRequiredValue = parseFloat(customer.distributor.minimumPurchase) || 0;
-      if (distributorMinimumRequiredValue > 0 && orderValueForDistributorMinimumCheck < distributorMinimumRequiredValue) {
-        isDistributorMinimumMet = false;
-        distributorPricesAppliedInCalc = false; 
-      } else {
-        isDistributorMinimumMet = true;
-        distributorPricesAppliedInCalc = true; 
-      }
-    } else {
-      isDistributorMinimumMet = true; 
-      distributorPricesAppliedInCalc = false;
-    }
-    
-    console.log(`[calculatePrice] Cliente: ${userId}, Es Distribuidor: ${!!(customer?.role === 'Distributor')}, Mínimo Requerido: ${distributorMinimumRequiredValue}, Valor Pedido (para check): ${orderValueForDistributorMinimumCheck}, Mínimo Cumplido: ${isDistributorMinimumMet}, Aplicar Precios Distribuidor (calc): ${distributorPricesAppliedInCalc}`);
+//       let priceForDistributorCheck = parseFloat(product.price);
 
-    // Segunda pasada: Aplicar precios finales
-    for (const pItem of resolvedItemsPass1) {
-      const product = pItem.productData;
-      let finalUnitPrice = product.price; 
-      let itemIsPromotion = false;
-      let itemIsDistributorPrice = false;
+//       // Aplicar promoción si es mejor
+//       if (product.isPromotion && product.promotionPrice && parseFloat(product.promotionPrice) < priceForDistributorCheck) {
+//         priceForDistributorCheck = parseFloat(product.promotionPrice);
+//       }
 
-      console.log(`[calculatePrice] Procesando producto: ${product.name} (ID: ${product.id})`);
-      console.log(`  Precio Normal: ${product.price}`);
+//       // Si es distribuidor, usar precio de distribuidor para el chequeo si es mejor
+//       if (customer?.role === 'Distributor' && product.distributorPrice && parseFloat(product.distributorPrice) < priceForDistributorCheck) {
+//         priceForDistributorCheck = parseFloat(product.distributorPrice);
+//       }
 
-      if (product.isPromotion && product.promotionPrice && product.promotionPrice < finalUnitPrice) {
-        finalUnitPrice = product.promotionPrice;
-        itemIsPromotion = true;
-        console.log(`  Aplicada Promoción. Precio actual: ${finalUnitPrice}`);
-      }
+//       orderValueForDistributorCheck += item.quantity * priceForDistributorCheck;
 
-      console.log(`  Intentando aplicar precio distribuidor: distributorPricesAppliedInCalc=${distributorPricesAppliedInCalc}, product.distributorPrice=${product.distributorPrice}, finalUnitPrice (actual)=${finalUnitPrice}`);
-      if (distributorPricesAppliedInCalc && product.distributorPrice !== null && typeof product.distributorPrice !== 'undefined' && parseFloat(product.distributorPrice) < parseFloat(finalUnitPrice)) {
-        finalUnitPrice = parseFloat(product.distributorPrice);
-        itemIsDistributorPrice = true;
-        itemIsPromotion = false; 
-        console.log(`  Aplicado Precio Distribuidor. Precio final: ${finalUnitPrice}`);
-      } else {
-        console.log(`  No se aplicó precio de distribuidor. Razones:`);
-        if (!distributorPricesAppliedInCalc) console.log(`    - distributorPricesAppliedInCalc es false.`);
-        if (product.distributorPrice === null || typeof product.distributorPrice === 'undefined') console.log(`    - product.distributorPrice no está definido.`);
-        if (product.distributorPrice !== null && typeof product.distributorPrice !== 'undefined' && !(parseFloat(product.distributorPrice) < parseFloat(finalUnitPrice))) console.log(`    - product.distributorPrice (${product.distributorPrice}) no es menor que finalUnitPrice (${finalUnitPrice}).`);
-      }
+//       itemsWithProducts.push({
+//         ...item,
+//         productData: product
+//       });
+//     }
+
+//     // Determinar si aplicar precios de distribuidor
+//     let applyDistributorPrices = false;
+//     let distributorMinimumRequired = 0;
+
+//     if (customer?.role === 'Distributor' && customer?.distributor) {
+//       distributorMinimumRequired = parseFloat(customer.distributor.minimumPurchase) || 0;
       
-      const itemTotal = finalUnitPrice * pItem.quantity;
-      subtotal += itemTotal;
-      pricedItems.push({
-        productId: pItem.productId,
-        quantity: pItem.quantity,
-        name: product.name,
-        sku: product.sku,
-        unitPrice: finalUnitPrice,
-        itemTotal,
-        isPromotion: itemIsPromotion,
-        isDistributorPrice: itemIsDistributorPrice,
-        originalPrice: product.price, 
-      });
-    }
+//       console.log(`💼 [Calculator] Chequeo distribuidor: valor=${orderValueForDistributorCheck}, mínimo=${distributorMinimumRequired}`);
+      
+//       if (distributorMinimumRequired <= 0 || orderValueForDistributorCheck >= distributorMinimumRequired) {
+//         applyDistributorPrices = true;
+//         console.log(`✅ [Calculator] Aplicando precios de distribuidor`);
+//       } else {
+//         console.log(`❌ [Calculator] No se aplican precios de distribuidor - Mínimo no cumplido`);
+//       }
+//     }
+
+//     // Segunda pasada: Aplicar precios finales
+//     const processedItems = [];
+//     let subtotal = 0;
+
+//     for (const pItem of itemsWithProducts) {
+//       const product = pItem.productData;
+//       let finalUnitPrice = parseFloat(product.price);
+//       let itemIsPromotion = false;
+//       let itemIsDistributorPrice = false;
+
+//       console.log(`🔄 [Calculator] Procesando ${product.name}:`);
+//       console.log(`   Precio base: ${finalUnitPrice}`);
+
+//       // Aplicar promoción si es mejor
+//       if (product.isPromotion && product.promotionPrice && parseFloat(product.promotionPrice) < finalUnitPrice) {
+//         finalUnitPrice = parseFloat(product.promotionPrice);
+//         itemIsPromotion = true;
+//         console.log(`   ✅ Aplicando promoción: ${finalUnitPrice}`);
+//       }
+
+//       // Aplicar precio distribuidor si corresponde y es mejor
+//       if (applyDistributorPrices && product.distributorPrice && parseFloat(product.distributorPrice) < finalUnitPrice) {
+//         finalUnitPrice = parseFloat(product.distributorPrice);
+//         itemIsDistributorPrice = true;
+//         itemIsPromotion = false; // Precio distribuidor anula promoción
+//         console.log(`   ✅ Aplicando precio distribuidor: ${finalUnitPrice}`);
+//       }
+
+//       const itemTotal = finalUnitPrice * pItem.quantity;
+//       subtotal += itemTotal;
+
+//       processedItems.push({
+//         productId: pItem.productId,
+//         quantity: pItem.quantity,
+//         name: product.name,
+//         sku: product.sku,
+//         unitPrice: finalUnitPrice,
+//         itemTotal,
+//         isPromotion: itemIsPromotion,
+//         isDistributorPrice: itemIsDistributorPrice,
+//         originalPrice: parseFloat(product.price)
+//       });
+
+//       console.log(`   💰 Precio final: ${finalUnitPrice} x ${pItem.quantity} = ${itemTotal}`);
+//     }
+
+//     console.log(`🧮 [Calculator] Subtotal calculado: ${subtotal}`);
+
+//     // Aplicar reglas de descuento automáticas
+//     const discountResult = await applyDiscountRules(processedItems, customer);
+//     const totalDiscount = discountResult.totalDiscount;
+//     const appliedDiscounts = discountResult.appliedDiscounts;
+
+//     // Calcular total final
+//     const total = subtotal - totalDiscount;
+
+//     // Calcular ahorros (diferencia con precios originales)
+//     const originalTotal = processedItems.reduce((sum, item) => sum + (item.originalPrice * item.quantity), 0);
+//     const savings = originalTotal - total;
+
+//     console.log(`💰 [Calculator] Resumen final:`);
+//     console.log(`   Subtotal: ${subtotal}`);
+//     console.log(`   Descuento reglas: ${totalDiscount}`);
+//     console.log(`   Total: ${total}`);
+//     console.log(`   Ahorro total: ${savings}`);
+
+//     // Preparar respuesta
+//     const responseData = {
+//       items: processedItems,
+//       subtotal,
+//       totalDiscount,
+//       total,
+//       isDistributor: customer?.role === 'Distributor',
+//       distributorInfo: customer?.distributor ? {
+//         discountPercentage: customer.distributor.discountPercentage || 0,
+//         minimumPurchase: distributorMinimumRequired
+//       } : null,
+//       orderValueForDistributorCheck,
+//       appliedDistributorPrices: applyDistributorPrices,
+//       appliedDiscounts,
+//       savings: Math.max(0, savings)
+//     };
+
+//     res.status(200).json({
+//       error: false,
+//       message: 'Precios calculados exitosamente.',
+//       data: responseData
+//     });
+
+//   } catch (error) {
+//     console.error('❌ [Calculator] Error:', error);
     
-    console.log("[calculatePrice] Priced Items para enviar:", JSON.stringify(pricedItems, null, 2));
-    
-    const calculatedSubtotal = pricedItems.reduce((acc, item) => acc + item.itemTotal, 0);
-    const calculatedTaxes = calculatedSubtotal * 0.19; // IVA 19% sobre el subtotal calculado
-    const calculatedTotal = calculatedSubtotal + calculatedTaxes;
+//     const errorResponseData = {
+//       items: [],
+//       subtotal: 0,
+//       totalDiscount: 0,
+//       total: 0,
+//       isDistributor: false,
+//       distributorInfo: null,
+//       orderValueForDistributorCheck: 0,
+//       appliedDistributorPrices: false,
+//       appliedDiscounts: [],
+//       savings: 0
+//     };
 
-
-    res.status(200).json({
-      error: false,
-      message: 'Precios calculados exitosamente.',
-      data: {
-        items: pricedItems,
-        subtotal: calculatedSubtotal,
-        taxes: calculatedTaxes,
-        total: calculatedTotal,
-        isDistributor: customer?.role === 'Distributor',
-        distributorMinimumRequired: distributorMinimumRequiredValue,
-        distributorOrderValueForCheck: orderValueForDistributorMinimumCheck,
-        isDistributorMinimumMet,
-        distributorPricesApplied: distributorPricesAppliedInCalc,
-      },
-    });
-
-  } catch (error) {
-    console.error('Error en calculatePrice:', error); 
-    // Devolver la estructura por defecto también en caso de error interno
-    const errorResponseData = {
-      items: [],
-      subtotal: 0,
-      taxes: 0,
-      total: 0,
-      isDistributor: false,
-      distributorMinimumRequired: 0,
-      distributorOrderValueForCheck: 0,
-      isDistributorMinimumMet: true,
-      distributorPricesApplied: false,
-    };
-    res.status(500).json({
-      error: true,
-      message: 'Error interno del servidor al calcular precios.',
-      details: error.message,
-      data: errorResponseData // Enviar data por defecto para que el frontend no rompa
-    });
-  }
-};
+//     res.status(500).json({
+//       error: true,
+//       message: 'Error interno del servidor al calcular precios.',
+//       details: error.message,
+//       data: errorResponseData
+//     });
+//   }
+// };
 
 // Función auxiliar para encontrar descuentos aplicables
 const findApplicableDiscounts = async (productId, categoryId, quantity, itemTotal, userType) => {
@@ -723,5 +755,5 @@ module.exports = {
   deleteProduct,
   filterProducts,
   calculateProductPrice,
-  calculatePrice, 
+  // calculatePrice, 
 };
