@@ -7,6 +7,7 @@ import { toggleCart } from '../../Redux/Reducer/cartReducer';
 import CategorySelector from './CategorySelector';
 import ProductFilters from './ProductFilters';
 import ProductGrid from './ProductGrid';
+import CatalogDownloader from '../Products/CatalogoDownloader';
 
 const ProductCatalog = () => {
   const dispatch = useDispatch();
@@ -167,13 +168,23 @@ const ProductCatalog = () => {
               📍 Retiro gratuito en nuestro local - No realizamos envíos
             </p>
           </div>
+          {/* ✅ NUEVA SECCIÓN: Botones de acción */}
+          <div className="flex items-center space-x-4">
+    {/* Botón de descarga del catálogo */}
+    {isAuthenticated && (
+      <CatalogDownloader 
+        compact={true}
+       
+        className="hidden sm:block" // Ocultar en móviles pequeños
+      />
+    )}
 
-          {/* Botón del carrito */}
-          <button
-            onClick={handleCartToggle}
-            className="relative bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition duration-200 shadow-lg transform hover:scale-105"
-            title="Abrir carrito"
-          >
+    {/* Botón del carrito (existente) */}
+    <button
+      onClick={handleCartToggle}
+      className="relative bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition duration-200 shadow-lg transform hover:scale-105"
+      title="Abrir carrito"
+    >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
               <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
             </svg>
@@ -184,6 +195,7 @@ const ProductCatalog = () => {
             )}
           </button>
         </div>
+          </div>
 
         {/* Breadcrumb */}
         {(selectedCategory || selectedSubcategory) && (
@@ -255,6 +267,49 @@ const ProductCatalog = () => {
                         {user.role === 'Distributor' ? 'Distribuidor' : 'Cliente'}
                       </span>
                     </p>
+                  </div>
+
+
+           {/* ✅ NUEVA SECCIÓN: Botón de descarga en sidebar (versión móvil) */}
+                  <div className="sm:hidden"> {/* Solo mostrar en móviles */}
+                    <CatalogDownloader 
+                      compact={true}
+                      buttonText="Descargar Catálogo"
+                      className="w-full text-sm"
+                    />
+                  </div>
+
+                  {/* ✅ NUEVA SECCIÓN: Información sobre la descarga */}
+                  <div className="hidden sm:block mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <h5 className="text-sm font-medium text-green-800 mb-1">
+                      📊 Catálogo Excel
+                    </h5>
+                    <p className="text-xs text-green-700">
+                      {user?.role === 'Distributor' 
+                        ? 'Descarga el catálogo con tus precios especiales de distribuidor'
+                        : 'Descarga el catálogo completo con precios y disponibilidad'
+                      }
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* ✅ NUEVA SECCIÓN: Para usuarios no logueados */}
+              {!isAuthenticated && (
+                <div className="mt-6 pt-6 border-t">
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h5 className="text-sm font-medium text-blue-800 mb-1">
+                      🔒 Inicia sesión
+                    </h5>
+                    <p className="text-xs text-blue-700 mb-2">
+                      Accede a precios especiales y descarga el catálogo completo
+                    </p>
+                    <button 
+                      onClick={() => window.location.href = '/login'}
+                      className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
+                    >
+                      Iniciar Sesión
+                    </button>
                   </div>
                 </div>
               )}

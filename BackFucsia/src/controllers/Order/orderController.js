@@ -151,18 +151,19 @@ const createOrder = async (req, res) => {
   const transaction = await conn.transaction();
   
   try {
-    const {
-      userId,
-      items, // Se espera que items venga con { productId, quantity }
-      orderType,
-      paymentMethod,
-      paymentDetails = {},
-      notes: originalNotes, // Cambiar el nombre para evitar conflicto
-      shippingAddress,
-      cashierId,
-      pickupInfo, // Añadido para ordenes online
-      extraDiscountPercentage = 0 // Nuevo: descuento extra del POS
-    } = req.body;
+ const {
+  userId,
+  items,
+  orderType,
+  paymentMethod,
+  paymentDetails = {},
+  notes: originalNotes,
+  shippingAddress,
+  cashierId,
+  pickupInfo,
+  extraDiscountPercentage = 0
+
+} = req.body;
 
     // Validaciones básicas
     if (!userId || !items || !Array.isArray(items) || items.length === 0) {
@@ -342,20 +343,43 @@ if (customer.role === 'Distributor' && customer.distributor && !customer.isGener
     
     // Calcular descuentos totales
     let totalDiscount = rulesDiscount;
-    let extraDiscountAmount = 0;
+  
     let finalNotes = originalNotes || ''; // Variable para manejar las notas
     
-    // Aplicar descuento extra del POS si existe
-    if (extraDiscountPercentage > 0 && orderType === 'local') {
-      extraDiscountAmount = subtotal * (parseFloat(extraDiscountPercentage) / 100);
-      totalDiscount += extraDiscountAmount;
-      
-      // Agregar nota sobre el descuento aplicado
-      const discountNote = `\nDescuento POS aplicado: ${extraDiscountPercentage}% (${formatPrice(extraDiscountAmount)})`;
-      finalNotes = finalNotes + discountNote;
-      
-      console.log(`Descuento extra aplicado: ${extraDiscountPercentage}% = ${formatPrice(extraDiscountAmount)}`);
-    }
+   // Aplicar descuento extra del POS si existe
+let extraDiscountAmount = 0;
+if (orderType === 'local') {
+  // Debug: mostrar lo que viene del frontend
+  console.log('💰 Datos de descuento recibidos:', {
+    extraDiscountPercentage,
+    extraDiscountAmountFromBody: extraDiscountAmount,
+    extraDiscountAmountFromPaymentDetails: paymentDetails.extraDiscountAmount,
+    discountType: paymentDetails.extraDiscountType
+  });
+
+  if (extraDiscountPercentage > 0) {
+    // Descuento por porcentaje
+    extraDiscountAmount = subtotal * (parseFloat(extraDiscountPercentage) / 100);
+    console.log(`Descuento POS por porcentaje: ${extraDiscountPercentage}% = ${formatPrice(extraDiscountAmount)}`);
+  } else if (paymentDetails.extraDiscountAmount > 0) {
+    // Descuento por monto fijo
+    extraDiscountAmount = Math.min(parseFloat(paymentDetails.extraDiscountAmount), subtotal);
+    console.log(`Descuento POS por monto fijo: ${formatPrice(extraDiscountAmount)}`);
+  } else if (extraDiscountAmount > 0) {
+    // Fallback: usar el valor del body directamente
+    extraDiscountAmount = Math.min(parseFloat(extraDiscountAmount), subtotal);
+    console.log(`Descuento POS por monto fijo (fallback): ${formatPrice(extraDiscountAmount)}`);
+  }
+  
+  if (extraDiscountAmount > 0) {
+    totalDiscount += extraDiscountAmount;
+    
+    const discountNote = paymentDetails.extraDiscountType === 'percentage' 
+      ? `\nDescuento POS aplicado: ${extraDiscountPercentage}% (${formatPrice(extraDiscountAmount)})`
+      : `\nDescuento POS aplicado: ${formatPrice(extraDiscountAmount)}`;
+    finalNotes = finalNotes + discountNote;
+  }
+}
 
     // Agregar notas sobre reglas de descuento aplicadas
     if (appliedDiscountRules.length > 0) {
@@ -371,7 +395,7 @@ if (customer.role === 'Distributor' && customer.distributor && !customer.isGener
     // Crear la orden con campos de descuento
     const order = await Order.create({
       orderNumber,
-      userId,
+      userId: customer.isGeneric ? 'GENERIC_001' : userId,
       subtotal,
       discount: totalDiscount,
       tax: 0, // Calcular impuestos si es necesario
@@ -474,9 +498,13 @@ if (customer.isGeneric) {
   successMessage = 'Orden de distribuidor creada con precios normales/promoción (mínimo no alcanzado)';
 }
     
-    if (extraDiscountAmount > 0) {
-      successMessage += ` - Descuento POS aplicado: ${extraDiscountPercentage}%`;
-    }
+   if (extraDiscountAmount > 0) {
+  if (paymentDetails.extraDiscountType === 'percentage') {
+    successMessage += ` - Descuento POS aplicado: ${extraDiscountPercentage}%`;
+  } else {
+    successMessage += ` - Descuento POS aplicado: ${formatPrice(extraDiscountAmount)}`;
+  }
+}
 
     if (appliedDiscountRules.length > 0) {
       successMessage += ` - Descuentos por reglas aplicados: ${formatPrice(rulesDiscount)}`;

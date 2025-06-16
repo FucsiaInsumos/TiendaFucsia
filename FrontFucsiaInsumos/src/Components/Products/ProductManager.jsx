@@ -6,6 +6,7 @@ import { getCategories } from '../../Redux/Actions/categoryActions';
 import ProductForm from './ProductForm';
 import ProductList from './ProductList';
 import ProductFilters from './ProductFilters';
+import CatalogDownloader from './CatalogoDownloader';
 
 const ProductManager = () => {
   const dispatch = useDispatch();
@@ -182,6 +183,7 @@ const ProductManager = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Gestión de Productos</h1>
         <div className="flex space-x-3">
+            <CatalogDownloader compact={true} />
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center"
