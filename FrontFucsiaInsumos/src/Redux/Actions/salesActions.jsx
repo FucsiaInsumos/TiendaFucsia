@@ -201,7 +201,7 @@ export const calculatePricesForCartAPI = (items, userId) => async (dispatch) => 
   try {
     // La ruta es /product/calculate-price porque en routes/index.js tienes router.use("/product", productRoutes)
     // y en productRoutes.js tienes router.post("/calculate-price", calculatePriceController)
-    const response = await api.post('/product/calculate-price', { items, userId });
+    const response = await api.post('/orders/calculate-price', { items, userId });
     
     if (response.data && response.data.error === false) {
       return response.data.data; // Devuelve la parte 'data' de la respuesta exitosa

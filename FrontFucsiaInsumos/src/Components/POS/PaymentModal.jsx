@@ -4,7 +4,9 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
   const [selectedMethod, setSelectedMethod] = useState('efectivo');
   const [paymentDetails, setPaymentDetails] = useState({});
   const [notes, setNotes] = useState('');
-  const [extraDiscount, setExtraDiscount] = useState(0); // Nuevo estado para descuento extra
+  const [extraDiscount, setExtraDiscount] = useState(0);
+  const [discountType, setDiscountType] = useState('percentage'); 
+
 
   const paymentMethods = [
     { value: 'efectivo', label: 'Efectivo', icon: '💵' },
@@ -24,6 +26,8 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
     }).format(price);
   };
 
+
+
   const handlePaymentDetailsChange = (key, value) => {
     setPaymentDetails(prev => ({
       ...prev,
@@ -31,33 +35,43 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
     }));
   };
 
-  const calculateFinalTotal = () => {
-    // El orderTotal.total ya incluye cualquier descuento de distribuidor aplicado en POS
-    // Aquí solo aplicamos el descuento extra del modal de pago
-    const extraDiscountAmount = (orderTotal.total * extraDiscount) / 100;
-    return Math.max(0, orderTotal.total - extraDiscountAmount);
+  const calculateDiscountAmount = () => {
+    if (extraDiscount <= 0) return 0;
+    
+    if (discountType === 'percentage') {
+      return (orderTotal.total * extraDiscount) / 100;
+    } else {
+      // Monto fijo - no puede ser mayor al total
+      return Math.min(extraDiscount, orderTotal.total);
+    }
   };
 
-  const handleSubmit = (e) => {
+  const calculateFinalTotal = () => {
+    const discountAmount = calculateDiscountAmount();
+    return Math.max(0, orderTotal.total - discountAmount);
+  };
+
+ const handleSubmit = (e) => {
     e.preventDefault();
     
     const finalTotal = calculateFinalTotal();
-    const extraDiscountAmount = orderTotal.total - finalTotal;
+    const discountAmount = calculateDiscountAmount();
     
     const paymentData = {
       method: selectedMethod,
       details: {
         ...paymentDetails,
         originalTotal: orderTotal.total,
-        extraDiscountAmount: extraDiscountAmount,
+        extraDiscountAmount: discountAmount,
+        extraDiscountType: discountType, // NUEVO: tipo de descuento
         finalTotal: finalTotal
       },
       notes: notes.trim(),
-      extraDiscountPercentage: extraDiscount // Asegurar que se envíe el porcentaje
+      extraDiscountPercentage: discountType === 'percentage' ? extraDiscount : 0,
+      extraDiscountAmount: discountType === 'fixed' ? discountAmount : 0 // NUEVO
     };
 
-    console.log('Datos de pago enviados:', paymentData); // Debug
-
+    console.log('Datos de pago enviados:', paymentData);
     onPaymentComplete(paymentData);
   };
 
@@ -224,41 +238,88 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
                         <span>{formatPrice(orderTotal.subtotal)}</span>
                       </div>
                       
-                      {/* Mostrar descuentos aplicados previamente */}
+                     {/* Mostrar descuentos aplicados previamente */}
                       {orderTotal.discount > 0 && (
                         <div className="flex justify-between text-green-600">
-                          <span>Descuento aplicado:</span>
+                          <span>Descuentos automáticos:</span>
                           <span>-{formatPrice(orderTotal.discount)}</span>
                         </div>
                       )}
                       
                       {/* Mostrar subtotal después de descuentos previos */}
-                      {orderTotal.discount > 0 && (
-                        <div className="flex justify-between border-t pt-2">
-                          <span>Subtotal con descuentos:</span>
-                          <span>{formatPrice(orderTotal.total)}</span>
-                        </div>
-                      )}
+                      <div className="flex justify-between">
+                        <span>Subtotal con descuentos:</span>
+                        <span>{formatPrice(orderTotal.total)}</span>
+                      </div>
                       
-                      {/* Campo de descuento extra */}
+                      {/* NUEVA SECCIÓN - Descuento extra flexible */}
                       <div className="border-t pt-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Descuento adicional (%)
+                          Descuento adicional en caja
                         </label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="50"
-                          step="0.1"
-                          value={extraDiscount}
-                          onChange={(e) => setExtraDiscount(parseFloat(e.target.value) || 0)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                          placeholder="0"
-                        />
+                        
+                        {/* Selector de tipo de descuento */}
+                        <div className="flex space-x-2 mb-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDiscountType('percentage');
+                              setExtraDiscount(0);
+                            }}
+                            className={`px-3 py-1 text-sm rounded ${
+                              discountType === 'percentage'
+                                ? 'bg-indigo-100 text-indigo-700 border border-indigo-300'
+                                : 'bg-gray-100 text-gray-600 border border-gray-300'
+                            }`}
+                          >
+                            % Porcentaje
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDiscountType('fixed');
+                              setExtraDiscount(0);
+                            }}
+                            className={`px-3 py-1 text-sm rounded ${
+                              discountType === 'fixed'
+                                ? 'bg-indigo-100 text-indigo-700 border border-indigo-300'
+                                : 'bg-gray-100 text-gray-600 border border-gray-300'
+                            }`}
+                          >
+                            $ Monto fijo
+                          </button>
+                        </div>
+
+                        {/* Input de descuento */}
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="0"
+                            max={discountType === 'percentage' ? "50" : orderTotal.total}
+                            step={discountType === 'percentage' ? "0.1" : "100"}
+                            value={extraDiscount}
+                            onChange={(e) => setExtraDiscount(parseFloat(e.target.value) || 0)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder={discountType === 'percentage' ? "0.0" : "0"}
+                          />
+                          <span className="absolute right-3 top-2 text-gray-500 text-sm">
+                            {discountType === 'percentage' ? '%' : '$'}
+                          </span>
+                        </div>
+
+                        {/* Mostrar el descuento calculado */}
                         {extraDiscount > 0 && (
-                          <p className="text-xs text-green-600 mt-1">
-                            Descuento extra: -{formatPrice((orderTotal.total * extraDiscount) / 100)}
-                          </p>
+                          <div className="mt-2 space-y-1">
+                            <p className="text-xs text-green-600">
+                              Descuento aplicado: -{formatPrice(calculateDiscountAmount())}
+                              {discountType === 'percentage' && ` (${extraDiscount}%)`}
+                            </p>
+                            {discountType === 'fixed' && extraDiscount > orderTotal.total && (
+                              <p className="text-xs text-red-600">
+                                ⚠️ El descuento no puede ser mayor al total
+                              </p>
+                            )}
+                          </div>
                         )}
                       </div>
                       
@@ -269,7 +330,7 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
                     </div>
                     
                     {/* Información del cliente distribuidor */}
-                    {selectedCustomer?.role === 'Distributor' && (
+                    {selectedCustomer?.role === 'Distributor' && !selectedCustomer?.isGeneric && (
                       <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
                         <p className="text-xs text-blue-800 font-medium">
                           Cliente Distribuidor: {selectedCustomer.first_name} {selectedCustomer.last_name}
@@ -281,7 +342,17 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
                         )}
                       </div>
                     )}
+
+                    {/* Mostrar si es cliente genérico */}
+                    {selectedCustomer?.isGeneric && (
+                      <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded">
+                        <p className="text-xs text-orange-800 font-medium">
+                          👤 Cliente Local - Venta sin registro
+                        </p>
+                      </div>
+                    )}
                   </div>
+
 
                   {/* Selección de método de pago */}
                   <div className="mb-6">

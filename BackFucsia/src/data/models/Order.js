@@ -62,6 +62,12 @@ module.exports = (sequelize) => {
       type: DataTypes.JSONB,
       allowNull: true,
       
-    }
+    },
+    // En el modelo Order
+appliedDiscounts: {
+  type: DataTypes.JSON,
+  allowNull: true,
+  defaultValue: null
+}
   });
 };

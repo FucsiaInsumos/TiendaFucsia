@@ -8,44 +8,87 @@ const PriceCalculator = () => {
   const dispatch = useDispatch();
   const { user: currentUser } = useSelector(state => state.auth);
   const { products: reduxProducts, loading: productsLoading } = useSelector(state => state.products);
-  const [users, setUsers] = useState([]);
+ 
   const [loading, setLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState('');
+  const [users, setUsers] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [calculationResult, setCalculationResult] = useState(null);
 
+  // ✅ USEEFFECT CORREGIDO PARA CARGAR DATOS
   useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  const loadInitialData = async () => {
-    try {
-      setLoading(true);
-      
-      // Cargar productos usando la acción Redux
-      await dispatch(getProducts());
-
-      // Cargar usuarios usando getAllUsers
+    const loadInitialData = async () => {
       try {
+        setLoading(true);
+
+        console.log('📦 [PriceCalculator] Cargando productos...');
+        await dispatch(getProducts());
+
+        console.log('👥 [PriceCalculator] Cargando usuarios...');
         const usersResponse = await dispatch(getAllUsers());
-        if (!usersResponse.error && usersResponse.data?.users) {
-          // Filtrar solo distribuidores y clientes para el cálculo
-          const filteredUsers = usersResponse.data.users.filter(
-            user => user.role === 'Distributor' || user.role === 'Customer'
-          );
-          setUsers(filteredUsers);
-          console.log('Usuarios cargados:', filteredUsers);
+        
+        console.log('👥 [PriceCalculator] Respuesta completa usuarios:', usersResponse);
+        
+        let usersList = [];
+        
+        if (usersResponse && Array.isArray(usersResponse)) {
+          usersList = usersResponse;
+        } else if (usersResponse && usersResponse.data) {
+          if (Array.isArray(usersResponse.data)) {
+            usersList = usersResponse.data;
+          } else if (usersResponse.data.users && Array.isArray(usersResponse.data.users)) {
+            usersList = usersResponse.data.users;
+          }
         }
-      } catch (userError) {
-        console.error('Error cargando usuarios:', userError);
+        
+        console.log('👥 [PriceCalculator] Lista usuarios extraída:', usersList);
+        
+        if (usersList.length > 0) {
+          // ✅ FILTRAR Y VALIDAR USUARIOS POR n_document
+          const validUsers = usersList.filter(user => {
+            const hasDocument = user.n_document && typeof user.n_document === 'string';
+            const hasValidRole = user.role === 'Distributor' || user.role === 'Customer';
+            
+            if (!hasDocument) {
+              console.warn('⚠️ Usuario sin n_document válido:', user);
+            }
+            
+            return hasDocument && hasValidRole;
+          });
+          
+          console.log('✅ [PriceCalculator] Usuarios válidos:', validUsers);
+          setUsers(validUsers);
+        } else {
+          console.warn('⚠️ [PriceCalculator] No se encontraron usuarios');
+          setUsers([]);
+        }
+        
+      } catch (error) {
+        console.error('❌ [PriceCalculator] Error:', error);
         setUsers([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error loading initial data:', error);
-    } finally {
-      setLoading(false);
+    };
+
+    loadInitialData();
+  }, [dispatch]);
+
+  // ✅ DEBUG PARA VER LOS USUARIOS CARGADOS
+  useEffect(() => {
+    if (users.length > 0) {
+      console.log('🔍 [DEBUG] Lista de usuarios cargados:');
+      users.forEach((user, index) => {
+        console.log(`  Usuario ${index}:`, {
+          n_document: user.n_document, // ✅ CAMBIAR id por n_document
+          firstName: user.first_name,
+          lastName: user.last_name,
+          role: user.role,
+          fullObject: user
+        });
+      });
     }
-  };
+  }, [users]);
 
   const addProductToCalculation = () => {
     setSelectedItems([...selectedItems, {
@@ -56,7 +99,7 @@ const PriceCalculator = () => {
   };
 
   const updateSelectedItem = (itemId, field, value) => {
-    setSelectedItems(prev => prev.map(item => 
+    setSelectedItems(prev => prev.map(item =>
       item.id === itemId ? { ...item, [field]: value } : item
     ));
   };
@@ -65,13 +108,45 @@ const PriceCalculator = () => {
     setSelectedItems(prev => prev.filter(item => item.id !== itemId));
   };
 
+  // ✅ FUNCIÓN CALCULATEPRICES CORREGIDA
   const calculatePrices = async () => {
+    console.log('🚀 [calculatePrices] INICIANDO DIAGNÓSTICO');
+    console.log('🚀 [calculatePrices] selectedUser (n_document):', selectedUser);
+    console.log('🚀 [calculatePrices] typeof selectedUser:', typeof selectedUser);
+    
+    // Buscar el usuario en la lista por n_document
+    const userData = users.find(u => u.n_document === selectedUser); // ✅ CAMBIAR id por n_document
+    console.log('🚀 [calculatePrices] Usuario encontrado en lista:', userData);
+    
+    // Ver toda la lista de usuarios
+    console.log('🚀 [calculatePrices] Lista completa usuarios:', users.map(u => ({ n_document: u.n_document, name: u.first_name + ' ' + u.last_name })));
+
     if (!selectedUser || selectedItems.length === 0) {
       alert('Por favor selecciona un usuario y al menos un producto');
       return;
     }
 
-    // Validar que todos los items tengan producto y cantidad válida
+    // ✅ VALIDACIÓN MEJORADA DEL USUARIO - Ya no necesita ser UUID
+    if (!selectedUser || selectedUser === '') {
+      console.error('❌ n_document de usuario inválido:', selectedUser);
+      alert('Error: Documento de usuario inválido. Vuelve a seleccionar el usuario.');
+      return;
+    }
+
+    // Verificar que el usuario existe en la lista
+    if (!userData) {
+      console.error('❌ Usuario no encontrado en la lista');
+      alert('Error: Usuario no encontrado. Vuelve a cargar la página.');
+      return;
+    }
+
+    console.log('✅ Usuario válido:', {
+      n_document: userData.n_document,
+      name: `${userData.first_name} ${userData.last_name}`,
+      role: userData.role
+    });
+
+    // Validar items
     const invalidItems = selectedItems.filter(
       item => !item.productId || !item.quantity || item.quantity <= 0
     );
@@ -83,26 +158,23 @@ const PriceCalculator = () => {
 
     try {
       setLoading(true);
-      
-      // Preparar los items para la API
+
       const itemsForCalculation = selectedItems.map(item => ({
         productId: item.productId,
         quantity: parseInt(item.quantity)
       }));
 
       console.log('=== PRICE CALCULATOR DEBUG ===');
-      console.log('Usuario seleccionado ID:', selectedUser);
-      console.log('Usuario seleccionado data:', getSelectedUserData());
-      console.log('Items para calcular:', itemsForCalculation);
+      console.log('📦 Enviando items:', itemsForCalculation);
+      console.log('👤 Enviando userId (n_document):', selectedUser);
 
       const result = await dispatch(calculatePricesForCartAPI(itemsForCalculation, selectedUser));
       
-      console.log('=== RESULTADO DEL CÁLCULO ===');
-      console.log(result);
+      console.log('📊 Resultado:', result);
       setCalculationResult(result);
 
     } catch (error) {
-      console.error('Error calculating prices:', error);
+      console.error('❌ Error calculating prices:', error);
       alert('Error al calcular precios: ' + (error.message || 'Error desconocido'));
       setCalculationResult(null);
     } finally {
@@ -122,7 +194,7 @@ const PriceCalculator = () => {
   };
 
   const getSelectedUserData = () => {
-    return users.find(u => u.id === selectedUser);
+    return users.find(u => u.n_document === selectedUser); // ✅ CAMBIAR id por n_document
   };
 
   // Usar products del Redux store
@@ -159,30 +231,59 @@ const PriceCalculator = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Seleccionar Usuario ({users.length} disponibles)
             </label>
+            
+            {/* ✅ SELECT CORREGIDO */}
             <select
               value={selectedUser}
               onChange={(e) => {
-                console.log('Usuario seleccionado:', e.target.value);
-                setSelectedUser(e.target.value);
+                const userDocument = e.target.value; // ✅ CAMBIAR nombre de variable
+                console.log('=== SELECT DEBUG ===');
+                console.log('e.target.value (n_document):', userDocument);
+                
+                // Buscar el usuario para verificar
+                const foundUser = users.find(u => u.n_document === userDocument); // ✅ CAMBIAR id por n_document
+                console.log('🔄 [Select] Usuario encontrado:', foundUser);
+                
+                setSelectedUser(userDocument);
                 setCalculationResult(null);
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">Selecciona un usuario...</option>
-              {users.map(user => (
-                <option key={user.id} value={user.id}>
-                  {user.first_name} {user.last_name} - {user.role}
-                  {user.role === 'Distributor' && user.distributor && (
-                    ` (${user.distributor.discountPercentage || 0}% desc, Min: ${formatPrice(user.distributor.minimumPurchase || 0)})`
-                  )}
-                </option>
-              ))}
+              <option value="">
+                {users.length === 0 ? 'Cargando usuarios...' : 'Selecciona un usuario...'}
+              </option>
+              
+              {/* ✅ MOSTRAR USUARIOS CON n_document */}
+              {users.map(user => {
+                if (!user.n_document) {
+                  console.warn('⚠️ Usuario sin n_document:', user);
+                  return null;
+                }
+                
+                return (
+                  <option key={user.n_document} value={user.n_document}> {/* ✅ USAR n_document */}
+                    {user.first_name} {user.last_name} - {user.role}
+                    {user.role === 'Distributor' && user.distributor && (
+                      ` (${user.distributor.discountPercentage || 0}% desc, Min: ${formatPrice(user.distributor.minimumPurchase || 0)})`
+                    )}
+                  </option>
+                );
+              })}
             </select>
-            
+
+            {/* ✅ DEBUG: Mostrar el valor actual del estado */}
+            {selectedUser && (
+              <div className="mt-2 p-2 bg-yellow-50 border rounded text-xs">
+                <strong>Estado selectedUser:</strong> "{selectedUser}"<br/>
+                <strong>Tipo:</strong> {typeof selectedUser}<br/>
+                <strong>Es n_document válido:</strong> {selectedUser && selectedUser.length > 0 ? '✅ Sí' : '❌ No'}
+              </div>
+            )}
+
             {selectedUser && (
               <div className="mt-2 p-3 bg-gray-50 rounded-lg">
                 <div className="text-sm">
-                  <strong>ID Usuario:</strong> {selectedUser}
+                  <strong>Documento Usuario:</strong> {selectedUser}
                   <br />
                   <strong>Nombre:</strong> {getSelectedUserData()?.first_name} {getSelectedUserData()?.last_name}
                   <br />
@@ -286,6 +387,7 @@ const PriceCalculator = () => {
               <div className="p-4 bg-blue-50 rounded-lg">
                 <h3 className="font-semibold text-blue-800 mb-2">Usuario Calculado</h3>
                 <div className="text-sm text-blue-700">
+                  <div><strong>Documento:</strong> {selectedUser}</div>
                   <div><strong>Nombre:</strong> {getSelectedUserData()?.first_name} {getSelectedUserData()?.last_name}</div>
                   <div><strong>Rol:</strong> {getSelectedUserData()?.role}</div>
                   <div><strong>Es Distribuidor:</strong> {calculationResult.isDistributor ? 'Sí' : 'No'}</div>
@@ -295,8 +397,8 @@ const PriceCalculator = () => {
                       <div><strong>Compra mínima:</strong> {formatPrice(calculationResult.distributorInfo.minimumPurchase || 0)}</div>
                       <div><strong>Valor del pedido:</strong> {formatPrice(calculationResult.orderValueForDistributorCheck || 0)}</div>
                       <div className={`font-semibold ${calculationResult.appliedDistributorPrices ? 'text-green-600' : 'text-orange-600'}`}>
-                        {calculationResult.appliedDistributorPrices ? 
-                          '✅ Precios de distribuidor aplicados' : 
+                        {calculationResult.appliedDistributorPrices ?
+                          '✅ Precios de distribuidor aplicados' :
                           '⚠️ No cumple mínimo para descuento de distribuidor'
                         }
                       </div>
@@ -341,6 +443,23 @@ const PriceCalculator = () => {
                   })}
                 </div>
               </div>
+
+              {/* Descuentos aplicados */}
+              {calculationResult.appliedDiscounts && calculationResult.appliedDiscounts.length > 0 && (
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <h3 className="font-semibold text-green-800 mb-2">Descuentos Aplicados</h3>
+                  <div className="space-y-1">
+                    {calculationResult.appliedDiscounts.map((discount, index) => (
+                      <div key={index} className="text-sm text-green-700">
+                        <strong>{discount.name}:</strong> -{formatPrice(discount.amount)}
+                        <span className="text-gray-600 ml-2">
+                          ({discount.type === 'percentage' ? `${discount.value}%` : 'Monto fijo'})
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Totales */}
               <div className="p-4 bg-gray-50 rounded-lg">

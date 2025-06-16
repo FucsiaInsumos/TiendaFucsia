@@ -6,7 +6,7 @@ const {
   getProductById,
   updateProduct,
   deleteProduct,
-  calculatePrice,
+  // calculatePrice,
 } = require('../controllers/Product/productController');
 const { verifyToken } = require('../middleware/isAuth'); // Asumiendo que tienes autenticación
 
@@ -29,7 +29,7 @@ router.put(
     updateProduct
 );
 router.delete('/:id', deleteProduct);
-router.post('/calculate-price', calculatePrice);
+// router.post('/calculate-price', calculatePrice);
 
 // Aplicar verifyToken a todas las rutas de productos si es necesario
 // router.use(verifyToken);

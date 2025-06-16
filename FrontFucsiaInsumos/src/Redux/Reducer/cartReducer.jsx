@@ -5,6 +5,7 @@ const initialState = {
   total: 0,
   subtotal: 0,
   discount: 0,
+  appliedDiscounts: [],
   isOpen: false,
   distributorPricesApplied: false,
   distributorMinimumRequired: 0,
@@ -12,12 +13,89 @@ const initialState = {
   tempSubtotalDistributorPotential: 0, // Nuevo: Para mostrar el total que sería con precios de distribuidor
 };
 
-// --- Helper Functions ---
-/**
- * Calcula el precio efectivo de un ítem y los flags correspondientes.
- * Esta función NO considera el mínimo de compra del distribuidor globalmente,
- * solo el precio potencial si todas las condiciones (excepto el mínimo total) se cumplen.
- */
+// Función para aplicar reglas de descuento
+const applyDiscountRules = (items, user, discountRules) => {
+  if (!discountRules || discountRules.length === 0) return { totalDiscount: 0, appliedDiscounts: [] };
+
+  const userType = user?.role === 'Distributor' ? 'distributors' : 'customers';
+  const now = new Date();
+  
+  // Filtrar reglas aplicables
+  const applicableRules = discountRules.filter(rule => {
+    // Verificar si está activa
+    if (!rule.isActive) return false;
+    
+    // Verificar si aplica para el tipo de usuario
+    if (rule.applicableFor !== 'all' && rule.applicableFor !== userType) return false;
+    
+    // Verificar fechas de vigencia
+    if (rule.startDate && new Date(rule.startDate) > now) return false;
+    if (rule.endDate && new Date(rule.endDate) < now) return false;
+    
+    return true;
+  });
+
+  // Ordenar por prioridad (mayor prioridad primero)
+  applicableRules.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+  let totalDiscount = 0;
+  const appliedDiscounts = [];
+
+  // Calcular subtotal y cantidad total
+  const cartSubtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Aplicar reglas de descuento
+  for (const rule of applicableRules) {
+    let ruleApplies = false;
+    let discountAmount = 0;
+
+    // Verificar condiciones de la regla
+    switch (rule.conditionType) {
+      case 'quantity':
+        ruleApplies = totalQuantity >= (rule.minQuantity || 0) && 
+                     (!rule.maxQuantity || totalQuantity <= rule.maxQuantity);
+        break;
+      case 'amount':
+        ruleApplies = cartSubtotal >= (parseFloat(rule.minAmount) || 0) && 
+                     (!rule.maxAmount || cartSubtotal <= parseFloat(rule.maxAmount));
+        break;
+      case 'both':
+        ruleApplies = totalQuantity >= (rule.minQuantity || 0) && 
+                     cartSubtotal >= (parseFloat(rule.minAmount) || 0) &&
+                     (!rule.maxQuantity || totalQuantity <= rule.maxQuantity) &&
+                     (!rule.maxAmount || cartSubtotal <= parseFloat(rule.maxAmount));
+        break;
+    }
+
+    if (ruleApplies) {
+      // Calcular descuento
+      if (rule.discountType === 'percentage') {
+        discountAmount = cartSubtotal * (parseFloat(rule.discountValue) / 100);
+      } else if (rule.discountType === 'fixed_amount') {
+        discountAmount = Math.min(parseFloat(rule.discountValue), cartSubtotal);
+      }
+
+      if (discountAmount > 0) {
+        totalDiscount += discountAmount;
+        appliedDiscounts.push({
+          id: rule.id,
+          name: rule.name,
+          type: rule.discountType,
+          value: rule.discountValue,
+          amount: discountAmount
+        });
+        
+        // Si queremos aplicar solo el primer descuento que aplique, podemos hacer break aquí
+        // break;
+      }
+    }
+  }
+
+  return { totalDiscount, appliedDiscounts };
+};
+
+
 const getItemPriceDetails = (product, user) => {
   let price = product.originalPrice || product.price; // Precio base (normal)
   let isPromotionApplied = false;
@@ -41,28 +119,28 @@ const getItemPriceDetails = (product, user) => {
   };
 };
 
-/**
- * Recalcula todo el estado del carrito basado en los ítems y el usuario.
- * Esta es la función principal para mantener la consistencia.
- */
-const calculateCartState = (currentItems, user) => {
+
+// Función principal para calcular el estado del carrito
+const calculateCartState = (currentItems, user, discountRules = []) => {
   const newCartState = {
     items: [],
     subtotal: 0,
+    discount: 0,
     total: 0,
+    appliedDiscounts: [],
     distributorPricesApplied: false,
     distributorMinimumRequired: 0,
     isDistributorMinimumMet: true,
-    tempSubtotalDistributorPotential: 0, // Inicializar
+    tempSubtotalDistributorPotential: 0,
   };
 
   if (!currentItems || currentItems.length === 0) {
     return newCartState;
   }
 
-  let tempSubtotalForDistributorCheck = 0;
+   let tempSubtotalForDistributorCheck = 0;
   const processedItemsPass1 = currentItems.map(item => {
-    const details = getItemPriceDetails(item, user); // 'item' aquí es el producto del carrito
+    const details = getItemPriceDetails(item, user);
     let priceForDistributorCheck = details.basePrice;
 
     if (details.potentialDistributorPrice !== null && details.potentialDistributorPrice < priceForDistributorCheck) {
@@ -71,12 +149,11 @@ const calculateCartState = (currentItems, user) => {
     tempSubtotalForDistributorCheck += item.quantity * priceForDistributorCheck;
     
     return {
-      ...item, // Mantiene id, name, sku, image, quantity, stock, originalPrice, etc.
-      _priceDetails: details, // Guardar detalles intermedios
+      ...item,
+      _priceDetails: details,
     };
   });
 
-  // Guardar el subtotal potencial para mostrar en UI
   newCartState.tempSubtotalDistributorPotential = tempSubtotalForDistributorCheck;
 
   if (user?.role === 'Distributor' && user?.distributor) {
@@ -84,28 +161,27 @@ const calculateCartState = (currentItems, user) => {
     if (newCartState.distributorMinimumRequired > 0 && tempSubtotalForDistributorCheck < newCartState.distributorMinimumRequired) {
       newCartState.isDistributorMinimumMet = false;
     } else {
-      newCartState.isDistributorMinimumMet = true; // Mínimo cumplido o no aplica
-      newCartState.distributorPricesApplied = true; // Los precios de distribuidor pueden aplicarse
+      newCartState.isDistributorMinimumMet = true;
+      newCartState.distributorPricesApplied = true;
     }
   } else {
-    newCartState.isDistributorMinimumMet = true; // No es distribuidor, o no tiene mínimo
+    newCartState.isDistributorMinimumMet = true;
   }
-
-  // Segunda pasada: aplicar precios finales
+// Segunda pasada: aplicar precios finales
   newCartState.items = processedItemsPass1.map(item => {
     let finalPrice = item._priceDetails.basePrice;
     let itemIsDistributorPrice = false;
     let itemIsPromotion = item._priceDetails.isPromotionApplied;
-    let itemPriceReverted = false;
+    let itemPriceReverted = false; // Definir la variable aquí
 
     if (newCartState.distributorPricesApplied && item._priceDetails.potentialDistributorPrice !== null) {
       if (item._priceDetails.potentialDistributorPrice < finalPrice) {
         finalPrice = item._priceDetails.potentialDistributorPrice;
         itemIsDistributorPrice = true;
-        itemIsPromotion = false; // Precio de distribuidor anula promo si es mejor
+        itemIsPromotion = false;
       }
-    } else if (user?.role === 'Distributor' && !newCartState.isDistributorMinimumMet && item._priceDetails.potentialDistributorPrice !== null) {
-      // Mínimo no cumplido, y este item PODRÍA haber tenido precio de distribuidor
+    } else if (user?.role === 'Distributor' && item._priceDetails.potentialDistributorPrice !== null && item._priceDetails.potentialDistributorPrice < finalPrice) {
+      // El precio de distribuidor sería mejor pero no se aplicó por no cumplir mínimo
       itemPriceReverted = true;
     }
 
@@ -123,7 +199,11 @@ const calculateCartState = (currentItems, user) => {
     };
   });
 
-  newCartState.total = newCartState.subtotal - (initialState.discount); // Aplicar descuento global si existe
+ // Aplicar reglas de descuento
+  const discountResult = applyDiscountRules(newCartState.items, user, discountRules);
+  newCartState.discount = discountResult.totalDiscount;
+  newCartState.appliedDiscounts = discountResult.appliedDiscounts;
+  newCartState.total = newCartState.subtotal - newCartState.discount;
 
   // Limpiar _priceDetails de los items finales
   newCartState.items.forEach(item => delete item._priceDetails);
@@ -137,37 +217,48 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart: (state, action) => {
-      const { product, quantity = 1, user } = action.payload; // Esperar 'user' completo
+      const { product, quantity = 1, user } = action.payload;
       const existingItem = state.items.find(item => item.id === product.id);
 
       if (existingItem) {
         existingItem.quantity += quantity;
       } else {
         state.items.push({
-          // Guardar todos los datos relevantes del producto, incluyendo precios originales
           ...product, 
-          originalPrice: product.price, // Asegurar que el precio original se guarda
-          price: product.price, // Precio inicial antes de cálculos
+          originalPrice: product.price,
+          price: product.price,
           quantity: quantity,
-          image: product.image_url?.[0] || product.image || null, // Manejar ambas estructuras de imagen
+          image: product.image_url?.[0] || product.image || null,
         });
       }
       
       const newState = calculateCartState(state.items, user);
-      Object.assign(state, newState); // Actualizar el estado del carrito
+      Object.assign(state, newState);
       state.isOpen = true;
+    },
+
+    applyDiscounts: (state, action) => {
+      const { user, discountRules } = action.payload;
+      const newState = calculateCartState(state.items, user, discountRules);
+      Object.assign(state, newState);
+    },
+
+    recalculateCartOnUserChange: (state, action) => {
+      const { user, discountRules } = action.payload;
+      const newState = calculateCartState(state.items, user, discountRules);
+      Object.assign(state, newState);
     },
     
     removeFromCart: (state, action) => {
-      const { productId, user } = action.payload; // Esperar 'user'
+      const { productId, user, discountRules } = action.payload;
       state.items = state.items.filter(item => item.id !== productId);
       
-      const newState = calculateCartState(state.items, user);
+      const newState = calculateCartState(state.items, user, discountRules);
       Object.assign(state, newState);
     },
     
     updateQuantity: (state, action) => {
-      const { productId, quantity, user } = action.payload; // Esperar 'user'
+      const { productId, quantity, user, discountRules } = action.payload;
       const item = state.items.find(item => item.id === productId);
       
       if (item) {
@@ -178,7 +269,7 @@ const cartSlice = createSlice({
         }
       }
       
-      const newState = calculateCartState(state.items, user);
+      const newState = calculateCartState(state.items, user, discountRules);
       Object.assign(state, newState);
     },
     
@@ -222,6 +313,7 @@ export const {
   updateQuantity,
   clearCart,
   recalculateCartOnUserChange, // Exportar la nueva acción
+  applyDiscounts,
   clearDistributorWarning,
   toggleCart,
   setCartOpen

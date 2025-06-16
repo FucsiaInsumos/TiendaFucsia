@@ -7,7 +7,8 @@ const {
   getMyOrders,
   getOrderById, 
   updateOrderStatus, 
-  cancelOrder 
+  cancelOrder,
+  calculatePrice 
 } = require('../controllers/Order/orderController');
 
 // Middleware para verificar token en todas las rutas
@@ -20,5 +21,6 @@ router.get('/', getOrders); // Solo para admin/owner
 router.get('/:id', getOrderById);
 router.put('/:id/status', updateOrderStatus);
 router.put('/:id/cancel', cancelOrder);
+router.post('/calculate-price', calculatePrice);
 
 module.exports = router;
