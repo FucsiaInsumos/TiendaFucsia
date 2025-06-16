@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { createOrder } from '../../Redux/Actions/salesActions';
 import { clearCart } from '../../Redux/Reducer/cartReducer';
-import WompiWidget from '../../components/Checkout/WompiWidget';
+import WompiWidget from './WompiWidget';
 
 const Checkout = () => {
   const dispatch = useDispatch();
