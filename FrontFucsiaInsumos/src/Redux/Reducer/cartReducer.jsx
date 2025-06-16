@@ -243,11 +243,11 @@ const cartSlice = createSlice({
       Object.assign(state, newState);
     },
 
-    recalculateCartOnUserChange: (state, action) => {
-      const { user, discountRules } = action.payload;
-      const newState = calculateCartState(state.items, user, discountRules);
-      Object.assign(state, newState);
-    },
+    // recalculateCartOnUserChange: (state, action) => {
+    //   const { user, discountRules } = action.payload;
+    //   const newState = calculateCartState(state.items, user, discountRules);
+    //   Object.assign(state, newState);
+    // },
     
     removeFromCart: (state, action) => {
       const { productId, user, discountRules } = action.payload;
