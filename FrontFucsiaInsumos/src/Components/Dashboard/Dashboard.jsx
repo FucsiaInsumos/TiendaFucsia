@@ -81,13 +81,12 @@ const Dashboard = () => {
             >
               <Link to="/caja">
                 <h2 className="text-xl font-semibold uppercase mb-2">Caja</h2>
-                <p className='text-principalHover font-semibold'>Selecciona lo que vas a realizar</p>
+               
               </Link>
               {isCajaDropdownOpen && (
                 <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg">
-                  <Link to="/cobrar" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">Cobrar</Link>
-                  <Link to="/reservar" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">Reservar</Link>
-                  <Link to="/facturar" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">Facturar</Link>
+                
+                 
                 </div>
               )}
             </div>

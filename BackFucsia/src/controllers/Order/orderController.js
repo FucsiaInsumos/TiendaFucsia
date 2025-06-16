@@ -182,22 +182,42 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // Verificar que el usuario existe y obtener info del distribuidor
-    const customer = await User.findByPk(userId, {
-      include: [{ model: Distributor, as: 'distributor', required: false }]
+   let customer;
+
+if (userId === 'GENERIC_001') {
+  customer = await User.findByPk('GENERIC_001');
+  if (!customer) {
+    await transaction.rollback();
+    return res.status(404).json({ 
+      error: true, 
+      message: 'Usuario genérico no encontrado. Reinicie el servidor.' 
     });
-    
-    if (!customer) {
-      await transaction.rollback();
-      return res.status(404).json({ error: true, message: 'Usuario no encontrado' });
-    }
+  }
+  // AMBAS formas para asegurar que se propague
+  customer.isGeneric = true;
+  customer.dataValues.isGeneric = true;
+  console.log('👤 Usando cliente genérico para venta local');
+} else {
+  // Cliente real - buscar en la base de datos
+  customer = await User.findByPk(userId, {
+    include: [{ model: Distributor, as: 'distributor', required: false }]
+  });
+  
+  if (!customer) {
+    await transaction.rollback();
+    return res.status(404).json({ error: true, message: 'Usuario no encontrado' });
+  }
+}
+
+
     // AHORA SÍ puedes hacer los console.log
     console.log('📦 Items recibidos del frontend:', items);
-    console.log('👤 Usuario:', { 
-      role: customer?.role, 
-      hasDistributor: !!customer?.distributor,
-      minimumPurchase: customer?.distributor?.minimumPurchase 
-    });
+   console.log('👤 Usuario:', { 
+  role: customer?.role, 
+  hasDistributor: !!customer?.distributor,
+  minimumPurchase: customer?.distributor?.minimumPurchase,
+  isGeneric: customer?.isGeneric || false
+});
 
     // Generar número de orden
     const orderNumber = await generateOrderNumber();
@@ -267,7 +287,7 @@ const createOrder = async (req, res) => {
 
   let applyDistributorPrices = false;
 let distributorMinimumRequiredValue = 0; // Para la respuesta
-if (customer.role === 'Distributor' && customer.distributor) {
+if (customer.role === 'Distributor' && customer.distributor && !customer.isGeneric) {
   distributorMinimumRequiredValue = parseFloat(customer.distributor.minimumPurchase) || 0;
   console.log(`💼 Chequeo distribuidor: valor pedido=${orderValueForDistributorMinimumCheck}, mínimo requerido=${distributorMinimumRequiredValue}`);
   
@@ -342,6 +362,9 @@ if (customer.role === 'Distributor' && customer.distributor) {
       const rulesNote = `\nDescuentos aplicados: ${appliedDiscountRules.map(r => `${r.name} (-${formatPrice(r.amount)})`).join(', ')}`;
       finalNotes = finalNotes + rulesNote;
     }
+    if (customer.isGeneric) {
+  finalNotes = finalNotes + '\n[Venta a Cliente Local - Sin registro]';
+}
     
     const total = subtotal - totalDiscount;
 
@@ -443,11 +466,13 @@ if (customer.role === 'Distributor' && customer.distributor) {
     });
 
     let successMessage = 'Orden creada exitosamente';
-    if (customer.role === 'Distributor' && applyDistributorPrices) {
-      successMessage = 'Orden de distribuidor creada exitosamente con precios especiales';
-    } else if (customer.role === 'Distributor' && !applyDistributorPrices && distributorMinimumRequiredValue > 0) {
-      successMessage = 'Orden de distribuidor creada con precios normales/promoción (mínimo no alcanzado)';
-    }
+if (customer.isGeneric) {
+  successMessage = 'Venta local creada exitosamente (Cliente Local)';
+} else if (customer.role === 'Distributor' && applyDistributorPrices) {
+  successMessage = 'Orden de distribuidor creada exitosamente con precios especiales';
+} else if (customer.role === 'Distributor' && !applyDistributorPrices && distributorMinimumRequiredValue > 0) {
+  successMessage = 'Orden de distribuidor creada con precios normales/promoción (mínimo no alcanzado)';
+}
     
     if (extraDiscountAmount > 0) {
       successMessage += ` - Descuento POS aplicado: ${extraDiscountPercentage}%`;
