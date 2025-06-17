@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { getOrders, updateOrderStatus, cancelOrder, getOrderById } from '../../Redux/Actions/salesActions';
+import { getPaymentStatus, updateOrderPaymentStatus } from '../../Redux/Actions/wompiActions';
 import OrderDetailModal from './OrderDetailModal';
 
 const OrderManagement = () => {
@@ -9,6 +10,7 @@ const OrderManagement = () => {
   const [loading, setLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [paymentStatusLoading, setPaymentStatusLoading] = useState({});
   const [filters, setFilters] = useState({
     page: 1,
     limit: 20,
@@ -31,8 +33,11 @@ const OrderManagement = () => {
   const loadOrders = async () => {
     try {
       setLoading(true);
+      console.log('📋 [OrderManagement] Cargando órdenes con filtros:', filters);
+      
       const response = await dispatch(getOrders(filters));
       if (response.error === false) {
+        console.log('✅ [OrderManagement] Órdenes cargadas:', response.data.orders.length);
         setOrders(response.data.orders);
         setPagination({
           totalOrders: response.data.totalOrders,
@@ -41,17 +46,302 @@ const OrderManagement = () => {
         });
       }
     } catch (error) {
-      console.error('Error loading orders:', error);
+      console.error('❌ [OrderManagement] Error loading orders:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // ✅ FUNCIÓN PARA VALIDAR IDs DE WOMPI
+  const isValidWompiId = (id) => {
+    if (!id) return false;
+    // Los IDs de Wompi suelen tener formato: números-números-números
+    // Los UUIDs tienen formato: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    const wompiPattern = /^\d+-\d+-\d+$/;
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    
+    return wompiPattern.test(id) && !uuidPattern.test(id);
+  };
+
+  // ✅ FUNCIÓN PARA CONSULTAR ESTADO INDIVIDUAL DE WOMPI
+  const checkRealPaymentStatus = async (order) => {
+    console.log('🔍 [DEBUG] Consultando estado de pago para orden:', order.orderNumber);
+    
+    const wompiPayment = order.payments?.find(p => p.method === 'wompi');
+    
+    if (!wompiPayment) {
+      alert('❌ Esta orden no tiene un pago de Wompi');
+      return;
+    }
+
+    console.log('✅ [DEBUG] Pago de Wompi encontrado:', wompiPayment);
+
+    // Buscar el VERDADERO transaction ID de Wompi
+    const possibleTransactionIds = [
+      wompiPayment.paymentDetails?.transactionId,
+      wompiPayment.paymentDetails?.wompiTransactionId,
+      wompiPayment.paymentDetails?.wompiData?.transactionId,
+      wompiPayment.paymentDetails?.reference,
+      wompiPayment.paymentDetails?.wompiReference,
+      wompiPayment.transactionId
+    ].filter(Boolean);
+
+    console.log('🔍 [DEBUG] IDs encontrados:', possibleTransactionIds);
+
+    // Filtrar solo IDs válidos de Wompi
+    const validWompiIds = possibleTransactionIds.filter(isValidWompiId);
+    const wompiTransactionId = validWompiIds[0];
+
+    console.log('✅ [DEBUG] IDs válidos de Wompi:', validWompiIds);
+
+    if (!wompiTransactionId) {
+      const detailsText = `🔍 ANÁLISIS DE TRANSACTION ID:
+
+📋 Orden: ${order.orderNumber}
+💰 Monto: $${new Intl.NumberFormat('es-CO').format(wompiPayment.amount)}
+📊 Estado en BD: ${wompiPayment.status}
+
+🔍 IDs encontrados:
+${possibleTransactionIds.map((id, index) => `${index + 1}. ${id} ${isValidWompiId(id) ? '✅ VÁLIDO' : '❌ INVÁLIDO (UUID interno)'}`).join('\n')}
+
+❌ No se encontró un Transaction ID válido de Wompi.
+Esta orden podría ser de antes de que la integración funcionara correctamente.`;
+
+      alert(detailsText);
+      return;
+    }
+
+    try {
+      setPaymentStatusLoading(prev => ({ ...prev, [order.id]: true }));
+      
+      console.log('🔍 [OrderManagement] Consultando TransactionId:', wompiTransactionId);
+      
+      const paymentStatusResponse = await dispatch(getPaymentStatus(wompiTransactionId));
+      
+      console.log('✅ [OrderManagement] Estado obtenido:', paymentStatusResponse);
+      
+      // Actualizar estado local
+      setOrders(prevOrders => 
+        prevOrders.map(o => 
+          o.id === order.id 
+            ? {
+                ...o,
+                realPaymentStatus: paymentStatusResponse.data,
+                lastPaymentCheck: new Date().toISOString()
+              }
+            : o
+        )
+      );
+
+      // Comparar estados y montos
+      const statusMatch = wompiPayment.status === paymentStatusResponse.data.status;
+      const amountMatch = parseFloat(wompiPayment.amount) === (paymentStatusResponse.data.amount_in_cents / 100);
+
+      const resultText = `📊 CONSULTA DE PAGO WOMPI EXITOSA:
+    
+🏷️ Orden: ${order.orderNumber}
+🆔 Transaction ID: ${wompiTransactionId}
+
+💰 MONTOS:
+   Base de Datos: $${new Intl.NumberFormat('es-CO').format(wompiPayment.amount)}
+   Wompi Real: $${new Intl.NumberFormat('es-CO').format(paymentStatusResponse.data.amount_in_cents / 100)}
+   ${amountMatch ? '✅ COINCIDEN' : '⚠️ DIFERENTES'}
+
+📊 ESTADOS:
+   Base de Datos: ${wompiPayment.status}
+   Wompi Real: ${paymentStatusResponse.data.status}
+   ${statusMatch ? '✅ COINCIDEN' : '⚠️ DIFERENTES'}
+
+🕒 Consultado: ${new Date().toLocaleString()}
+
+${statusMatch && amountMatch ? '🎉 Todo está en orden!' : '⚠️ Revisa las diferencias encontradas'}`;
+
+      alert(resultText);
+      
+    } catch (error) {
+      console.error('❌ [OrderManagement] Error consultando pago:', error);
+      alert(`❌ Error al consultar el pago: 
+
+🆔 Transaction ID: ${wompiTransactionId}
+📋 Orden: ${order.orderNumber}
+❌ Error: ${error.response?.data?.message || error.message}
+
+${error.response?.status === 404 ? '💡 Sugerencia: El Transaction ID podría no existir en Wompi (orden antigua).' : ''}`);
+    } finally {
+      setPaymentStatusLoading(prev => ({ ...prev, [order.id]: false }));
+    }
+  };
+
+  // ✅ FUNCIÓN PARA VERIFICAR TODOS LOS PAGOS DE WOMPI
+  const checkAllWompiPayments = async () => {
+    console.log('🔍 [DEBUG] Iniciando verificación masiva de pagos Wompi');
+    
+    const wompiOrders = orders.filter(order => {
+      return order.payments?.some(p => p.method === 'wompi');
+    });
+
+    console.log('✅ [DEBUG] Órdenes con Wompi encontradas:', wompiOrders.length);
+
+    if (wompiOrders.length === 0) {
+      alert('ℹ️ No hay órdenes con pagos de Wompi para verificar en esta página.');
+      return;
+    }
+
+    const confirmResult = confirm(`🔍 VERIFICACIÓN MASIVA DE PAGOS WOMPI
+
+Se encontraron ${wompiOrders.length} órdenes con pagos de Wompi.
+
+⚠️ Esta operación puede tomar tiempo si hay muchas órdenes.
+
+¿Deseas continuar con la verificación?`);
+
+    if (!confirmResult) return;
+
+    const results = [];
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (const order of wompiOrders) {
+      try {
+        const wompiPayment = order.payments.find(p => p.method === 'wompi');
+        
+        // Buscar y validar Transaction ID
+        const possibleTransactionIds = [
+          wompiPayment.paymentDetails?.transactionId,
+          wompiPayment.paymentDetails?.wompiTransactionId,
+          wompiPayment.paymentDetails?.wompiData?.transactionId,
+          wompiPayment.paymentDetails?.reference,
+          wompiPayment.transactionId
+        ].filter(Boolean);
+
+        const validWompiIds = possibleTransactionIds.filter(isValidWompiId);
+        const wompiTransactionId = validWompiIds[0];
+        
+        if (!wompiTransactionId) {
+          console.log(`❌ Orden ${order.orderNumber} sin Transaction ID válido`);
+          results.push({
+            orderId: order.id,
+            orderNumber: order.orderNumber,
+            statusInDB: wompiPayment.status,
+            statusInWompi: 'SIN_ID_VÁLIDO',
+            error: 'Orden antigua sin ID de Wompi válido',
+            statusMatch: '❓'
+          });
+          errorCount++;
+          continue;
+        }
+        
+        console.log(`🔍 Consultando orden ${order.orderNumber} - ID: ${wompiTransactionId}`);
+        
+        const paymentStatusResponse = await dispatch(getPaymentStatus(wompiTransactionId));
+        
+        const statusMatch = wompiPayment.status === paymentStatusResponse.data.status;
+        const amountMatch = parseFloat(wompiPayment.amount) === (paymentStatusResponse.data.amount_in_cents / 100);
+        
+        results.push({
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          statusInDB: wompiPayment.status,
+          statusInWompi: paymentStatusResponse.data.status,
+          amount: paymentStatusResponse.data.amount_in_cents / 100,
+          transactionId: wompiTransactionId,
+          statusMatch: statusMatch && amountMatch ? '✅' : '⚠️'
+        });
+
+        // Actualizar estado local
+        setOrders(prevOrders => 
+          prevOrders.map(o => 
+            o.id === order.id 
+              ? {
+                  ...o,
+                  realPaymentStatus: paymentStatusResponse.data,
+                  lastPaymentCheck: new Date().toISOString()
+                }
+              : o
+          )
+        );
+
+        successCount++;
+
+        // Pausa entre consultas para no sobrecargar la API
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+      } catch (error) {
+        console.error(`❌ Error consultando orden ${order.orderNumber}:`, error);
+        results.push({
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          statusInDB: 'ERROR',
+          statusInWompi: 'ERROR',
+          error: error.response?.data?.message || error.message,
+          statusMatch: '❌'
+        });
+        errorCount++;
+      }
+    }
+
+    // Mostrar resumen completo
+    console.log('📊 Resumen completo de verificación:', results);
+    
+    const summary = results.map(r => 
+      `${r.statusMatch} ${r.orderNumber}: BD=${r.statusInDB} | Wompi=${r.statusInWompi}${r.error ? ` (${r.error})` : ''}`
+    ).join('\n');
+    
+    const summaryText = `🔍 VERIFICACIÓN MASIVA COMPLETADA:
+
+📊 RESUMEN:
+✅ Exitosas: ${successCount}
+❌ Con errores: ${errorCount}
+📋 Total procesadas: ${results.length}
+
+📋 DETALLES:
+${summary}
+
+LEYENDA:
+✅ = Todo coincide perfectamente
+⚠️ = Hay diferencias entre BD y Wompi  
+❌ = Error en la consulta
+❓ = Sin ID válido (orden antigua)
+
+🕒 Verificación completada: ${new Date().toLocaleString()}`;
+    
+    alert(summaryText);
+  };
+
+  // ✅ FUNCIÓN PARA DEBUG (OPCIONAL)
+  const debugOrderStructure = () => {
+    console.log('🔍 [DEBUG COMPLETO] Analizando estructura de todas las órdenes:');
+    
+    orders.forEach((order, index) => {
+      const wompiPayment = order.payments?.find(p => p.method === 'wompi');
+      
+      console.log(`\n📋 === ORDEN ${index + 1} (${order.orderNumber}) ===`);
+      console.log('💳 Tiene pago Wompi:', !!wompiPayment);
+      
+      if (wompiPayment) {
+        console.log('💰 Monto:', wompiPayment.amount);
+        console.log('📊 Estado:', wompiPayment.status);
+        console.log('🔗 PaymentDetails:', wompiPayment.paymentDetails);
+        
+        const possibleIds = [
+          wompiPayment.paymentDetails?.transactionId,
+          wompiPayment.paymentDetails?.reference,
+          wompiPayment.transactionId
+        ].filter(Boolean);
+        
+        console.log('🆔 IDs encontrados:', possibleIds);
+        console.log('✅ IDs válidos:', possibleIds.filter(isValidWompiId));
+      }
+    });
+    
+    alert('🐛 Análisis completado. Revisa la consola para ver todos los detalles.');
   };
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({
       ...prev,
       [key]: value,
-      page: 1 // Reset to first page when filters change
+      page: 1
     }));
   };
 
@@ -60,10 +350,10 @@ const OrderManagement = () => {
       const response = await dispatch(updateOrderStatus(orderId, { status: newStatus }));
       if (response.error === false) {
         loadOrders();
-        alert('Estado de orden actualizado exitosamente');
+        alert('✅ Estado de orden actualizado exitosamente');
       }
     } catch (error) {
-      alert('Error al actualizar estado: ' + error.message);
+      alert('❌ Error al actualizar estado: ' + error.message);
     }
   };
 
@@ -75,10 +365,10 @@ const OrderManagement = () => {
       const response = await dispatch(cancelOrder(orderId, reason));
       if (response.error === false) {
         loadOrders();
-        alert('Orden cancelada exitosamente');
+        alert('✅ Orden cancelada exitosamente');
       }
     } catch (error) {
-      alert('Error al cancelar orden: ' + error.message);
+      alert('❌ Error al cancelar orden: ' + error.message);
     }
   };
 
@@ -90,7 +380,7 @@ const OrderManagement = () => {
         setShowDetailModal(true);
       }
     } catch (error) {
-      alert('Error al obtener detalles: ' + error.message);
+      alert('❌ Error al obtener detalles: ' + error.message);
     }
   };
 
@@ -120,20 +410,60 @@ const OrderManagement = () => {
     );
   };
 
-  const getPaymentStatusBadge = (status) => {
+  // ✅ FUNCIÓN PARA MOSTRAR ESTADOS DE PAGO MEJORADOS
+  const getPaymentStatusBadge = (order) => {
+    const wompiPayment = order.payments?.find(p => p.method === 'wompi');
+    const { realPaymentStatus } = order;
+    
     const statusConfig = {
       'pending': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pendiente' },
       'partial': { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Parcial' },
-      'completed': { bg: 'bg-green-100', text: 'text-green-800', label: 'Pagado' },
-      'failed': { bg: 'bg-red-100', text: 'text-red-800', label: 'Fallido' }
+      'paid': { bg: 'bg-green-100', text: 'text-green-800', label: 'Pagado' },
+      'completed': { bg: 'bg-green-100', text: 'text-green-800', label: 'Completado' },
+      'failed': { bg: 'bg-red-100', text: 'text-red-800', label: 'Fallido' },
+      // Estados de Wompi
+      'APPROVED': { bg: 'bg-green-100', text: 'text-green-800', label: '✅ Aprobado' },
+      'PENDING': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '⏳ Pendiente' },
+      'DECLINED': { bg: 'bg-red-100', text: 'text-red-800', label: '❌ Rechazado' },
+      'VOIDED': { bg: 'bg-gray-100', text: 'text-gray-800', label: '🚫 Anulado' }
     };
 
-    const config = statusConfig[status] || statusConfig['pending'];
+    if (!wompiPayment) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          Sin pago registrado
+        </span>
+      );
+    }
+
+    const config = statusConfig[wompiPayment.status] || statusConfig['pending'];
     
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
-        {config.label}
-      </span>
+      <div className="space-y-1">
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+          {config.label}
+        </span>
+        
+        {/* Estado real de Wompi si existe */}
+        {realPaymentStatus && (
+          <div className="text-xs text-gray-600">
+            <span className="text-gray-500">Wompi:</span>
+            <span className={`ml-1 px-1 py-0.5 rounded text-xs ${statusConfig[realPaymentStatus.status]?.bg || 'bg-gray-100'} ${statusConfig[realPaymentStatus.status]?.text || 'text-gray-800'}`}>
+              {realPaymentStatus.status}
+            </span>
+            {wompiPayment.status !== realPaymentStatus.status && (
+              <span className="ml-1 text-orange-600">⚠️</span>
+            )}
+          </div>
+        )}
+        
+        {/* Timestamp de última consulta */}
+        {order.lastPaymentCheck && (
+          <div className="text-xs text-gray-400">
+            Última consulta: {new Date(order.lastPaymentCheck).toLocaleTimeString()}
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -141,12 +471,46 @@ const OrderManagement = () => {
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg">
-          {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200">
+          {/* Header con botones mejorados */}
+          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h1 className="text-2xl font-semibold text-gray-900">Gestión de Órdenes</h1>
+            
+            <div className="flex space-x-2">
+              <button
+                onClick={loadOrders}
+                disabled={loading}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:bg-gray-400 transition duration-200"
+                title="Recargar órdenes"
+              >
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Cargando...</span>
+                  </div>
+                ) : (
+                  <>🔄 Refrescar</>
+                )}
+              </button>
+              
+              <button
+                onClick={checkAllWompiPayments}
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200"
+                title="Verificar todos los pagos de Wompi"
+              >
+                🔍 Verificar Pagos Wompi
+              </button>
+              
+              <button
+                onClick={debugOrderStructure}
+                className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition duration-200"
+                title="Debug estructura de datos"
+              >
+                🐛 Debug
+              </button>
+            </div>
           </div>
 
-          {/* Filters */}
+          {/* Filtros existentes */}
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
               <div>
@@ -233,11 +597,21 @@ const OrderManagement = () => {
             </div>
           </div>
 
-          {/* Orders Table */}
+          {/* Tabla mejorada */}
           <div className="overflow-x-auto">
             {loading ? (
               <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                  <p className="text-gray-500">Cargando órdenes...</p>
+                </div>
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="text-center">
+                  <p className="text-gray-500 text-lg">No se encontraron órdenes</p>
+                  <p className="text-gray-400">Intenta ajustar los filtros de búsqueda</p>
+                </div>
               </div>
             ) : (
               <table className="min-w-full divide-y divide-gray-200">
@@ -268,7 +642,7 @@ const OrderManagement = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {orders.map((order) => (
-                    <tr key={order.id} className="hover:bg-gray-50">
+                    <tr key={order.id} className="hover:bg-gray-50 transition duration-150">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
@@ -278,6 +652,12 @@ const OrderManagement = () => {
                             {order.orderType === 'local' && '🏪 Local'}
                             {order.orderType === 'online' && '🌐 Online'}
                             {order.orderType === 'distributor' && '📦 Distribuidor'}
+                            {/* Indicador de pago Wompi */}
+                            {order.payments?.some(p => p.method === 'wompi') && (
+                              <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                WOMPI
+                              </span>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -305,16 +685,17 @@ const OrderManagement = () => {
                         {getStatusBadge(order.status)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {getPaymentStatusBadge(order.paymentStatus)}
+                        {getPaymentStatusBadge(order)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(order.createdAt).toLocaleDateString('es-CO')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
+                          {/* Ver detalles */}
                           <button
                             onClick={() => handleViewDetails(order)}
-                            className="text-indigo-600 hover:text-indigo-900"
+                            className="text-indigo-600 hover:text-indigo-900 transition duration-150"
                             title="Ver detalles"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -323,23 +704,45 @@ const OrderManagement = () => {
                             </svg>
                           </button>
 
-                          {order.status === 'pending' && (
+                          {/* Consultar estado de Wompi */}
+                          {order.payments?.some(p => p.method === 'wompi') && (
                             <button
-                              onClick={() => handleStatusUpdate(order.id, 'confirmed')}
-                              className="text-green-600 hover:text-green-900"
-                              title="Confirmar orden"
+                              onClick={() => checkRealPaymentStatus(order)}
+                              disabled={paymentStatusLoading[order.id]}
+                              className="text-green-600 hover:text-green-900 disabled:text-gray-400 transition duration-150"
+                              title="Consultar estado real en Wompi"
                             >
-                              ✓
+                              {paymentStatusLoading[order.id] ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                              ) : (
+                                <span className="text-lg">🔍</span>
+                              )}
                             </button>
                           )}
 
+                          {/* Confirmar orden */}
+                          {order.status === 'pending' && (
+                            <button
+                              onClick={() => handleStatusUpdate(order.id, 'confirmed')}
+                              className="text-green-600 hover:text-green-900 transition duration-150"
+                              title="Confirmar orden"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </button>
+                          )}
+
+                          {/* Cancelar orden */}
                           {(order.status === 'pending' || order.status === 'confirmed') && (
                             <button
                               onClick={() => handleCancelOrder(order.id)}
-                              className="text-red-600 hover:text-red-900"
+                              className="text-red-600 hover:text-red-900 transition duration-150"
                               title="Cancelar orden"
                             >
-                              ✗
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
                             </button>
                           )}
                         </div>
@@ -351,7 +754,7 @@ const OrderManagement = () => {
             )}
           </div>
 
-          {/* Pagination */}
+          {/* Paginación */}
           {pagination.totalPages > 1 && (
             <div className="px-6 py-4 border-t border-gray-200 flex justify-between items-center">
               <div className="text-sm text-gray-700">
@@ -361,17 +764,17 @@ const OrderManagement = () => {
                 <button
                   onClick={() => handleFilterChange('page', pagination.currentPage - 1)}
                   disabled={pagination.currentPage === 1}
-                  className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition duration-200"
                 >
                   Anterior
                 </button>
-                <span className="px-3 py-1">
+                <span className="px-4 py-2 text-gray-700">
                   Página {pagination.currentPage} de {pagination.totalPages}
                 </span>
                 <button
                   onClick={() => handleFilterChange('page', pagination.currentPage + 1)}
                   disabled={pagination.currentPage === pagination.totalPages}
-                  className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition duration-200"
                 >
                   Siguiente
                 </button>
@@ -381,7 +784,7 @@ const OrderManagement = () => {
         </div>
       </div>
 
-      {/* Order Detail Modal */}
+      {/* Modal de detalles */}
       {showDetailModal && selectedOrder && (
         <OrderDetailModal
           order={selectedOrder}

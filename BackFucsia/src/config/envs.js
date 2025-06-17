@@ -15,10 +15,23 @@ module.exports = {
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
+  
   WOMPI_PRIVATE_KEY: process.env.WOMPI_PRIVATE_KEY,
   WOMPI_PUBLIC_KEY: process.env.WOMPI_PUBLIC_KEY,
   WOMPI_INTEGRITY_SECRET: process.env.WOMPI_INTEGRITY_SECRET,
   WOMPI_EVENT_KEY: process.env.WOMPI_EVENT_KEY,
+  
+  WOMPI_API_URL: process.env.WOMPI_API_URL || 'https://production.wompi.co/v1',
+  WOMPI_SANDBOX_API_URL: process.env.WOMPI_SANDBOX_API_URL || 'https://sandbox.wompi.co/v1',
+  NODE_ENV: process.env.NODE_ENV || 'development',
+
+    // ✅ AGREGAR LA FUNCIÓN QUE FALTABA
+  getWompiApiUrl: function() {
+    return process.env.NODE_ENV === 'production' 
+      ? (process.env.WOMPI_API_URL || 'https://production.wompi.co/v1')
+      : (process.env.WOMPI_SANDBOX_API_URL || 'https://sandbox.wompi.co/v1');
+  },
+
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
   BACKEND_URL: process.env.BACKEND_URL || 'http://localhost:3001', 
   
