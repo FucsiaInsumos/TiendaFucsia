@@ -45,8 +45,8 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
     return (
       <div className="text-center py-8 text-gray-500">
         <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
         <p>No hay productos disponibles</p>
         <p className="text-sm">Crea tu primer producto para comenzar</p>
@@ -78,14 +78,14 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
                       e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1zbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTkiIGR5PSIuM2VtIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TaW4gaW1hZ2VuPC90ZXh0Pjwvc3ZnPg==';
                     }}
                   />
-                  
+
                   {/* Indicador de múltiples imágenes */}
                   {product.image_url.length > 1 && (
                     <>
                       <div className="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white px-2 py-1 rounded-full text-xs">
                         {(selectedImageIndex[product.id] || 0) + 1} / {product.image_url.length}
                       </div>
-                      
+
                       {/* Puntos indicadores */}
                       <div className="absolute bottom-2 left-2 flex space-x-1">
                         {product.image_url.map((_, index) => (
@@ -98,15 +98,14 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
                                 [product.id]: index
                               }));
                             }}
-                            className={`w-2 h-2 rounded-full ${
-                              (selectedImageIndex[product.id] || 0) === index 
-                                ? 'bg-white' 
+                            className={`w-2 h-2 rounded-full ${(selectedImageIndex[product.id] || 0) === index
+                                ? 'bg-white'
                                 : 'bg-white bg-opacity-50'
-                            }`}
+                              }`}
                           />
                         ))}
                       </div>
-                      
+
                       {/* Texto indicativo */}
                       <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
                         {product.image_url.length} fotos
@@ -117,14 +116,19 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
                   <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
               )}
-              
+
               {/* Badges */}
               <div className="absolute top-2 left-2 flex flex-col space-y-1">
+                {product.isFacturable && (
+                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                    📄 Facturable
+                  </span>
+                )}
                 {product.isPromotion && (
                   <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
                     PROMOCIÓN
@@ -215,14 +219,13 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
 
               {/* Acciones */}
               <div className="flex justify-between items-center">
-                <div className={`px-2 py-1 rounded-full text-xs ${
-                  product.isActive 
-                    ? 'bg-green-100 text-green-800' 
+                <div className={`px-2 py-1 rounded-full text-xs ${product.isActive
+                    ? 'bg-green-100 text-green-800'
                     : 'bg-red-100 text-red-800'
-                }`}>
+                  }`}>
                   {product.isActive ? 'Activo' : 'Inactivo'}
                 </div>
-                
+
                 <div className="flex space-x-2">
                   <button
                     onClick={() => onEdit(product)}
@@ -230,8 +233,8 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
                     title="Editar"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </button>
                   <button
@@ -240,8 +243,8 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
                     title="Eliminar"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                   </button>
                 </div>
@@ -250,7 +253,7 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
           </div>
         ))}
       </div>
-      
+
       {/* Modal de galería de imágenes */}
       <ImageGallery
         images={galleryImages}

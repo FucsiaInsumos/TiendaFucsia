@@ -11,6 +11,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
     stock: '',
     minStock: '',
     isPromotion: false,
+    isFacturable: false,
     promotionPrice: '',
     categoryId: '',
     tags: [],
@@ -36,6 +37,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
         stock: product.stock || '',
         minStock: product.minStock || '',
         isPromotion: product.isPromotion || false,
+        isFacturable: product.isFacturable || false,
         promotionPrice: product.promotionPrice || '',
         categoryId: product.categoryId || '',
         tags: product.tags || [],
@@ -113,6 +115,12 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
       alert('Por favor completa todos los campos requeridos (SKU, Nombre, Categoría, Precios y Stock)');
       return;
     }
+      if (formData.isFacturable) {
+    if (!formData.purchasePrice || parseFloat(formData.purchasePrice) <= 0) {
+      alert('Los productos facturables requieren un precio de compra válido');
+      return;
+    }
+  }
     
     // Validar que los precios sean números positivos
     if (parseFloat(formData.purchasePrice) < 0 || parseFloat(formData.price) < 0) {
@@ -134,6 +142,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
       minStock: formData.minStock === '' ? null : formData.minStock,
       // Asegurar que isPromotion sea boolean
       isPromotion: Boolean(formData.isPromotion),
+       isFacturable: Boolean(formData.isFacturable),
     };
     
     console.log('Submitting form data:', cleanedData);
@@ -338,7 +347,27 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
             En promoción
           </label>
         </div>
+         <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="isFacturable"
+              name="isFacturable"
+              checked={formData.isFacturable}
+              onChange={handleChange}
+              className="mr-2 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+            />
+            <label htmlFor="isFacturable" className="text-sm font-medium text-gray-700">
+              <span className="flex items-center">
+                📄 Producto facturable
+                <span className="ml-1 text-xs text-gray-500" title="Si está marcado, este producto aparecerá en las facturas">
+                  ℹ️
+                </span>
+              </span>
+            </label>
+          </div>
+        
       </div>
+      
 
       {/* Tags */}
       <div>
