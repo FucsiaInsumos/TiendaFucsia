@@ -3,36 +3,26 @@ const router = express.Router();
 const { verifyToken } = require('../middleware/isAuth');
 const {
   generateAcceptanceToken,
-  createPaymentTransaction,
+  createPaymentLink,
+  getTransactionStatus,
   handleWebhook,
-  checkTransactionStatus
+  generateWidgetSignature
 } = require('../controllers/Payment/wompiController');
 
-// Middleware para capturar el body raw para webhooks
-const captureRawBody = (req, res, next) => {
-  if (req.path === '/webhook') {
-    let data = '';
-    req.setEncoding('utf8');
-    req.on('data', chunk => {
-      data += chunk;
-    });
-    req.on('end', () => {
-      req.rawBody = data;
-      next();
-    });
-  } else {
-    next();
-  }
-};
-
-router.use(captureRawBody);
-
-// Rutas públicas
-router.post('/webhook', handleWebhook); // Sin autenticación para webhooks
-
-// Rutas protegidas
+// ✅ RUTAS ACTUALIZADAS
 router.get('/acceptance-token', verifyToken, generateAcceptanceToken);
-router.post('/create-transaction', verifyToken, createPaymentTransaction);
-router.get('/transaction/:transactionId', verifyToken, checkTransactionStatus);
+router.post('/create-payment-link', verifyToken, createPaymentLink);
+router.get('/transaction/:transactionId', verifyToken, getTransactionStatus);
+router.post('/webhook', handleWebhook); // Sin verifyToken para webhooks
+router.post('/generate-signature', verifyToken, generateWidgetSignature);
+
+// ✅ RUTA DE PRUEBA
+router.get('/test', (req, res) => {
+  res.json({
+    message: 'Wompi routes funcionando',
+    timestamp: new Date(),
+    environment: process.env.NODE_ENV
+  });
+});
 
 module.exports = router;
