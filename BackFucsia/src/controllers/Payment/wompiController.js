@@ -1,379 +1,343 @@
+const axios = require('axios');
 const crypto = require('crypto');
+const { Order, Payment, User } = require('../../data');
 const { 
   WOMPI_PRIVATE_KEY, 
   WOMPI_PUBLIC_KEY, 
   WOMPI_INTEGRITY_SECRET,
-  WOMPI_EVENT_KEY 
+  WOMPI_EVENT_KEY,
+  getWompiApiUrl,
+  FRONTEND_URL 
 } = require('../../config/envs');
-const { Order, Payment, OrderItem, Product, User } = require('../../data');
 
-// Generar token de aceptación de Wompi (modo desarrollo)
+// ✅ LOGS DE VERIFICACIÓN (temporales)
+console.log('🔑 Verificando credenciales Wompi:');
+console.log('  Public Key:', WOMPI_PUBLIC_KEY ? `${WOMPI_PUBLIC_KEY.substring(0, 15)}...` : 'NO CONFIGURADA');
+console.log('  Private Key:', WOMPI_PRIVATE_KEY ? `${WOMPI_PRIVATE_KEY.substring(0, 15)}...` : 'NO CONFIGURADA');
+console.log('  API URL:', getWompiApiUrl());
+console.log('  Integrity Secret:', WOMPI_INTEGRITY_SECRET ? 'CONFIGURADO' : 'NO CONFIGURADO');
+
+// ✅ 1. GENERAR TOKEN DE ACEPTACIÓN (YA ACTUALIZADA)
 const generateAcceptanceToken = async (req, res) => {
   try {
-    console.log('Generating acceptance token...');
-    console.log('Public Key:', WOMPI_PUBLIC_KEY ? 'Set' : 'Not set');
+    console.log('🔑 [REAL] Obteniendo token de aceptación...');
     
-    // Para desarrollo, devolver token mock
-    const mockToken = {
-      acceptance_token: `test_acceptance_token_${Date.now()}`,
-      permalink: 'https://wompi.co/test-terms',
-      public_key: WOMPI_PUBLIC_KEY || 'pub_test_mock_key'
-    };
+    const apiUrl = getWompiApiUrl();
+    const url = `${apiUrl}/merchants/${WOMPI_PUBLIC_KEY}`;
+    
+    console.log('📡 [REAL] Haciendo petición a:', url);
+    
+    const response = await axios.get(url, {
+      headers: {
+        'Authorization': `Bearer ${WOMPI_PUBLIC_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log('✅ [REAL] Respuesta de Wompi:', response.status);
+
+    const merchantData = response.data.data;
+    const acceptanceToken = merchantData.presigned_acceptance.acceptance_token;
     
     res.json({
       error: false,
-      message: 'Token de aceptación generado (desarrollo)',
-      data: mockToken
+      message: 'Token de aceptación obtenido exitosamente (REAL)',
+      data: {
+        acceptance_token: acceptanceToken,
+        permalink: merchantData.presigned_acceptance.permalink,
+        public_key: WOMPI_PUBLIC_KEY,
+        merchant_name: merchantData.name,
+        is_real: true
+      }
     });
     
   } catch (error) {
-    console.error('Error al obtener token de aceptación:', error);
+    console.error('❌ [REAL] Error obteniendo token:', error.message);
+    console.error('❌ [REAL] Status:', error.response?.status);
+    console.error('❌ [REAL] Data:', error.response?.data);
+    
     res.status(500).json({
       error: true,
-      message: 'Error al obtener token de aceptación',
-      details: error.message
+      message: 'Error al obtener token de aceptación real',
+      details: error.response?.data || error.message,
+      is_real: true
     });
   }
 };
 
-// Crear transacción de pago
-const createPaymentTransaction = async (req, res) => {
+// ✅ 2. CREAR LINK DE PAGO (ACTUALIZAR ESTA)
+const createPaymentLink = async (req, res) => {
   try {
-    const { 
-      orderId, 
-      amount_in_cents, 
-      currency, 
-      customer_email, 
-      reference, 
-      payment_method 
-    } = req.body;
-
-    console.log('Creating payment transaction:', {
+    const { orderId, amount, description, customerEmail, customerName } = req.body;
+    
+    console.log('💳 [REAL] Creando link de pago:', {
       orderId,
-      amount_in_cents,
-      reference
+      amount,
+      customerEmail
     });
 
-    // Para desarrollo, simular respuesta exitosa
-    const mockResponse = {
-      id: `test_transaction_${Date.now()}`,
-      reference: reference,
-      amount_in_cents: amount_in_cents,
-      status: 'PENDING',
-      payment_link_url: `https://checkout.wompi.co/l/${reference}`,
-      created_at: new Date().toISOString()
-    };
-
-    // Crear registro de pago pendiente si tenemos orderId
-    if (orderId) {
-      await Payment.create({
-        orderId,
-        amount: amount_in_cents / 100,
-        method: 'wompi',
-        status: 'pending',
-        transactionId: mockResponse.id,
-        paymentDetails: {
-          wompi_transaction_id: mockResponse.id,
-          reference,
-          payment_link: mockResponse.payment_link_url,
-          mock: true
-        }
+    // Validaciones
+    if (!orderId || !amount || !customerEmail) {
+      return res.status(400).json({
+        error: true,
+        message: 'Faltan datos requeridos: orderId, amount, customerEmail'
       });
     }
+
+    const reference = `orden_${orderId}_${Date.now()}`;
+    const amountInCents = Math.round(parseFloat(amount) * 100);
+
+    // ✅ PAYLOAD CORREGIDO - SIN IMAGE_URL PROBLEMÁTICA
+    const apiUrl = getWompiApiUrl();
+    const wompiPayload = {
+      name: description || `Orden ${orderId}`,
+      description: description || `Pago de orden ${orderId} - TiendaFucsia`,
+      single_use: true,
+      collect_shipping: false,
+      currency: 'COP',
+      amount_in_cents: amountInCents,
+      reference: reference,
+      // ✅ QUITAR O USAR UNA URL VÁLIDA
+      // image_url: `${FRONTEND_URL}/logo.png`, // ← QUITAR ESTA LÍNEA
+      redirect_url: `${FRONTEND_URL}/order-confirmation/${orderId}`,
+      collect_customer_data: {
+        email: true,
+        name: true,
+        phone_number: true,
+        legal_identification: true
+      }
+    };
+
+    console.log('📤 [REAL] Payload enviado a Wompi:', JSON.stringify(wompiPayload, null, 2));
+
+    const response = await axios.post(`${apiUrl}/payment_links`, wompiPayload, {
+      headers: {
+        'Authorization': `Bearer ${WOMPI_PRIVATE_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const paymentLinkData = response.data.data;
+
+    // ✅ GUARDAR EN BASE DE DATOS
+    await Payment.create({
+      orderId,
+      amount: parseFloat(amount),
+      method: 'wompi',
+      status: 'pending',
+      transactionId: paymentLinkData.id,
+      paymentDetails: {
+        wompi_payment_link_id: paymentLinkData.id,
+        reference: reference,
+        amount_in_cents: amountInCents,
+        currency: 'COP',
+        permalink: paymentLinkData.permalink,
+        created_at: paymentLinkData.created_at
+      }
+    });
+
+    console.log('✅ [REAL] Link de pago creado:', paymentLinkData.permalink);
 
     res.json({
       error: false,
-      message: 'Transacción creada exitosamente (desarrollo)',
-      data: mockResponse
+      message: 'Link de pago creado exitosamente',
+      data: {
+        id: paymentLinkData.id,
+        reference: reference,
+        payment_link_url: paymentLinkData.permalink,
+        amount_in_cents: amountInCents,
+        currency: 'COP',
+        status: 'PENDING',
+        is_real: true
+      }
     });
 
   } catch (error) {
-    console.error('Error al crear transacción:', error);
+    console.error('❌ [REAL] Error creando link de pago:', error.message);
+    console.error('❌ [REAL] Response:', error.response?.data);
+    
     res.status(500).json({
       error: true,
-      message: 'Error interno del servidor',
-      details: error.message
+      message: 'Error al crear link de pago',
+      details: error.response?.data || error.message,
+      is_real: true
     });
   }
 };
 
-// Utilidad para generar firma de Wompi (igual que en tu código existente)
-const generarFirmaWompi = (transaction, properties, timestamp, secret) => {
-  try {
-    // Concatenar valores de propiedades especificadas
-    const concatenatedProperties = properties.map(prop => {
-      const value = transaction[prop];
-      if (value === undefined || value === null) {
-        throw new Error(`Property '${prop}' is missing in transaction data`);
-      }
-      return value.toString();
-    }).join('');
-    
-    // Concatenar con timestamp y secret
-    const stringToHash = concatenatedProperties + timestamp + secret;
-    
-    // Generar hash SHA256
-    return crypto.createHash('sha256').update(stringToHash).digest('hex');
-  } catch (error) {
-    throw new Error(`Error generating signature: ${error.message}`);
-  }
-};
-
-// Webhook para confirmación de pagos (adaptado de tu código existente)
-const handleWebhook = async (req, res) => {
-  try {
-    console.log("----- Webhook Event Received -----");
-    console.log("Headers:", req.headers);
-    console.log("Parsed Body:", req.body);
-
-    // 1. Obtener la firma del cuerpo
-    const signature = req.body.signature;
-    if (!signature || !signature.checksum || !signature.properties) {
-      console.warn("Falta la firma en el cuerpo del evento.");
-      return res.status(400).json({ error: 'Missing signature in event body' });
-    }
-
-    // 2. Obtener la clave secreta desde variables de entorno
-    const secret = WOMPI_INTEGRITY_SECRET || WOMPI_EVENT_KEY;
-    if (!secret) {
-      console.error("WOMPI_INTEGRITY_SECRET/WOMPI_EVENT_KEY no está configurado.");
-      return res.status(500).json({ error: 'Server configuration error' });
-    }
-
-    // 3. Extraer las propiedades especificadas para la firma
-    const properties = signature.properties;
-    const transaction = req.body.data.transaction;
-    const timestamp = req.body.timestamp;
-
-    console.log("Datos de la transacción recibida:", transaction);
-
-    if (!transaction) {
-      console.warn("Datos de transacción faltantes.");
-      return res.status(400).json({ error: 'Missing transaction data' });
-    }
-
-    if (!timestamp) {
-      console.warn("Timestamp faltante en el evento.");
-      return res.status(400).json({ error: 'Missing timestamp in event data' });
-    }
-
-    // 4. Generar la firma calculada
-    let calculatedHash;
-    try {
-      calculatedHash = generarFirmaWompi(transaction, properties, timestamp, secret);
-    } catch (err) {
-      console.warn("Error al generar la firma:", err.message);
-      return res.status(400).json({ error: err.message });
-    }
-
-    console.log("Hash calculado:", calculatedHash);
-    console.log("Firma recibida:", signature.checksum);
-
-    // 5. Comparar el hash calculado con el hash recibido
-    if (calculatedHash !== signature.checksum) {
-      console.warn("Firma inválida. Hash calculado:", calculatedHash, "Firma recibida:", signature.checksum);
-      return res.status(401).json({ error: 'Invalid signature' });
-    }
-
-    // 6. Procesar el evento si la firma es válida
-    const event = req.body.event;
-    console.log("Tipo de evento:", event);
-    console.log("Datos del evento:", req.body.data);
-
-    if (event !== 'transaction.updated') {
-      console.warn("Tipo de evento desconocido:", event);
-      return res.status(400).json({ error: 'Unknown event type' });
-    }
-
-    // 7. Verificar los datos de la transacción
-    const transactionData = req.body.data.transaction;
-    if (!transactionData || !transactionData.reference) {
-      console.warn("Datos de transacción inválidos:", transactionData);
-      return res.status(400).json({ error: 'Invalid transaction data' });
-    }
-
-    console.log("Reference de la transacción:", transactionData.reference);
-
-    // 8. Buscar el pago en la base de datos usando el reference
-    // Primero intentamos buscar por transactionId (para transacciones reales)
-    let payment = await Payment.findOne({
-      where: { transactionId: transactionData.id },
-      include: [{ 
-        model: Order, 
-        as: 'order',
-        include: [
-          { model: User, as: 'customer' },
-          { 
-            model: OrderItem, 
-            as: 'items',
-            include: [{ model: Product, as: 'product' }]
-          }
-        ]
-      }]
-    });
-
-    // Si no encontramos por transactionId, buscamos por reference en la orden
-    if (!payment) {
-      const order = await Order.findOne({
-        where: { orderNumber: transactionData.reference },
-        include: [
-          { model: Payment, as: 'payments' },
-          { model: User, as: 'customer' },
-          { 
-            model: OrderItem, 
-            as: 'items',
-            include: [{ model: Product, as: 'product' }]
-          }
-        ]
-      });
-
-      if (order && order.payments && order.payments.length > 0) {
-        payment = order.payments.find(p => p.method === 'wompi');
-      }
-    }
-
-    if (!payment) {
-      console.warn("Pago no encontrado para reference:", transactionData.reference);
-      return res.status(404).json({ error: 'Payment not found' });
-    }
-
-    // 9. Actualizar el estado del pago y orden basado en el estado de la transacción
-    let paymentStatus = 'pending';
-    let orderStatus = payment.order.status;
-    let orderPaymentStatus = payment.order.paymentStatus;
-
-    switch (transactionData.status) {
-      case 'APPROVED':
-        paymentStatus = 'completed';
-        orderPaymentStatus = 'completed';
-        orderStatus = 'confirmed';
-        console.log(`✅ Transacción APROBADA: ${transactionData.id}`);
-        break;
-      case 'DECLINED':
-        paymentStatus = 'failed';
-        orderPaymentStatus = 'failed';
-        orderStatus = 'cancelled';
-        console.log(`❌ Transacción RECHAZADA: ${transactionData.id}`);
-        break;
-      case 'PENDING':
-        paymentStatus = 'pending';
-        orderPaymentStatus = 'pending';
-        orderStatus = 'pending';
-        console.log(`⏳ Transacción PENDIENTE: ${transactionData.id}`);
-        break;
-      case 'VOIDED':
-        paymentStatus = 'refunded';
-        orderPaymentStatus = 'refunded';
-        orderStatus = 'cancelled';
-        console.log(`🔄 Transacción ANULADA: ${transactionData.id}`);
-        break;
-      default:
-        console.warn(`Estado de transacción desconocido: ${transactionData.status}`);
-        return res.status(400).json({ error: `Unknown transaction status: ${transactionData.status}` });
-    }
-
-    // 10. Actualizar el pago
-    await payment.update({
-      status: paymentStatus,
-      transactionId: transactionData.id, // Actualizar con el ID real si era mock
-      paymentDetails: {
-        ...payment.paymentDetails,
-        wompi_transaction_id: transactionData.id,
-        wompi_status: transactionData.status,
-        amount_in_cents: transactionData.amount_in_cents,
-        currency: transactionData.currency,
-        payment_method: transactionData.payment_method,
-        updated_at: new Date()
-      }
-    });
-
-    // 11. Actualizar la orden
-    await payment.order.update({
-      status: orderStatus,
-      paymentStatus: orderPaymentStatus
-    });
-
-    console.log("✅ Orden actualizada exitosamente:", {
-      orderId: payment.order.id,
-      orderNumber: payment.order.orderNumber,
-      newStatus: orderStatus,
-      paymentStatus: orderPaymentStatus,
-      transactionStatus: transactionData.status
-    });
-
-    return res.status(200).json({ 
-      message: 'Payment and order updated successfully',
-      orderId: payment.order.id,
-      orderStatus: orderStatus,
-      paymentStatus: paymentStatus
-    });
-
-  } catch (error) {
-    console.error("❌ Error manejando el webhook:", error);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-// Verificar estado de transacción
-const checkTransactionStatus = async (req, res) => {
+// ✅ 3. CONSULTAR ESTADO DE TRANSACCIÓN
+const getTransactionStatus = async (req, res) => {
   try {
     const { transactionId } = req.params;
+    
+    console.log('🔍 [REAL] Consultando estado de transacción:', transactionId);
 
-    // Para desarrollo con mock
-    if (transactionId.startsWith('test_transaction_')) {
-      return res.json({
-        error: false,
-        message: 'Estado de transacción obtenido (desarrollo)',
-        data: {
-          id: transactionId,
-          status: 'APPROVED',
-          reference: `test_ref_${Date.now()}`,
-          amount_in_cents: 100000,
-          currency: 'COP'
-        }
-      });
-    }
-
-    // Para transacciones reales
-    const payment = await Payment.findOne({
-      where: { transactionId },
-      include: [{ model: Order, as: 'order' }]
+    const apiUrl = getWompiApiUrl();
+    const response = await axios.get(`${apiUrl}/transactions/${transactionId}`, {
+      headers: {
+        'Authorization': `Bearer ${WOMPI_PRIVATE_KEY}`,
+        'Content-Type': 'application/json'
+      }
     });
 
-    if (!payment) {
-      return res.status(404).json({
-        error: true,
-        message: 'Transacción no encontrada'
+    const transactionData = response.data.data;
+
+    // ✅ ACTUALIZAR EN BASE DE DATOS SI ES NECESARIO
+    const payment = await Payment.findOne({
+      where: { transactionId: transactionId }
+    });
+
+    if (payment && payment.status !== transactionData.status.toLowerCase()) {
+      await payment.update({
+        status: transactionData.status === 'APPROVED' ? 'completed' : 
+                transactionData.status === 'DECLINED' ? 'failed' : 'pending',
+        paymentDetails: {
+          ...payment.paymentDetails,
+          ...transactionData,
+          updated_at: new Date()
+        }
       });
     }
 
     res.json({
       error: false,
       message: 'Estado de transacción obtenido',
-      data: {
-        id: transactionId,
-        status: payment.status,
-        order: {
-          id: payment.order.id,
-          orderNumber: payment.order.orderNumber,
-          status: payment.order.status,
-          total: payment.order.total
-        }
-      }
+      data: transactionData
     });
 
   } catch (error) {
-    console.error('Error al verificar transacción:', error);
+    console.error('❌ [REAL] Error consultando transacción:', error.message);
+    
     res.status(500).json({
       error: true,
-      message: 'Error al verificar transacción'
+      message: 'Error al consultar estado de transacción',
+      details: error.response?.data || error.message
     });
   }
 };
 
+// ✅ 4. WEBHOOK (MEJORAR EL EXISTENTE)
+const handleWebhook = async (req, res) => {
+  try {
+    console.log("🔔 [REAL] Webhook recibido:", JSON.stringify(req.body, null, 2));
+
+    const event = req.body;
+    const signature = req.headers['x-wompi-signature'];
+    const timestamp = req.headers['x-wompi-timestamp'];
+
+    // ✅ VERIFICAR FIRMA
+    if (WOMPI_INTEGRITY_SECRET && signature && timestamp) {
+      const payload = `${timestamp}.${JSON.stringify(event)}`;
+      const expectedSignature = crypto
+        .createHmac('sha256', WOMPI_INTEGRITY_SECRET)
+        .update(payload)
+        .digest('hex');
+
+      if (signature !== expectedSignature) {
+        console.error('❌ [REAL] Firma de webhook inválida');
+        return res.status(401).json({ error: 'Firma inválida' });
+      }
+    }
+
+    // ✅ PROCESAR EVENTO
+    if (event.event === 'transaction.updated') {
+      const transaction = event.data.transaction;
+      
+      console.log(`🔔 [REAL] Transacción actualizada: ${transaction.id} -> ${transaction.status}`);
+
+      // Buscar payment por transactionId o reference
+      const payment = await Payment.findOne({
+        where: {
+          [Op.or]: [
+            { transactionId: transaction.id },
+            { 'paymentDetails.reference': transaction.reference }
+          ]
+        }
+      });
+
+      if (payment) {
+        const newStatus = transaction.status === 'APPROVED' ? 'completed' : 
+                         transaction.status === 'DECLINED' ? 'failed' : 'pending';
+
+        await payment.update({
+          status: newStatus,
+          paymentDetails: {
+            ...payment.paymentDetails,
+            ...transaction,
+            webhook_received_at: new Date()
+          }
+        });
+
+        // ✅ ACTUALIZAR ORDEN SI EL PAGO FUE APROBADO
+        if (transaction.status === 'APPROVED' && payment.orderId) {
+          await Order.update(
+            { paymentStatus: 'paid', status: 'confirmed' },
+            { where: { id: payment.orderId } }
+          );
+          
+          console.log(`✅ [REAL] Orden ${payment.orderId} marcada como pagada`);
+        }
+
+        console.log(`✅ [REAL] Pago actualizado: ${payment.id} -> ${newStatus}`);
+      } else {
+        console.warn(`⚠️ [REAL] No se encontró payment para transacción: ${transaction.id}`);
+      }
+    }
+
+    res.status(200).json({ message: 'Webhook procesado exitosamente' });
+
+  } catch (error) {
+    console.error("❌ [REAL] Error en webhook:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ✅ 5. GENERAR SIGNATURE PARA WIDGET (NUEVO)
+const generateWidgetSignature = async (req, res) => {
+  try {
+    const { reference, amount_in_cents, currency = 'COP' } = req.body;
+
+    if (!reference || !amount_in_cents) {
+      return res.status(400).json({
+        error: true,
+        message: 'reference y amount_in_cents son requeridos'
+      });
+    }
+
+    // ✅ GENERAR SIGNATURE SEGÚN DOCUMENTACIÓN WOMPI
+    const concatenatedString = `${reference}${amount_in_cents}${currency}${WOMPI_INTEGRITY_SECRET}`;
+    const signature = crypto
+      .createHash('sha256')
+      .update(concatenatedString)
+      .digest('hex');
+
+    res.json({
+      error: false,
+      message: 'Signature generada exitosamente',
+      data: {
+        signature,
+        reference,
+        amount_in_cents,
+        currency,
+        public_key: WOMPI_PUBLIC_KEY
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error generando signature:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Error al generar signature',
+      details: error.message
+    });
+  }
+};
+
+// ✅ EXPORTAR TODAS LAS FUNCIONES
 module.exports = {
   generateAcceptanceToken,
-  createPaymentTransaction,
+  createPaymentLink,
+  getTransactionStatus,
   handleWebhook,
-  checkTransactionStatus
+  generateWidgetSignature
 };
