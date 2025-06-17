@@ -30,6 +30,7 @@ import CartSidebar from './Components/Cart/CartSidebar';
 import Checkout from './Components/Checkout/Checkout';
 import OrderConfirmation from './Components/Checkout/OrderConfirmation';
 import MyOrders from './Components/Customer/MyOrders';
+import BillingOrdersManagement from './Components/Sales/BillingOedersManagement';
 
 function App() {
   const dispatch = useDispatch();
@@ -173,6 +174,15 @@ function App() {
             element={
               <PrivateRoute allowedRoles={['Owner', 'Cashier']}>
                 <OrderManagement />
+              </PrivateRoute>
+            }
+          />
+
+            <Route
+            path="/billing-ordenes"
+            element={
+              <PrivateRoute allowedRoles={['Owner']}>
+                <BillingOrdersManagement />
               </PrivateRoute>
             }
           />

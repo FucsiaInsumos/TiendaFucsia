@@ -7,8 +7,17 @@ const createProduct = async (req, res) => {
   try {
     const { 
       name, description, purchasePrice, price, distributorPrice, stock, minStock, 
-      isPromotion, promotionPrice, categoryId, tags, sku, specificAttributes 
+      isPromotion, isFacturable, promotionPrice, categoryId, tags, sku, specificAttributes 
     } = req.body;
+
+     if (isFacturable) {
+      if (!purchasePrice || purchasePrice <= 0) {
+        return res.status(400).json({
+          error: true,
+          message: 'Los productos facturables requieren un precio de compra válido'
+        });
+      }
+    }
 
     // Verificar que la categoría exista
     const category = await Category.findByPk(categoryId);
@@ -44,6 +53,7 @@ const createProduct = async (req, res) => {
       stock,
       minStock,
       isPromotion,
+      isFacturable: isFacturable || false,
       promotionPrice,
       categoryId,
       tags: tags ? (Array.isArray(tags) ? tags : JSON.parse(tags)) : [],
@@ -188,7 +198,7 @@ const updateProduct = async (req, res) => {
     const { id } = req.params;
     const { 
       name, description, purchasePrice, price, distributorPrice, stock, minStock, 
-      isPromotion, promotionPrice, categoryId, tags, sku, specificAttributes, isActive 
+      isPromotion, isFacturable, promotionPrice, categoryId, tags, sku, specificAttributes, isActive 
     } = req.body;
 
     // Verificar la existencia del producto
@@ -244,6 +254,7 @@ const updateProduct = async (req, res) => {
     if (stock !== undefined && stock !== '') updateData.stock = parseInt(stock);
     if (minStock !== undefined && minStock !== '') updateData.minStock = parseInt(minStock);
     if (isPromotion !== undefined) updateData.isPromotion = isPromotion;
+    if (isFacturable !== undefined) updateData.isFacturable = isFacturable;
     if (categoryId !== undefined) updateData.categoryId = categoryId;
     if (isActive !== undefined) updateData.isActive = isActive;
     
@@ -320,7 +331,7 @@ const deleteProduct = async (req, res) => {
 // Endpoint para filtrar productos
 const filterProducts = async (req, res) => {
   try {
-    const { categoryId, minPrice, maxPrice, name } = req.query;
+    const { categoryId, minPrice, maxPrice, name, isFacturable } = req.query;
 
     let filters = {};
     if (categoryId) {
@@ -339,6 +350,9 @@ const filterProducts = async (req, res) => {
       filters.name = {
         [Op.iLike]: `%${name}%`
       };
+    }
+     if (isFacturable !== undefined) {
+      filters.isFacturable = isFacturable === 'true';
     }
 
     const products = await Product.findAll({
@@ -487,7 +501,8 @@ const calculateProductPrice = async (req, res) => {
         itemTotal,
         itemDiscount,
         finalPrice: itemTotal - itemDiscount,
-        appliedRule
+        appliedRule,
+        isFacturable: product.isFacturable
       });
     }
 
@@ -506,6 +521,11 @@ const calculateProductPrice = async (req, res) => {
       }
     }
 
+     const facturableItems = results.filter(item => item.isFacturable);
+    const nonFacturableItems = results.filter(item => !item.isFacturable);
+    const facturableTotal = facturableItems.reduce((sum, item) => sum + item.finalPrice, 0);
+    const nonFacturableTotal = nonFacturableItems.reduce((sum, item) => sum + item.finalPrice, 0);
+
     return res.status(200).json({
       error: false,
       message: 'Precios calculados exitosamente',
@@ -516,7 +536,14 @@ const calculateProductPrice = async (req, res) => {
           totalDiscount,
           total: subtotal - totalDiscount,
           userType,
-          minimumPurchaseValidation
+          minimumPurchaseValidation,
+          billing: {
+            hasFacturableItems: facturableItems.length > 0,
+            facturableItemsCount: facturableItems.length,
+            nonFacturableItemsCount: nonFacturableItems.length,
+            facturableTotal,
+            nonFacturableTotal
+          }
         }
       }
     });
@@ -532,212 +559,7 @@ const calculateProductPrice = async (req, res) => {
 };
 
 
-// // Nueva función para calcular precios CORREGIDA
-// const calculatePrice = async (req, res) => {
-//   try {
-//     const { items, userId } = req.body; 
 
-//     console.log('🧮 [Calculator] Iniciando cálculo de precios');
-//     console.log('📦 [Calculator] Items recibidos:', items);
-//     console.log('👤 [Calculator] Usuario ID:', userId);
-
-//     // Estructura de respuesta por defecto
-//     const defaultResponseData = {
-//       items: [],
-//       subtotal: 0,
-//       totalDiscount: 0,
-//       total: 0,
-//       isDistributor: false,
-//       distributorInfo: null,
-//       orderValueForDistributorCheck: 0,
-//       appliedDistributorPrices: false,
-//       appliedDiscounts: [],
-//       savings: 0
-//     };
-
-//     if (!items || !Array.isArray(items) || items.length === 0) {
-//       return res.status(200).json({ 
-//         error: false,
-//         message: 'No se proporcionaron items para calcular.',
-//         data: defaultResponseData
-//       });
-//     }
-
-//     // Obtener datos del usuario
-//     const customer = userId ? await User.findByPk(userId, {
-//       include: [{ model: Distributor, as: 'distributor', required: false }]
-//     }) : null;
-
-//     console.log('👤 [Calculator] Usuario cargado:', {
-//       id: customer?.id,
-//       role: customer?.role,
-//       hasDistributor: !!customer?.distributor,
-//       distributorInfo: customer?.distributor ? {
-//         discountPercentage: customer.distributor.discountPercentage,
-//         minimumPurchase: customer.distributor.minimumPurchase
-//       } : null
-//     });
-
-//     // Primera pasada: Obtener productos y calcular valor para chequeo de mínimo
-//     let orderValueForDistributorCheck = 0;
-//     const itemsWithProducts = [];
-
-//     for (const item of items) {
-//       const product = await Product.findByPk(item.productId);
-//       if (!product) {
-//         throw new Error(`Producto ${item.productId} no encontrado.`);
-//       }
-
-//       let priceForDistributorCheck = parseFloat(product.price);
-
-//       // Aplicar promoción si es mejor
-//       if (product.isPromotion && product.promotionPrice && parseFloat(product.promotionPrice) < priceForDistributorCheck) {
-//         priceForDistributorCheck = parseFloat(product.promotionPrice);
-//       }
-
-//       // Si es distribuidor, usar precio de distribuidor para el chequeo si es mejor
-//       if (customer?.role === 'Distributor' && product.distributorPrice && parseFloat(product.distributorPrice) < priceForDistributorCheck) {
-//         priceForDistributorCheck = parseFloat(product.distributorPrice);
-//       }
-
-//       orderValueForDistributorCheck += item.quantity * priceForDistributorCheck;
-
-//       itemsWithProducts.push({
-//         ...item,
-//         productData: product
-//       });
-//     }
-
-//     // Determinar si aplicar precios de distribuidor
-//     let applyDistributorPrices = false;
-//     let distributorMinimumRequired = 0;
-
-//     if (customer?.role === 'Distributor' && customer?.distributor) {
-//       distributorMinimumRequired = parseFloat(customer.distributor.minimumPurchase) || 0;
-      
-//       console.log(`💼 [Calculator] Chequeo distribuidor: valor=${orderValueForDistributorCheck}, mínimo=${distributorMinimumRequired}`);
-      
-//       if (distributorMinimumRequired <= 0 || orderValueForDistributorCheck >= distributorMinimumRequired) {
-//         applyDistributorPrices = true;
-//         console.log(`✅ [Calculator] Aplicando precios de distribuidor`);
-//       } else {
-//         console.log(`❌ [Calculator] No se aplican precios de distribuidor - Mínimo no cumplido`);
-//       }
-//     }
-
-//     // Segunda pasada: Aplicar precios finales
-//     const processedItems = [];
-//     let subtotal = 0;
-
-//     for (const pItem of itemsWithProducts) {
-//       const product = pItem.productData;
-//       let finalUnitPrice = parseFloat(product.price);
-//       let itemIsPromotion = false;
-//       let itemIsDistributorPrice = false;
-
-//       console.log(`🔄 [Calculator] Procesando ${product.name}:`);
-//       console.log(`   Precio base: ${finalUnitPrice}`);
-
-//       // Aplicar promoción si es mejor
-//       if (product.isPromotion && product.promotionPrice && parseFloat(product.promotionPrice) < finalUnitPrice) {
-//         finalUnitPrice = parseFloat(product.promotionPrice);
-//         itemIsPromotion = true;
-//         console.log(`   ✅ Aplicando promoción: ${finalUnitPrice}`);
-//       }
-
-//       // Aplicar precio distribuidor si corresponde y es mejor
-//       if (applyDistributorPrices && product.distributorPrice && parseFloat(product.distributorPrice) < finalUnitPrice) {
-//         finalUnitPrice = parseFloat(product.distributorPrice);
-//         itemIsDistributorPrice = true;
-//         itemIsPromotion = false; // Precio distribuidor anula promoción
-//         console.log(`   ✅ Aplicando precio distribuidor: ${finalUnitPrice}`);
-//       }
-
-//       const itemTotal = finalUnitPrice * pItem.quantity;
-//       subtotal += itemTotal;
-
-//       processedItems.push({
-//         productId: pItem.productId,
-//         quantity: pItem.quantity,
-//         name: product.name,
-//         sku: product.sku,
-//         unitPrice: finalUnitPrice,
-//         itemTotal,
-//         isPromotion: itemIsPromotion,
-//         isDistributorPrice: itemIsDistributorPrice,
-//         originalPrice: parseFloat(product.price)
-//       });
-
-//       console.log(`   💰 Precio final: ${finalUnitPrice} x ${pItem.quantity} = ${itemTotal}`);
-//     }
-
-//     console.log(`🧮 [Calculator] Subtotal calculado: ${subtotal}`);
-
-//     // Aplicar reglas de descuento automáticas
-//     const discountResult = await applyDiscountRules(processedItems, customer);
-//     const totalDiscount = discountResult.totalDiscount;
-//     const appliedDiscounts = discountResult.appliedDiscounts;
-
-//     // Calcular total final
-//     const total = subtotal - totalDiscount;
-
-//     // Calcular ahorros (diferencia con precios originales)
-//     const originalTotal = processedItems.reduce((sum, item) => sum + (item.originalPrice * item.quantity), 0);
-//     const savings = originalTotal - total;
-
-//     console.log(`💰 [Calculator] Resumen final:`);
-//     console.log(`   Subtotal: ${subtotal}`);
-//     console.log(`   Descuento reglas: ${totalDiscount}`);
-//     console.log(`   Total: ${total}`);
-//     console.log(`   Ahorro total: ${savings}`);
-
-//     // Preparar respuesta
-//     const responseData = {
-//       items: processedItems,
-//       subtotal,
-//       totalDiscount,
-//       total,
-//       isDistributor: customer?.role === 'Distributor',
-//       distributorInfo: customer?.distributor ? {
-//         discountPercentage: customer.distributor.discountPercentage || 0,
-//         minimumPurchase: distributorMinimumRequired
-//       } : null,
-//       orderValueForDistributorCheck,
-//       appliedDistributorPrices: applyDistributorPrices,
-//       appliedDiscounts,
-//       savings: Math.max(0, savings)
-//     };
-
-//     res.status(200).json({
-//       error: false,
-//       message: 'Precios calculados exitosamente.',
-//       data: responseData
-//     });
-
-//   } catch (error) {
-//     console.error('❌ [Calculator] Error:', error);
-    
-//     const errorResponseData = {
-//       items: [],
-//       subtotal: 0,
-//       totalDiscount: 0,
-//       total: 0,
-//       isDistributor: false,
-//       distributorInfo: null,
-//       orderValueForDistributorCheck: 0,
-//       appliedDistributorPrices: false,
-//       appliedDiscounts: [],
-//       savings: 0
-//     };
-
-//     res.status(500).json({
-//       error: true,
-//       message: 'Error interno del servidor al calcular precios.',
-//       details: error.message,
-//       data: errorResponseData
-//     });
-//   }
-// };
 
 // Función auxiliar para encontrar descuentos aplicables
 const findApplicableDiscounts = async (productId, categoryId, quantity, itemTotal, userType) => {
@@ -810,6 +632,68 @@ const findApplicableDiscounts = async (productId, categoryId, quantity, itemTota
   }
 };
 
+const getFacturableProducts = async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const { count, rows: products } = await Product.findAndCountAll({
+      where: {
+        isFacturable: true,
+        isActive: true
+      },
+      include: [
+        {
+          model: Category,
+          as: 'category',
+          include: [
+            { 
+              model: Category, 
+              as: 'parentCategory',
+              include: [
+                {
+                  model: Category,
+                  as: 'parentCategory'
+                }
+              ]
+            },
+            { 
+              model: Category, 
+              as: 'subcategories',
+              include: [
+                {
+                  model: Category,
+                  as: 'subcategories'
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['name', 'ASC']]
+    });
+
+    return res.status(200).json({
+      error: false,
+      message: 'Productos facturables obtenidos exitosamente',
+      data: {
+        products,
+        totalProducts: count,
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(count / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error al obtener productos facturables:', error);
+    return res.status(500).json({
+      error: true,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
 module.exports = {
   createProduct,
   getProducts,
@@ -818,5 +702,6 @@ module.exports = {
   deleteProduct,
   filterProducts,
   calculateProductPrice,
+  getFacturableProducts
   // calculatePrice, 
 };

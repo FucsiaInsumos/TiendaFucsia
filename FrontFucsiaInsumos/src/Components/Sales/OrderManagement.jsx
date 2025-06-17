@@ -34,7 +34,7 @@ const OrderManagement = () => {
     try {
       setLoading(true);
       console.log('📋 [OrderManagement] Cargando órdenes con filtros:', filters);
-      
+
       const response = await dispatch(getOrders(filters));
       if (response.error === false) {
         console.log('✅ [OrderManagement] Órdenes cargadas:', response.data.orders.length);
@@ -59,16 +59,16 @@ const OrderManagement = () => {
     // Los UUIDs tienen formato: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
     const wompiPattern = /^\d+-\d+-\d+$/;
     const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    
+
     return wompiPattern.test(id) && !uuidPattern.test(id);
   };
 
   // ✅ FUNCIÓN PARA CONSULTAR ESTADO INDIVIDUAL DE WOMPI
   const checkRealPaymentStatus = async (order) => {
     console.log('🔍 [DEBUG] Consultando estado de pago para orden:', order.orderNumber);
-    
+
     const wompiPayment = order.payments?.find(p => p.method === 'wompi');
-    
+
     if (!wompiPayment) {
       alert('❌ Esta orden no tiene un pago de Wompi');
       return;
@@ -113,22 +113,22 @@ Esta orden podría ser de antes de que la integración funcionara correctamente.
 
     try {
       setPaymentStatusLoading(prev => ({ ...prev, [order.id]: true }));
-      
+
       console.log('🔍 [OrderManagement] Consultando TransactionId:', wompiTransactionId);
-      
+
       const paymentStatusResponse = await dispatch(getPaymentStatus(wompiTransactionId));
-      
+
       console.log('✅ [OrderManagement] Estado obtenido:', paymentStatusResponse);
-      
+
       // Actualizar estado local
-      setOrders(prevOrders => 
-        prevOrders.map(o => 
-          o.id === order.id 
+      setOrders(prevOrders =>
+        prevOrders.map(o =>
+          o.id === order.id
             ? {
-                ...o,
-                realPaymentStatus: paymentStatusResponse.data,
-                lastPaymentCheck: new Date().toISOString()
-              }
+              ...o,
+              realPaymentStatus: paymentStatusResponse.data,
+              lastPaymentCheck: new Date().toISOString()
+            }
             : o
         )
       );
@@ -157,7 +157,7 @@ Esta orden podría ser de antes de que la integración funcionara correctamente.
 ${statusMatch && amountMatch ? '🎉 Todo está en orden!' : '⚠️ Revisa las diferencias encontradas'}`;
 
       alert(resultText);
-      
+
     } catch (error) {
       console.error('❌ [OrderManagement] Error consultando pago:', error);
       alert(`❌ Error al consultar el pago: 
@@ -175,7 +175,7 @@ ${error.response?.status === 404 ? '💡 Sugerencia: El Transaction ID podría n
   // ✅ FUNCIÓN PARA VERIFICAR TODOS LOS PAGOS DE WOMPI
   const checkAllWompiPayments = async () => {
     console.log('🔍 [DEBUG] Iniciando verificación masiva de pagos Wompi');
-    
+
     const wompiOrders = orders.filter(order => {
       return order.payments?.some(p => p.method === 'wompi');
     });
@@ -200,11 +200,11 @@ Se encontraron ${wompiOrders.length} órdenes con pagos de Wompi.
     const results = [];
     let successCount = 0;
     let errorCount = 0;
-    
+
     for (const order of wompiOrders) {
       try {
         const wompiPayment = order.payments.find(p => p.method === 'wompi');
-        
+
         // Buscar y validar Transaction ID
         const possibleTransactionIds = [
           wompiPayment.paymentDetails?.transactionId,
@@ -216,7 +216,7 @@ Se encontraron ${wompiOrders.length} órdenes con pagos de Wompi.
 
         const validWompiIds = possibleTransactionIds.filter(isValidWompiId);
         const wompiTransactionId = validWompiIds[0];
-        
+
         if (!wompiTransactionId) {
           console.log(`❌ Orden ${order.orderNumber} sin Transaction ID válido`);
           results.push({
@@ -230,14 +230,14 @@ Se encontraron ${wompiOrders.length} órdenes con pagos de Wompi.
           errorCount++;
           continue;
         }
-        
+
         console.log(`🔍 Consultando orden ${order.orderNumber} - ID: ${wompiTransactionId}`);
-        
+
         const paymentStatusResponse = await dispatch(getPaymentStatus(wompiTransactionId));
-        
+
         const statusMatch = wompiPayment.status === paymentStatusResponse.data.status;
         const amountMatch = parseFloat(wompiPayment.amount) === (paymentStatusResponse.data.amount_in_cents / 100);
-        
+
         results.push({
           orderId: order.id,
           orderNumber: order.orderNumber,
@@ -249,14 +249,14 @@ Se encontraron ${wompiOrders.length} órdenes con pagos de Wompi.
         });
 
         // Actualizar estado local
-        setOrders(prevOrders => 
-          prevOrders.map(o => 
-            o.id === order.id 
+        setOrders(prevOrders =>
+          prevOrders.map(o =>
+            o.id === order.id
               ? {
-                  ...o,
-                  realPaymentStatus: paymentStatusResponse.data,
-                  lastPaymentCheck: new Date().toISOString()
-                }
+                ...o,
+                realPaymentStatus: paymentStatusResponse.data,
+                lastPaymentCheck: new Date().toISOString()
+              }
               : o
           )
         );
@@ -265,7 +265,7 @@ Se encontraron ${wompiOrders.length} órdenes con pagos de Wompi.
 
         // Pausa entre consultas para no sobrecargar la API
         await new Promise(resolve => setTimeout(resolve, 800));
-        
+
       } catch (error) {
         console.error(`❌ Error consultando orden ${order.orderNumber}:`, error);
         results.push({
@@ -282,11 +282,11 @@ Se encontraron ${wompiOrders.length} órdenes con pagos de Wompi.
 
     // Mostrar resumen completo
     console.log('📊 Resumen completo de verificación:', results);
-    
-    const summary = results.map(r => 
+
+    const summary = results.map(r =>
       `${r.statusMatch} ${r.orderNumber}: BD=${r.statusInDB} | Wompi=${r.statusInWompi}${r.error ? ` (${r.error})` : ''}`
     ).join('\n');
-    
+
     const summaryText = `🔍 VERIFICACIÓN MASIVA COMPLETADA:
 
 📊 RESUMEN:
@@ -304,36 +304,36 @@ LEYENDA:
 ❓ = Sin ID válido (orden antigua)
 
 🕒 Verificación completada: ${new Date().toLocaleString()}`;
-    
+
     alert(summaryText);
   };
 
   // ✅ FUNCIÓN PARA DEBUG (OPCIONAL)
   const debugOrderStructure = () => {
     console.log('🔍 [DEBUG COMPLETO] Analizando estructura de todas las órdenes:');
-    
+
     orders.forEach((order, index) => {
       const wompiPayment = order.payments?.find(p => p.method === 'wompi');
-      
+
       console.log(`\n📋 === ORDEN ${index + 1} (${order.orderNumber}) ===`);
       console.log('💳 Tiene pago Wompi:', !!wompiPayment);
-      
+
       if (wompiPayment) {
         console.log('💰 Monto:', wompiPayment.amount);
         console.log('📊 Estado:', wompiPayment.status);
         console.log('🔗 PaymentDetails:', wompiPayment.paymentDetails);
-        
+
         const possibleIds = [
           wompiPayment.paymentDetails?.transactionId,
           wompiPayment.paymentDetails?.reference,
           wompiPayment.transactionId
         ].filter(Boolean);
-        
+
         console.log('🆔 IDs encontrados:', possibleIds);
         console.log('✅ IDs válidos:', possibleIds.filter(isValidWompiId));
       }
     });
-    
+
     alert('🐛 Análisis completado. Revisa la consola para ver todos los detalles.');
   };
 
@@ -391,6 +391,10 @@ LEYENDA:
     }).format(price);
   };
 
+  const hasFacturableItems = (order) => {
+    return order.items?.some(item => item.product?.isFacturable) || false;
+  };
+
   const getStatusBadge = (status) => {
     const statusConfig = {
       'pending': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pendiente' },
@@ -402,7 +406,7 @@ LEYENDA:
     };
 
     const config = statusConfig[status] || statusConfig['pending'];
-    
+
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
         {config.label}
@@ -414,7 +418,7 @@ LEYENDA:
   const getPaymentStatusBadge = (order) => {
     const wompiPayment = order.payments?.find(p => p.method === 'wompi');
     const { realPaymentStatus } = order;
-    
+
     const statusConfig = {
       'pending': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pendiente' },
       'partial': { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Parcial' },
@@ -437,13 +441,13 @@ LEYENDA:
     }
 
     const config = statusConfig[wompiPayment.status] || statusConfig['pending'];
-    
+
     return (
       <div className="space-y-1">
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
           {config.label}
         </span>
-        
+
         {/* Estado real de Wompi si existe */}
         {realPaymentStatus && (
           <div className="text-xs text-gray-600">
@@ -456,7 +460,7 @@ LEYENDA:
             )}
           </div>
         )}
-        
+
         {/* Timestamp de última consulta */}
         {order.lastPaymentCheck && (
           <div className="text-xs text-gray-400">
@@ -474,7 +478,7 @@ LEYENDA:
           {/* Header con botones mejorados */}
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h1 className="text-2xl font-semibold text-gray-900">Gestión de Órdenes</h1>
-            
+
             <div className="flex space-x-2">
               <button
                 onClick={loadOrders}
@@ -491,7 +495,7 @@ LEYENDA:
                   <>🔄 Refrescar</>
                 )}
               </button>
-              
+
               <button
                 onClick={checkAllWompiPayments}
                 className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200"
@@ -499,7 +503,7 @@ LEYENDA:
               >
                 🔍 Verificar Pagos Wompi
               </button>
-              
+
               <button
                 onClick={debugOrderStructure}
                 className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition duration-200"
@@ -656,6 +660,11 @@ LEYENDA:
                             {order.payments?.some(p => p.method === 'wompi') && (
                               <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
                                 WOMPI
+                              </span>
+                            )}
+                            {hasFacturableItems(order) && (
+                              <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                📄 FACTURABLE
                               </span>
                             )}
                           </div>

@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Order, OrderItem, Payment, Product, User, DiscountRule, StockMovement, Distributor, conn } = require('../../data');
+const { Order, OrderItem, Payment, Product, User, DiscountRule, StockMovement, Distributor, Category, conn } = require('../../data');
 // Función para aplicar reglas de descuento
 const applyDiscountRules = async (items, user) => {
   try {
@@ -1081,6 +1081,187 @@ const calculatePrice = async (req, res) => {
   }
 };
 
+// ✅ NUEVA FUNCIÓN PARA OBTENER ÓRDENES QUE REQUIEREN FACTURACIÓN
+const getOrdersRequiringBilling = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status, startDate, endDate } = req.query;
+    const offset = (page - 1) * limit;
+
+    let whereClause = {};
+    
+    // Filtros adicionales
+    if (status) {
+      whereClause.status = status;
+    }
+    
+    if (startDate && endDate) {
+      whereClause.createdAt = {
+        [Op.between]: [new Date(startDate), new Date(endDate)]
+      };
+    }
+
+    const { count, rows: orders } = await Order.findAndCountAll({
+      where: whereClause,
+      include: [
+        {
+          model: OrderItem,
+          as: 'items',
+          include: [
+            {
+              model: Product,
+              as: 'product',
+              where: { isFacturable: true }, // ✅ SOLO PRODUCTOS FACTURABLES
+              include: [
+                {
+                  model: Category,
+                  as: 'category'
+                }
+              ]
+            }
+          ]
+        },
+        {
+          model: User,
+          as: 'customer'
+        },
+        {
+          model: User,
+          as: 'cashier',
+          attributes: ['n_document', 'first_name', 'last_name']
+        },
+        {
+          model: Payment,
+          as: 'payments'
+        }
+      ],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['createdAt', 'DESC']],
+      distinct: true // ✅ IMPORTANTE para COUNT correcto con JOINS
+    });
+
+    // ✅ PROCESAR ÓRDENES PARA SEPARAR ITEMS FACTURABLES Y NO FACTURABLES
+    const processedOrders = orders.map(order => {
+      const orderData = order.toJSON();
+      
+      // Separar items facturables de no facturables
+      const billableItems = orderData.items.filter(item => item.product.isFacturable);
+      const nonBillableItems = orderData.items.filter(item => !item.product.isFacturable);
+      
+      // Calcular totales de facturación
+      const billableSubtotal = billableItems.reduce((sum, item) => sum + parseFloat(item.subtotal), 0);
+      const billableDiscount = billableItems.reduce((sum, item) => sum + parseFloat(item.appliedDiscount), 0);
+      const billableTotal = billableSubtotal - billableDiscount;
+      
+      return {
+        ...orderData,
+        billableItems,
+        nonBillableItems,
+        billingInfo: {
+          hasBillableItems: billableItems.length > 0,
+          billableItemsCount: billableItems.length,
+          nonBillableItemsCount: nonBillableItems.length,
+          billableSubtotal,
+          billableDiscount,
+          billableTotal,
+          requiresBilling: billableItems.length > 0
+        }
+      };
+    });
+
+    // ✅ FILTRAR SOLO ÓRDENES CON ITEMS FACTURABLES
+    const ordersWithBillableItems = processedOrders.filter(order => order.billingInfo.hasBillableItems);
+
+    res.json({
+      error: false,
+      message: 'Órdenes que requieren facturación obtenidas exitosamente',
+      data: {
+        orders: ordersWithBillableItems,
+        totalOrders: ordersWithBillableItems.length,
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(ordersWithBillableItems.length / limit),
+        billingStats: {
+          totalOrdersRequiringBilling: ordersWithBillableItems.length,
+          totalBillableAmount: ordersWithBillableItems.reduce((sum, order) => sum + order.billingInfo.billableTotal, 0)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error al obtener órdenes que requieren facturación:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Error interno del servidor',
+      details: error.message
+    });
+  }
+};
+
+// ✅ FUNCIÓN CORREGIDA PARA MARCAR COMO FACTURADA
+const markOrderAsBilled = async (req, res) => {
+  try {
+    // ✅ CAPTURAR CORRECTAMENTE EL ID DESDE LOS PARÁMETROS
+    const { id } = req.params;  // ✅ CAMBIAR orderId POR id
+    const { billingDetails } = req.body;
+
+    console.log('🔖 [markOrderAsBilled] Parámetros recibidos:', { id, billingDetails });
+    console.log('🔖 [markOrderAsBilled] req.params completo:', req.params);
+
+    // Validar que el ID existe
+    if (!id) {
+      return res.status(400).json({
+        error: true,
+        message: 'ID de orden requerido'
+      });
+    }
+
+    console.log('🔍 [markOrderAsBilled] Buscando orden con ID:', id);
+
+    const order = await Order.findByPk(id);
+    if (!order) {
+      console.log('❌ [markOrderAsBilled] Orden no encontrada:', id);
+      return res.status(404).json({
+        error: true,
+        message: 'Orden no encontrada'
+      });
+    }
+
+    console.log('✅ [markOrderAsBilled] Orden encontrada:', order.orderNumber);
+
+    // Crear información de facturación
+    const currentDate = new Date().toISOString();
+    const billingNote = `FACTURADA: ${currentDate}`;
+    
+    // Construir notas actualizadas
+    const updatedNotes = order.notes ? `${order.notes} | ${billingNote}` : billingNote;
+
+    // Actualizar la orden
+    await order.update({
+      notes: updatedNotes
+    });
+
+    console.log('✅ [markOrderAsBilled] Orden marcada como facturada exitosamente');
+
+    res.json({
+      error: false,
+      message: 'Orden marcada como facturada exitosamente',
+      data: {
+        id: order.id,
+        orderNumber: order.orderNumber,
+        billedAt: currentDate,
+        notes: updatedNotes
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ [markOrderAsBilled] Error completo:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Error interno del servidor',
+      details: error.message
+    });
+  }
+};
 module.exports = {
   createOrder,
   getOrders,
@@ -1088,5 +1269,7 @@ module.exports = {
   getOrderById,
   updateOrderStatus,
   cancelOrder,
-  calculatePrice
+  calculatePrice,
+  getOrdersRequiringBilling,
+  markOrderAsBilled
 };

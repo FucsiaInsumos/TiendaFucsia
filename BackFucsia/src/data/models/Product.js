@@ -45,6 +45,10 @@ module.exports = (sequelize) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     },
+     isFacturable: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
     promotionPrice: {
       type: DataTypes.DECIMAL(10, 2)
     },

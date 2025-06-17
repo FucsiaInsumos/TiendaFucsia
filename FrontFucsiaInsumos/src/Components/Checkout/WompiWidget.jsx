@@ -255,7 +255,7 @@ const WompiWidget = ({
           </div>
         </div>
         
-        <div className="mt-6 text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">
+        {/* <div className="mt-6 text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">
           <p className="font-medium text-blue-800 mb-1">🔒 Pago REAL procesado por Wompi</p>
           <p>• Acepta PSE, tarjetas de crédito/débito, Nequi y más</p>
           <p>• Transacción protegida con encriptación SSL</p>
@@ -263,7 +263,7 @@ const WompiWidget = ({
           <p className="text-green-600 font-medium mt-2">
             ✅ Usando credenciales reales del backend
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );

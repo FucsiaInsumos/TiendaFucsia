@@ -76,6 +76,28 @@ export const getMyOrders = (params = {}) => async (dispatch) => {
   }
 };
 
+export const markOrderAsBilled = (orderId, billingDetails) => async (dispatch) => {
+  try {
+    const response = await api.patch(`/orders/${orderId}/mark-billed`, { billingDetails });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Error al marcar orden como facturada';
+    console.error('Mark order as billed error:', errorMessage);
+    throw error;
+  }
+};
+
+export const getOrdersRequiringBilling = (params = {}) => async (dispatch) => {
+  try {
+    const response = await api.get('/orders/requiring-billing', { params });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Error al obtener órdenes que requieren facturación';
+    console.error('Get orders requiring billing error:', errorMessage);
+    throw error;
+  }
+};
+
 // =============================================================================
 // PAYMENT ACTIONS
 // =============================================================================

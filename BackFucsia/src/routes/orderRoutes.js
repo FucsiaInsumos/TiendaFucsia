@@ -8,19 +8,25 @@ const {
   getOrderById, 
   updateOrderStatus, 
   cancelOrder,
-  calculatePrice 
+  calculatePrice,
+  getOrdersRequiringBilling,
+  markOrderAsBilled
 } = require('../controllers/Order/orderController');
 
 // Middleware para verificar token en todas las rutas
 router.use(verifyToken);
 
 // Rutas para órdenes
-router.post('/', createOrder);
+router.post('/calculate-price', calculatePrice);
+router.get('/requiring-billing', getOrdersRequiringBilling);
+
 router.get('/my-orders', getMyOrders); // Nueva ruta para órdenes del usuario actual
+router.post('/', createOrder);
 router.get('/', getOrders); // Solo para admin/owner
 router.get('/:id', getOrderById);
 router.put('/:id/status', updateOrderStatus);
 router.put('/:id/cancel', cancelOrder);
-router.post('/calculate-price', calculatePrice);
+
+router.patch('/:id/mark-billed',markOrderAsBilled);
 
 module.exports = router;

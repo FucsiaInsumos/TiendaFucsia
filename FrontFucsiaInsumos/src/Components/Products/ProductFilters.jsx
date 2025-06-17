@@ -8,7 +8,8 @@ const ProductFilters = ({ categories }) => {
     categoryId: '',
     minPrice: '',
     maxPrice: '',
-    name: ''
+    name: '',
+    isFacturable:''
   });
 
   const handleFilterChange = (e) => {
@@ -39,7 +40,8 @@ const ProductFilters = ({ categories }) => {
       categoryId: '',
       minPrice: '',
       maxPrice: '',
-      name: ''
+      name: '',
+      isFacturable: ''
     });
     dispatch(getProducts());
   };
@@ -57,15 +59,17 @@ const ProductFilters = ({ categories }) => {
     return flattened;
   };
 
-  return (
+ return (
     <div className="bg-white p-4 rounded-lg shadow border">
       <h3 className="text-lg font-semibold mb-4">Filtros</h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Filtro por nombre */}
-        <div>
+      {/* ✅ REORDENADO - BÚSQUEDA PRIMERO */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        
+        {/* ✅ 1. FILTRO POR NOMBRE - PRIMERO Y MÁS PROMINENTE */}
+        <div className="md:col-span-2">
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-            Buscar por nombre
+            🔍 Buscar producto
           </label>
           <input
             type="text"
@@ -73,12 +77,13 @@ const ProductFilters = ({ categories }) => {
             name="name"
             value={filters.name}
             onChange={handleFilterChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Nombre del producto"
+            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+            placeholder="Escribe el nombre del producto..."
+            autoComplete="off"
           />
         </div>
 
-        {/* Filtro por categoría */}
+        {/* ✅ 2. FILTRO POR CATEGORÍA */}
         <div>
           <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-1">
             Categoría
@@ -100,7 +105,25 @@ const ProductFilters = ({ categories }) => {
           </select>
         </div>
 
-        {/* Filtro por precio mínimo */}
+        {/* ✅ 3. FILTRO POR FACTURACIÓN */}
+        <div>
+          <label htmlFor="isFacturable" className="block text-sm font-medium text-gray-700 mb-1">
+            Facturación
+          </label>
+          <select
+            id="isFacturable"
+            name="isFacturable"
+            value={filters.isFacturable}
+            onChange={handleFilterChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Todos los productos</option>
+            <option value="true">📄 Solo facturables</option>
+            <option value="false">🚫 Solo no facturables</option>
+          </select>
+        </div>
+
+        {/* ✅ 4. FILTRO POR PRECIO MÍNIMO */}
         <div>
           <label htmlFor="minPrice" className="block text-sm font-medium text-gray-700 mb-1">
             Precio mínimo
@@ -116,8 +139,11 @@ const ProductFilters = ({ categories }) => {
             placeholder="0.00"
           />
         </div>
+      </div>
 
-        {/* Filtro por precio máximo */}
+      {/* ✅ SEGUNDA FILA - PRECIO MÁXIMO Y BOTONES */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+        {/* ✅ 5. FILTRO POR PRECIO MÁXIMO */}
         <div>
           <label htmlFor="maxPrice" className="block text-sm font-medium text-gray-700 mb-1">
             Precio máximo
@@ -133,21 +159,25 @@ const ProductFilters = ({ categories }) => {
             placeholder="0.00"
           />
         </div>
-      </div>
 
-      <div className="flex justify-end space-x-3 mt-4">
-        <button
-          onClick={clearFilters}
-          className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50"
-        >
-          Limpiar
-        </button>
-        <button
-          onClick={applyFilters}
-          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
-        >
-          Aplicar Filtros
-        </button>
+        {/* ✅ ESPACIO VACÍO PARA ALINEACIÓN */}
+        <div className="md:col-span-2"></div>
+
+        {/* ✅ BOTONES DE ACCIÓN */}
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={clearFilters}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Limpiar
+          </button>
+          <button
+            onClick={applyFilters}
+            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+          >
+            Aplicar Filtros
+          </button>
+        </div>
       </div>
     </div>
   );

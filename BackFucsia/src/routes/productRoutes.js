@@ -6,6 +6,7 @@ const {
   getProductById,
   updateProduct,
   deleteProduct,
+  getFacturableProducts,
   // calculatePrice,
 } = require('../controllers/Product/productController');
 const { verifyToken } = require('../middleware/isAuth'); // Asumiendo que tienes autenticación
@@ -23,6 +24,8 @@ router.post(
 );
 router.get('/', getProducts); // Correcto: esta ruta manejará /products y /products?name=...
 router.get('/:id', getProductById);
+// ✅ AGREGAR ESTA RUTA
+router.get('/facturable', getFacturableProducts);
 router.put(
     '/:id', 
     upload.array('images', 5), 

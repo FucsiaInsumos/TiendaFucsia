@@ -352,7 +352,7 @@ const Dashboard = () => {
                         Gestión de Pagos
                       </Link>
                       <Link 
-                        to="/facturacion" 
+                        to="/billing-ordenes" 
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
                       >
                         <span className="mr-3">🧾</span>
