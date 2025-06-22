@@ -440,31 +440,86 @@ if (orderType === 'local') {
 
     // Crear pago si se especifica método
     if (paymentMethod) {
-      // Para pagos locales con descuento extra, ajustar el monto del pago
       const paymentAmount = paymentDetails.finalTotal || total;
       
-      await Payment.create({
-        orderId: order.id,
-        amount: paymentAmount,
-        method: paymentMethod,
-        status: paymentMethod === 'credito' ? 'pending' : 'completed',
-        paymentDetails: {
-          ...paymentDetails,
-          originalTotal: subtotal,
-          rulesDiscount: rulesDiscount, // NUEVO
-          appliedDiscountRules: appliedDiscountRules, // NUEVO
-          extraDiscountPercentage: extraDiscountPercentage || 0,
-          extraDiscountAmount: extraDiscountAmount,
-          finalTotal: total
-        },
-        dueDate: paymentMethod === 'credito' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null
-      }, { transaction });
+      if (paymentMethod === 'combinado') {
+        // NUEVO: Manejar pagos combinados creando múltiples registros
+        const combinedPayments = paymentDetails.combinedPayments || [];
+        
+        if (combinedPayments.length === 0) {
+          await transaction.rollback();
+          return res.status(400).json({
+            error: true,
+            message: 'Debe especificar al menos un método de pago para el pago combinado'
+          });
+        }
+        
+        // Validar que el total coincida
+        const combinedTotal = combinedPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+        if (Math.abs(combinedTotal - paymentAmount) > 0.01) {
+          await transaction.rollback();
+          return res.status(400).json({
+            error: true,
+            message: 'El total de los pagos combinados no coincide con el total de la orden'
+          });
+        }
+        
+        // Crear un registro por cada método de pago
+        for (const payment of combinedPayments) {
+          if (payment.amount > 0) {
+            await Payment.create({
+              orderId: order.id,
+              amount: parseFloat(payment.amount),
+              method: payment.method,
+              status: payment.method === 'credito' ? 'pending' : 'completed',
+              paymentDetails: {
+                ...paymentDetails,
+                originalTotal: subtotal,
+                rulesDiscount: rulesDiscount,
+                appliedDiscountRules: appliedDiscountRules,
+                extraDiscountPercentage: extraDiscountPercentage || 0,
+                extraDiscountAmount: extraDiscountAmount,
+                finalTotal: total,
+                isCombinedPayment: true,
+                combinedPaymentMethod: payment.method
+              },
+              dueDate: payment.method === 'credito' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null
+            }, { transaction });
+          }
+        }
+        
+        // Actualizar estado de pago de la orden
+        const hasCreditPayment = combinedPayments.some(p => p.method === 'credito' && p.amount > 0);
+        await order.update({
+          paymentStatus: hasCreditPayment ? 'partial' : 'completed',
+          status: hasCreditPayment ? 'confirmed' : 'completed'
+        }, { transaction });
+        
+      } else {
+        // CÓDIGO EXISTENTE: Pago único
+        await Payment.create({
+          orderId: order.id,
+          amount: paymentAmount,
+          method: paymentMethod,
+          status: paymentMethod === 'credito' ? 'pending' : 'completed',
+          paymentDetails: {
+            ...paymentDetails,
+            originalTotal: subtotal,
+            rulesDiscount: rulesDiscount,
+            appliedDiscountRules: appliedDiscountRules,
+            extraDiscountPercentage: extraDiscountPercentage || 0,
+            extraDiscountAmount: extraDiscountAmount,
+            finalTotal: total
+          },
+          dueDate: paymentMethod === 'credito' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null
+        }, { transaction });
 
-      // Actualizar estado de pago de la orden
-      await order.update({
-        paymentStatus: paymentMethod === 'credito' ? 'pending' : 'completed',
-        status: paymentMethod === 'credito' ? 'confirmed' : 'completed'
-      }, { transaction });
+        // Actualizar estado de pago de la orden
+        await order.update({
+          paymentStatus: paymentMethod === 'credito' ? 'pending' : 'completed',
+          status: paymentMethod === 'credito' ? 'confirmed' : 'completed'
+        }, { transaction });
+      }
     }
 
     await transaction.commit();

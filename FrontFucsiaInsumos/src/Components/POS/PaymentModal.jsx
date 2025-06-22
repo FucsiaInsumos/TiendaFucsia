@@ -5,8 +5,12 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
   const [paymentDetails, setPaymentDetails] = useState({});
   const [notes, setNotes] = useState('');
   const [extraDiscount, setExtraDiscount] = useState(0);
-  const [discountType, setDiscountType] = useState('percentage'); 
-
+  const [discountType, setDiscountType] = useState('percentage');
+  
+  // NUEVO: Estado para pagos combinados
+  const [combinedPayments, setCombinedPayments] = useState([
+    { method: 'efectivo', amount: 0 }
+  ]);
 
   const paymentMethods = [
     { value: 'efectivo', label: 'Efectivo', icon: '💵' },
@@ -14,7 +18,7 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
     { value: 'nequi', label: 'Nequi', icon: '📱' },
     { value: 'bancolombia', label: 'Bancolombia', icon: '🏦' },
     { value: 'daviplata', label: 'Daviplata', icon: '📱' },
-    { value: 'wompi', label: 'Wompi (Online)', icon: '🌐' },
+   
     { value: 'credito', label: 'Crédito', icon: '📄' },
     { value: 'combinado', label: 'Pago Combinado', icon: '🔄' }
   ];
@@ -51,25 +55,76 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
     return Math.max(0, orderTotal.total - discountAmount);
   };
 
- const handleSubmit = (e) => {
+  // NUEVA FUNCIÓN: Manejar cambios en pagos combinados
+  const handleCombinedPaymentChange = (index, field, value) => {
+    const updatedPayments = [...combinedPayments];
+    updatedPayments[index][field] = value;
+    setCombinedPayments(updatedPayments);
+  };
+
+  // NUEVA FUNCIÓN: Agregar método de pago combinado
+  const addCombinedPayment = () => {
+    setCombinedPayments([...combinedPayments, { method: 'efectivo', amount: 0 }]);
+  };
+
+  // NUEVA FUNCIÓN: Remover método de pago combinado
+  const removeCombinedPayment = (index) => {
+    if (combinedPayments.length > 1) {
+      const updatedPayments = combinedPayments.filter((_, i) => i !== index);
+      setCombinedPayments(updatedPayments);
+    }
+  };
+
+  // NUEVA FUNCIÓN: Calcular total de pagos combinados
+  const getCombinedTotal = () => {
+    return combinedPayments.reduce((sum, payment) => sum + (parseFloat(payment.amount) || 0), 0);
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     
     const finalTotal = calculateFinalTotal();
     const discountAmount = calculateDiscountAmount();
     
-    const paymentData = {
-      method: selectedMethod,
-      details: {
-        ...paymentDetails,
-        originalTotal: orderTotal.total,
-        extraDiscountAmount: discountAmount,
-        extraDiscountType: discountType, // NUEVO: tipo de descuento
-        finalTotal: finalTotal
-      },
-      notes: notes.trim(),
-      extraDiscountPercentage: discountType === 'percentage' ? extraDiscount : 0,
-      extraDiscountAmount: discountType === 'fixed' ? discountAmount : 0 // NUEVO
-    };
+    let paymentData;
+    
+    if (selectedMethod === 'combinado') {
+      // Validar que los montos coincidan
+      const combinedTotal = getCombinedTotal();
+      if (Math.abs(combinedTotal - finalTotal) > 0.01) {
+        alert(`El total de los pagos combinados (${formatPrice(combinedTotal)}) debe coincidir con el total a pagar (${formatPrice(finalTotal)})`);
+        return;
+      }
+      
+      paymentData = {
+        method: selectedMethod,
+        details: {
+          ...paymentDetails,
+          originalTotal: orderTotal.total,
+          extraDiscountAmount: discountAmount,
+          extraDiscountType: discountType,
+          finalTotal: finalTotal,
+          combinedPayments: combinedPayments.filter(p => p.amount > 0) // Solo incluir pagos con monto
+        },
+        notes: notes.trim(),
+        extraDiscountPercentage: discountType === 'percentage' ? extraDiscount : 0,
+        extraDiscountAmount: discountType === 'fixed' ? discountAmount : 0
+      };
+    } else {
+      paymentData = {
+        method: selectedMethod,
+        details: {
+          ...paymentDetails,
+          originalTotal: orderTotal.total,
+          extraDiscountAmount: discountAmount,
+          extraDiscountType: discountType,
+          finalTotal: finalTotal
+        },
+        notes: notes.trim(),
+        extraDiscountPercentage: discountType === 'percentage' ? extraDiscount : 0,
+        extraDiscountAmount: discountType === 'fixed' ? discountAmount : 0
+      };
+    }
 
     console.log('Datos de pago enviados:', paymentData);
     onPaymentComplete(paymentData);
@@ -199,13 +254,88 @@ const PaymentModal = ({ isOpen, onClose, orderTotal, onPaymentComplete, loading,
         );
 
       case 'combinado':
+        const finalTotalCombinado = calculateFinalTotal(); // FIX: Declare before using
+        const combinedTotal = getCombinedTotal();
+        const difference = finalTotalCombinado - combinedTotal;
+        
         return (
           <div className="space-y-4">
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                💡 Pago combinado - Especifica los métodos y montos en las notas
+              <p className="text-sm text-blue-800 font-medium mb-2">
+                💡 Pago Combinado - Especifica métodos y montos
+              </p>
+              <p className="text-xs text-blue-600">
+                Total a pagar: {formatPrice(finalTotalCombinado)}
               </p>
             </div>
+
+            {combinedPayments.map((payment, index) => (
+              <div key={index} className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg">
+                <div className="flex-1">
+                  <select
+                    value={payment.method}
+                    onChange={(e) => handleCombinedPaymentChange(index, 'method', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="efectivo">💵 Efectivo</option>
+                    <option value="tarjeta">💳 Tarjeta</option>
+                    <option value="nequi">📱 Nequi</option>
+                    <option value="bancolombia">🏦 Bancolombia</option>
+                    <option value="daviplata">📱 Daviplata</option>
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max={finalTotalCombinado} // FIX: Use correct variable name
+                    value={payment.amount || ''}
+                    onChange={(e) => handleCombinedPaymentChange(index, 'amount', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Monto"
+                  />
+                </div>
+                {combinedPayments.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeCombinedPayment(index)}
+                    className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                  >
+                    🗑️
+                  </button>
+                )}
+              </div>
+            ))}
+
+            <div className="flex justify-between items-center">
+              <button
+                type="button"
+                onClick={addCombinedPayment}
+                className="px-3 py-2 text-sm bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200"
+              >
+                + Agregar método
+              </button>
+              
+              <div className="text-right">
+                <p className="text-sm">
+                  Total asignado: <span className="font-medium">{formatPrice(combinedTotal)}</span>
+                </p>
+                {Math.abs(difference) > 0.01 && (
+                  <p className={`text-xs ${difference > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    {difference > 0 ? 'Falta: ' : 'Sobra: '}{formatPrice(Math.abs(difference))}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {Math.abs(difference) <= 0.01 && combinedTotal > 0 && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm text-green-800 font-medium">
+                  ✅ Los montos coinciden correctamente
+                </p>
+              </div>
+            )}
           </div>
         );
 

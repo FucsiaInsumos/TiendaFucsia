@@ -20,7 +20,7 @@ module.exports = (sequelize) => {
       allowNull: false
     },
     method: {
-      type: DataTypes.ENUM('wompi', 'nequi', 'bancolombia', 'efectivo', 'tarjeta', 'credito', 'daviplata'),
+      type: DataTypes.ENUM('wompi', 'nequi', 'bancolombia', 'efectivo', 'tarjeta', 'credito', 'daviplata', 'combinado'),
       allowNull: false
     },
     status: {
