@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import ProductSearch from './ProductSearch';
 import CartItems from './CartItems';
 import PaymentModal from './PaymentModal';
+import ReceiptModal from './ReceiptModal'; // ✅ NUEVO IMPORT
 import CustomerSelector from './CustomerSelector';
 import { createOrder, calculateProductPrices } from '../../Redux/Actions/salesActions';
 import { getProducts } from '../../Redux/Actions/productActions';
@@ -16,6 +17,8 @@ const POS = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [products, setProducts] = useState([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showReceiptModal, setShowReceiptModal] = useState(false); // ✅ NUEVO ESTADO
+  const [completedOrder, setCompletedOrder] = useState(null); // ✅ NUEVO ESTADO
   const [orderTotal, setOrderTotal] = useState({
     subtotal: 0,
     discount: 0,
@@ -483,7 +486,7 @@ const calculateTotals = () => {
   const handlePaymentComplete = async (paymentData) => {
     setLoading(true);
     try {
-      console.log('Datos de pago recibidos:', paymentData); // Debug
+      console.log('Datos de pago recibidos:', paymentData);
 
       const orderData = {
         userId: selectedCustomer.n_document,
@@ -496,15 +499,18 @@ const calculateTotals = () => {
         paymentDetails: paymentData.details,
         cashierId: user.n_document,
         notes: paymentData.notes,
-        extraDiscountPercentage: paymentData.extraDiscountPercentage || 0 // Agregar el descuento extra
+        extraDiscountPercentage: paymentData.extraDiscountPercentage || 0
       };
 
-      console.log('Datos de orden enviados al backend:', orderData); // Debug
+      console.log('Datos de orden enviados al backend:', orderData);
 
       const response = await dispatch(createOrder(orderData));
       
       if (response.error === false) {
-        alert('Venta completada exitosamente');
+        // ✅ MOSTRAR EL RECIBO EN LUGAR DEL ALERT
+        setCompletedOrder(response.data);
+        setShowReceiptModal(true);
+        
         clearCart();
         setShowPaymentModal(false);
         
@@ -686,12 +692,19 @@ const calculateTotals = () => {
         <PaymentModal
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
-          orderTotal={orderTotal} // Este ya incluye el total correcto
+          orderTotal={orderTotal}
           onPaymentComplete={handlePaymentComplete}
           loading={loading}
           selectedCustomer={selectedCustomer}
         />
       )}
+
+      {/* ✅ NUEVO: Modal de recibo */}
+      <ReceiptModal
+        isOpen={showReceiptModal}
+        onClose={() => setShowReceiptModal(false)}
+        order={completedOrder}
+      />
     </div>
   );
 };
