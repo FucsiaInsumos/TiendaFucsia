@@ -443,8 +443,11 @@ if (orderType === 'local') {
       const paymentAmount = paymentDetails.finalTotal || total;
       
       if (paymentMethod === 'combinado') {
-        // NUEVO: Manejar pagos combinados creando múltiples registros
+        // CORREGIDO: Manejar pagos combinados creando múltiples registros para UNA SOLA ORDEN
         const combinedPayments = paymentDetails.combinedPayments || [];
+        
+        console.log('🔄 [Combined Payment] Procesando pago combinado para orden:', orderNumber);
+        console.log('🔄 [Combined Payment] Métodos de pago:', combinedPayments);
         
         if (combinedPayments.length === 0) {
           await transaction.rollback();
@@ -460,15 +463,18 @@ if (orderType === 'local') {
           await transaction.rollback();
           return res.status(400).json({
             error: true,
-            message: 'El total de los pagos combinados no coincide con el total de la orden'
+            message: `El total de los pagos combinados (${formatPrice(combinedTotal)}) no coincide con el total de la orden (${formatPrice(paymentAmount)})`
           });
         }
         
-        // Crear un registro por cada método de pago
-        for (const payment of combinedPayments) {
+        // CREAR MÚLTIPLES REGISTROS DE PAGO PARA LA MISMA ORDEN
+        const createdPayments = [];
+        for (const [index, payment] of combinedPayments.entries()) {
           if (payment.amount > 0) {
-            await Payment.create({
-              orderId: order.id,
+            console.log(`💳 [Combined Payment] Creando pago ${index + 1}: ${payment.method} - ${formatPrice(payment.amount)}`);
+            
+            const createdPayment = await Payment.create({
+              orderId: order.id, // ✅ MISMO orderId para todos los pagos
               amount: parseFloat(payment.amount),
               method: payment.method,
               status: payment.method === 'credito' ? 'pending' : 'completed',
@@ -480,23 +486,42 @@ if (orderType === 'local') {
                 extraDiscountPercentage: extraDiscountPercentage || 0,
                 extraDiscountAmount: extraDiscountAmount,
                 finalTotal: total,
+                // ✅ IDENTIFICADORES DE PAGO COMBINADO
                 isCombinedPayment: true,
-                combinedPaymentMethod: payment.method
+                combinedPaymentMethod: payment.method,
+                combinedPaymentIndex: index + 1,
+                combinedPaymentTotal: combinedPayments.length,
+                combinedPaymentNote: `Pago ${index + 1} de ${combinedPayments.length} (${payment.method})`
               },
-              dueDate: payment.method === 'credito' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null
+              dueDate: payment.method === 'credito' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null,
+              // ✅ TRANSACTION ID ÚNICO PARA CADA PAGO PERO RELACIONADO
+              transactionId: `${orderNumber}-COMBINED-${index + 1}-${payment.method.toUpperCase()}`
             }, { transaction });
+            
+            createdPayments.push(createdPayment);
           }
         }
         
+        console.log(`✅ [Combined Payment] Se crearon ${createdPayments.length} registros de pago para la orden ${orderNumber}`);
+        
         // Actualizar estado de pago de la orden
         const hasCreditPayment = combinedPayments.some(p => p.method === 'credito' && p.amount > 0);
+        const newPaymentStatus = hasCreditPayment ? 'partial' : 'completed';
+        const newOrderStatus = hasCreditPayment ? 'confirmed' : 'completed';
+        
         await order.update({
-          paymentStatus: hasCreditPayment ? 'partial' : 'completed',
-          status: hasCreditPayment ? 'confirmed' : 'completed'
+          paymentStatus: newPaymentStatus,
+          status: newOrderStatus,
+          // ✅ AGREGAR NOTA SOBRE PAGO COMBINADO
+          notes: `${finalNotes}\n[PAGO COMBINADO: ${combinedPayments.length} métodos - ${combinedPayments.map(p => `${p.method}: ${formatPrice(p.amount)}`).join(', ')}]`
         }, { transaction });
+        
+        console.log(`✅ [Combined Payment] Orden ${orderNumber} actualizada - Estado: ${newOrderStatus}, Pago: ${newPaymentStatus}`);
         
       } else {
         // CÓDIGO EXISTENTE: Pago único
+        console.log(`💳 [Single Payment] Creando pago único: ${paymentMethod} - ${formatPrice(paymentAmount)}`);
+        
         await Payment.create({
           orderId: order.id,
           amount: paymentAmount,
@@ -509,9 +534,11 @@ if (orderType === 'local') {
             appliedDiscountRules: appliedDiscountRules,
             extraDiscountPercentage: extraDiscountPercentage || 0,
             extraDiscountAmount: extraDiscountAmount,
-            finalTotal: total
+            finalTotal: total,
+            isCombinedPayment: false
           },
-          dueDate: paymentMethod === 'credito' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null
+          dueDate: paymentMethod === 'credito' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null,
+          transactionId: `${orderNumber}-${paymentMethod.toUpperCase()}`
         }, { transaction });
 
         // Actualizar estado de pago de la orden
@@ -697,7 +724,7 @@ const getOrders = async (req, res) => {
         },
         {
           model: Payment,
-          as: 'payments'
+          as: 'payments' // ✅ ESTO DEBE TRAER TODOS LOS PAGOS DE LA ORDEN
         },
         {
           model: User,
@@ -714,6 +741,21 @@ const getOrders = async (req, res) => {
       offset: (parseInt(page) - 1) * parseInt(limit),
       order: [['createdAt', 'DESC']]
     });
+
+    // ✅ DEBUG: Log para verificar estructura de datos
+    if (orders.rows.length > 0) {
+      const firstOrder = orders.rows[0];
+      console.log(`🔍 [DEBUG Orders] Primera orden:`, {
+        orderNumber: firstOrder.orderNumber,
+        total: firstOrder.total,
+        paymentsCount: firstOrder.payments?.length || 0,
+        payments: firstOrder.payments?.map(p => ({
+          method: p.method,
+          amount: p.amount,
+          isCombined: p.paymentDetails?.isCombinedPayment || false
+        })) || []
+      });
+    }
 
     res.json({
       error: false,
@@ -1045,8 +1087,10 @@ const calculatePrice = async (req, res) => {
         itemIsDistributorPrice = true;
         itemIsPromotion = false; // Precio distribuidor anula promoción
         console.log(`   ✅ Aplicando precio distribuidor: ${finalUnitPrice}`);
+      } else if (applyDistributorPrices) {
+        console.log(`   ❌ Precio distribuidor no es mejor: ${parseFloat(product.distributorPrice || 0)} vs ${finalUnitPrice}`);
       }
-
+      
       const itemTotal = finalUnitPrice * pItem.quantity;
       subtotal += itemTotal;
 
@@ -1064,7 +1108,7 @@ const calculatePrice = async (req, res) => {
 
       console.log(`   💰 Precio final: ${finalUnitPrice} x ${pItem.quantity} = ${itemTotal}`);
     }
-
+    
     console.log(`🧮 [Calculator] Subtotal calculado: ${subtotal}`);
 
     // Aplicar reglas de descuento automáticas
@@ -1317,10 +1361,11 @@ const markOrderAsBilled = async (req, res) => {
     });
   }
 };
+
 module.exports = {
   createOrder,
   getOrders,
-  getMyOrders, // Nueva función
+  getMyOrders,
   getOrderById,
   updateOrderStatus,
   cancelOrder,

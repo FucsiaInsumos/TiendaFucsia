@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { getOrdersRequiringBilling, markOrderAsBilled } from '../../Redux/Actions/salesActions';
-import OrderDetailModal from './OrderDetailModal';
+import OrderDetailModal from '../../components/Sales/OrderDetailModal';
 
 const BillingOrdersManagement = () => {
   const dispatch = useDispatch();
