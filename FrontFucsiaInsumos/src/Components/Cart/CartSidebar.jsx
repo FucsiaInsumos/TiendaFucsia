@@ -232,9 +232,12 @@ const CartSidebar = () => {
                       <span>Eliminar</span>
                     </button>
                     
-                    <div className="text-xs text-gray-500">
-                      Stock: {item.stock}
-                    </div>
+                    {/* ✅ SOLO MOSTRAR STOCK A OWNER, ADMIN Y CASHIER */}
+                    {(user?.role === 'Owner' || user?.role === 'Admin' || user?.role === 'Cashier') && (
+                      <div className="text-xs text-gray-500">
+                        Stock: {item.stock}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

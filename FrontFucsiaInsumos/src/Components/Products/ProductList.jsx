@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux'; // ✅ AGREGAR IMPORT
 import ImageGallery from './ImageGallery';
 
 const ProductList = ({ products, categories, onEdit, onDelete }) => {
+  // ✅ OBTENER USUARIO ACTUAL
+  const { user } = useSelector(state => state.auth);
+  
   const [selectedImageIndex, setSelectedImageIndex] = useState({});
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryImages, setGalleryImages] = useState([]);
@@ -126,7 +130,7 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
               <div className="absolute top-2 left-2 flex flex-col space-y-1">
                 {product.isFacturable && (
                   <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                    📄 Facturable
+                    📄 Codificado
                   </span>
                 )}
                 {product.isPromotion && (
@@ -134,15 +138,20 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
                     PROMOCIÓN
                   </span>
                 )}
-                {product.stock <= product.minStock && (
-                  <span className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                    STOCK BAJO
-                  </span>
-                )}
-                {product.stock === 0 && (
-                  <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                    SIN STOCK
-                  </span>
+                {/* ✅ OCULTAR COMPLETAMENTE BADGES DE STOCK PARA TODOS EXCEPTO OWNER */}
+                {user?.role === 'Owner' && (
+                  <>
+                    {product.stock <= product.minStock && product.stock > 0 && (
+                      <span className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                        STOCK BAJO
+                      </span>
+                    )}
+                    {product.stock === 0 && (
+                      <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                        SIN STOCK
+                      </span>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -178,16 +187,21 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
                     {formatPrice(product.price)}
                   </span>
                 )}
-                <div className="text-xs text-gray-500">
-                  Costo: {formatPrice(product.purchasePrice)}
-                </div>
+                {/* ✅ SOLO MOSTRAR PRECIO DE COSTO AL OWNER */}
+                {user?.role === 'Owner' && (
+                  <div className="text-xs text-gray-500">
+                    Costo: {formatPrice(product.purchasePrice)}
+                  </div>
+                )}
               </div>
 
-              {/* Stock */}
-              <div className="flex justify-between items-center mb-3 text-sm">
-                <span className="text-gray-600">Stock: {product.stock}</span>
-                <span className="text-gray-600">Min: {product.minStock}</span>
-              </div>
+              {/* ✅ REMOVER COMPLETAMENTE LA SECCIÓN DE STOCK PARA TODOS EXCEPTO OWNER */}
+              {user?.role === 'Owner' && (
+                <div className="flex justify-between items-center mb-3 text-sm border-t pt-2">
+                  <span className="text-gray-600">Stock disponible: {product.stock}</span>
+                  <span className="text-gray-600">Mínimo: {product.minStock}</span>
+                </div>
+              )}
 
               {/* Tags */}
               {product.tags && product.tags.length > 0 && (
@@ -226,28 +240,34 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
                   {product.isActive ? 'Activo' : 'Inactivo'}
                 </div>
 
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => onEdit(product)}
-                    className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                    title="Editar"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => onDelete(product)}
-                    className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                    title="Eliminar"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
+                {/* ✅ SOLO MOSTRAR BOTONES DE EDICIÓN AL OWNER, ADMIN Y CASHIER */}
+                {(user?.role === 'Owner' || user?.role === 'Admin' || user?.role === 'Cashier') && (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => onEdit(product)}
+                      className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                      title="Editar"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    {/* ✅ SOLO OWNER PUEDE ELIMINAR */}
+                    {user?.role === 'Owner' && (
+                      <button
+                        onClick={() => onDelete(product)}
+                        className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                        title="Eliminar"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

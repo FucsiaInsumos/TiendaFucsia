@@ -129,7 +129,7 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
                   <div className="text-2xl font-bold text-blue-600">
                     {facturabeItems.length}
                   </div>
-                  <div className="text-sm text-blue-700">Productos Facturables</div>
+                  <div className="text-sm text-blue-700">Productos Codificados</div>
                   <div className="text-lg font-semibold text-blue-800">
                     {formatPrice(billableSubtotal)}
                   </div>
@@ -138,7 +138,7 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
                   <div className="text-2xl font-bold text-gray-600">
                     {nonFacturableItems.length}
                   </div>
-                  <div className="text-sm text-gray-700">Productos No Facturables</div>
+                  <div className="text-sm text-gray-700">Productos No Codificado</div>
                   <div className="text-lg font-semibold text-gray-800">
                     {formatPrice(nonBillableSubtotal)}
                   </div>
@@ -160,7 +160,7 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
           {facturabeItems.length > 0 && (
             <div>
               <h4 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
-                📄 Productos Facturables ({facturabeItems.length})
+                📄 Productos Codificados ({facturabeItems.length})
               </h4>
               <div className="bg-green-50 border border-green-200 rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
@@ -202,7 +202,7 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
                                 </div>
                                 <div className="flex items-center space-x-1">
                                   <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                                    📄 FACTURABLE
+                                    📄 CODIFICADO
                                   </span>
                                   {item.product?.category?.name && (
                                     <span className="text-xs text-gray-500">
@@ -238,7 +238,7 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
           {nonFacturableItems.length > 0 && (
             <div>
               <h4 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
-                🚫 Productos No Facturables ({nonFacturableItems.length})
+                🚫 Productos No Codificable ({nonFacturableItems.length})
               </h4>
               <div className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
@@ -280,7 +280,7 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
                                 </div>
                                 <div className="flex items-center space-x-1">
                                   <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                                    🚫 NO FACTURABLE
+                                    🚫 NO CODIFICADO
                                   </span>
                                   {item.product?.category?.name && (
                                     <span className="text-xs text-gray-500">
@@ -403,12 +403,12 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
                   <hr className="my-2" />
                   <div className="text-sm space-y-1">
                     <div className="flex justify-between text-green-600">
-                      <span>• Monto facturable:</span>
+                      <span>• Monto codificable:</span>
                       <span className="font-medium">{formatPrice(billableSubtotal)}</span>
                     </div>
                     {nonFacturableItems.length > 0 && (
                       <div className="flex justify-between text-gray-500">
-                        <span>• Monto no facturable:</span>
+                        <span>• Monto no codificable:</span>
                         <span className="font-medium">{formatPrice(nonBillableSubtotal)}</span>
                       </div>
                     )}

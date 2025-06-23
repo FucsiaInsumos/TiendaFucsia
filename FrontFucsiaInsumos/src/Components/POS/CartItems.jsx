@@ -1,6 +1,10 @@
 import React from 'react';
+import { useSelector } from 'react-redux'; // ✅ AGREGAR IMPORT
 
 const CartItems = ({ cart, onUpdateQuantity, onRemoveItem }) => {
+  // ✅ OBTENER USUARIO ACTUAL
+  const { user } = useSelector(state => state.auth);
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -107,10 +111,12 @@ const CartItems = ({ cart, onUpdateQuantity, onRemoveItem }) => {
             </div>
           </div>
 
-          {/* Mostrar stock disponible */}
-          <div className="mt-2 text-xs text-gray-500 text-right">
-            Stock disponible: {item.product?.stock || 0}
-          </div>
+          {/* ✅ SOLO MOSTRAR STOCK AL OWNER, ADMIN Y CASHIER */}
+          {(user?.role === 'Owner' || user?.role === 'Admin' || user?.role === 'Cashier') && (
+            <div className="mt-2 text-xs text-gray-500 text-right">
+              Stock disponible: {item.product?.stock || 0}
+            </div>
+          )}
         </div>
       ))}
     </div>

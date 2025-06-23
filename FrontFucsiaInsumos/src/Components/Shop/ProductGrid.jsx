@@ -28,8 +28,13 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
   };
 
   const handleAddToCart = (product, quantity = 1) => {
+    // ✅ VALIDACIÓN DE STOCK - SOLO ALERTAR SI ES OWNER O SI EL STOCK ES REALMENTE 0
     if (product.stock < quantity) {
-      alert('No hay suficiente stock disponible');
+      if (user?.role === 'Owner') {
+        alert(`No hay suficiente stock disponible. Stock actual: ${product.stock}`);
+      } else {
+        alert('Producto no disponible en este momento');
+      }
       return;
     }
 
@@ -141,15 +146,20 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
                     OFERTA
                   </span>
                 )}
-                {product.stock <= product.minStock && product.stock > 0 && (
-                  <span className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                    ÚLTIMAS UNIDADES
-                  </span>
-                )}
-                {product.stock === 0 && (
-                  <span className="bg-gray-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                    AGOTADO
-                  </span>
+                {/* ✅ SOLO MOSTRAR BADGES DE STOCK AL OWNER */}
+                {user?.role === 'Owner' && (
+                  <>
+                    {product.stock <= product.minStock && product.stock > 0 && (
+                      <span className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                        ÚLTIMAS UNIDADES
+                      </span>
+                    )}
+                    {product.stock === 0 && (
+                      <span className="bg-gray-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                        AGOTADO
+                      </span>
+                    )}
+                  </>
                 )}
                 {isAuthenticated && user?.role === 'Distributor' && product.distributorPrice && (
                   <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
@@ -245,17 +255,20 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
                 )}
               </div>
 
-              {/* Stock y botón de compra */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-sm text-gray-600">
-                  {product.stock > 0 ? (
-                    <span className="text-green-600">Stock ({product.stock})</span>
-                  ) : (
-                    <span className="text-red-600"></span>
-                  )}
-                </div>
+              {/* ✅ SECCIÓN DE BOTÓN - SIN INFORMACIÓN DE STOCK PARA NO-OWNERS */}
+              <div className="w-full">
+                {/* ✅ SOLO MOSTRAR STOCK AL OWNER */}
+                {user?.role === 'Owner' && (
+                  <div className="text-sm text-gray-600 mb-2">
+                    {product.stock > 0 ? (
+                      <span className="text-green-600">Stock: {product.stock}</span>
+                    ) : (
+                      <span className="text-red-600">Sin stock</span>
+                    )}
+                  </div>
+                )}
                 
-                {/* Botón Agregar al carrito */}
+                {/* ✅ BOTÓN DE AGREGAR AL CARRITO - MENSAJE APROPIADO SEGÚN ROL */}
                 <button
                   onClick={() => handleAddToCart(product)}
                   disabled={product.stock === 0}
@@ -266,12 +279,21 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
                   }`}
                 >
                   {product.stock === 0 ? (
-                    <>
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd"/>
-                      </svg>
-                      <span>Agotado</span>
-                    </>
+                    user?.role === 'Owner' ? (
+                      <>
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M13.477 14.89A6 6 0 715.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd"/>
+                        </svg>
+                        <span>Agotado</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M13.477 14.89A6 6 0 715.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd"/>
+                        </svg>
+                        <span>No disponible</span>
+                      </>
+                    )
                   ) : (
                     <>
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

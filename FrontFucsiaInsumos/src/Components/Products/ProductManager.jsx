@@ -12,6 +12,7 @@ const ProductManager = () => {
   const dispatch = useDispatch();
   const { products, loading, error } = useSelector(state => state.products);
   const { categories } = useSelector(state => state.categories);
+  const { user } = useSelector(state => state.auth); // ✅ OBTENER USUARIO ACTUAL
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -183,7 +184,7 @@ const ProductManager = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Gestión de Productos</h1>
         <div className="flex space-x-3">
-            <CatalogDownloader compact={true} />
+          <CatalogDownloader compact={true} />
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center"
@@ -193,15 +194,18 @@ const ProductManager = () => {
             </svg>
             Filtros
           </button>
-          <button
-            onClick={() => setIsFormOpen(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-            </svg>
-            Nuevo Producto
-          </button>
+          {/* ✅ SOLO OWNER, ADMIN Y CASHIER PUEDEN CREAR PRODUCTOS */}
+          {(user?.role === 'Owner' || user?.role === 'Admin' || user?.role === 'Cashier') && (
+            <button
+              onClick={() => setIsFormOpen(true)}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+              Nuevo Producto
+            </button>
+          )}
         </div>
       </div>
 
@@ -232,7 +236,7 @@ const ProductManager = () => {
       )}
 
       {/* Form Modal */}
-      {isFormOpen && (
+      {isFormOpen && (user?.role === 'Owner' || user?.role === 'Admin' || user?.role === 'Cashier') && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl m-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">
@@ -249,7 +253,7 @@ const ProductManager = () => {
       )}
 
       {/* Delete Modal */}
-      {showDeleteModal && (
+      {showDeleteModal && user?.role === 'Owner' && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Confirmar Eliminación</h2>

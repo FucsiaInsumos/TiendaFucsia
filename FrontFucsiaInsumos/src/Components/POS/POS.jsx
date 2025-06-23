@@ -527,7 +527,7 @@ const calculateTotals = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="bg-white rounded-lg shadow-lg overflow-visible"> {/* ✅ CAMBIAR overflow-hidden por overflow-visible */}
           {/* Header */}
           <div className="bg-indigo-600 text-white p-6">
             <h1 className="text-2xl font-bold">Punto de Venta</h1>
@@ -536,23 +536,27 @@ const calculateTotals = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
             {/* Panel izquierdo - Búsqueda y productos */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-8"> {/* ✅ AUMENTAR space-y de 6 a 8 */}
               {/* Selector de cliente */}
-              <CustomerSelector
-                selectedCustomer={selectedCustomer}
-                onCustomerSelect={setSelectedCustomer}
-              />
+              <div className="relative z-50"> {/* ✅ AGREGAR z-index alto para cliente */}
+                <CustomerSelector
+                  selectedCustomer={selectedCustomer}
+                  onCustomerSelect={setSelectedCustomer}
+                />
+              </div>
 
               {/* Búsqueda de productos */}
-              <ProductSearch
-                products={products}
-                onAddToCart={addToCart}
-                selectedCustomer={selectedCustomer}
-              />
+              <div className="relative z-40"> {/* ✅ AGREGAR z-index menor para productos */}
+                <ProductSearch
+                  products={products}
+                  onAddToCart={addToCart}
+                  selectedCustomer={selectedCustomer}
+                />
+              </div>
             </div>
 
             {/* Panel derecho - Carrito y totales */}
-            <div className="bg-gray-50 p-6 rounded-lg">
+            <div className="bg-gray-50 p-6 rounded-lg relative z-10"> {/* ✅ AGREGAR z-index bajo para carrito */}
               <h2 className="text-xl font-semibold mb-4">Carrito de Compras</h2>
               
               <CartItems
