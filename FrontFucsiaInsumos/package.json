@@ -16,6 +16,8 @@
     "@reduxjs/toolkit": "^2.6.0",
     "axios": "^1.7.9",
     "crypto-js": "^4.2.0",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.5.31",
     "lodash": "^4.17.21",
     "lucide-react": "^0.476.0",
     "prop-types": "^15.8.1",
