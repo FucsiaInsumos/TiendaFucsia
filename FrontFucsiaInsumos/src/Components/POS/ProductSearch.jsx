@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux'; // ✅ AGREGAR IMPORT
 
 const ProductSearch = ({ products, onAddToCart, selectedCustomer }) => {
+  // ✅ OBTENER USUARIO ACTUAL
+  const { user } = useSelector(state => state.auth);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
 
@@ -86,34 +90,39 @@ const ProductSearch = ({ products, onAddToCart, selectedCustomer }) => {
 
       {/* Resultados de búsqueda */}
       {filteredProducts.length > 0 && (
-        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
+        <div className="absolute z-[90] w-full bg-white border border-gray-200 rounded-lg shadow-xl max-h-80 overflow-y-auto">
           {filteredProducts.map(product => {
             const effectivePrice = getEffectivePrice(product);
             
             return (
               <div
-                key={product.id}
+                key={product.id} // ✅ USAR product.id EN LUGAR DE ÍNDICE
                 onClick={() => handleProductSelect(product)}
                 className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
                   product.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
                 <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
+                  <div className="flex-1 pr-4">
+                    <div className="flex items-center space-x-2 flex-wrap">
                       <h3 className="font-semibold text-gray-900">{product.name}</h3>
                       <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
                         {product.sku}
                       </span>
-                      {product.stock <= product.minStock && product.stock > 0 && (
-                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                          Stock bajo
-                        </span>
-                      )}
-                      {product.stock === 0 && (
-                        <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
-                          Sin stock
-                        </span>
+                      {/* ✅ SOLO MOSTRAR BADGES DE STOCK AL OWNER, ADMIN Y CASHIER */}
+                      {(user?.role === 'Owner' || user?.role === 'Admin' || user?.role === 'Cashier') && (
+                        <>
+                          {product.stock <= product.minStock && product.stock > 0 && (
+                            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                              Stock bajo
+                            </span>
+                          )}
+                          {product.stock === 0 && (
+                            <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                              Sin stock
+                            </span>
+                          )}
+                        </>
                       )}
                       {effectivePrice.isPromotion && (
                         <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
@@ -127,7 +136,7 @@ const ProductSearch = ({ products, onAddToCart, selectedCustomer }) => {
                       )}
                     </div>
                     
-                    <div className="mt-1 flex items-center space-x-4">
+                    <div className="mt-1 flex items-center space-x-4 flex-wrap">
                       <span className="text-lg font-bold text-indigo-600">
                         {formatPrice(effectivePrice.price)}
                       </span>
@@ -137,9 +146,12 @@ const ProductSearch = ({ products, onAddToCart, selectedCustomer }) => {
                           {formatPrice(effectivePrice.originalPrice)}
                         </span>
                       )}
-                      <span className="text-sm text-gray-600">
-                        Stock: {product.stock}
-                      </span>
+                      {/* ✅ SOLO MOSTRAR STOCK AL OWNER, ADMIN Y CASHIER */}
+                      {(user?.role === 'Owner' || user?.role === 'Admin' || user?.role === 'Cashier') && (
+                        <span className="text-sm text-gray-600">
+                          Stock: {product.stock}
+                        </span>
+                      )}
                     </div>
 
                     {/* Mostrar información adicional de precios */}
@@ -161,7 +173,7 @@ const ProductSearch = ({ products, onAddToCart, selectedCustomer }) => {
                     {product.tags && product.tags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {product.tags.slice(0, 3).map((tag, index) => (
-                          <span key={index} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          <span key={`tag-${product.id}-${index}`} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                             {tag}
                           </span>
                         ))}
@@ -188,7 +200,7 @@ const ProductSearch = ({ products, onAddToCart, selectedCustomer }) => {
 
       {/* Mensaje cuando no hay resultados */}
       {searchTerm.trim() !== '' && filteredProducts.length === 0 && (
-        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-center text-gray-500">
+        <div className="absolute z-[90] w-full bg-white border border-gray-200 rounded-lg shadow-xl p-4 text-center text-gray-500">
           No se encontraron productos que coincidan con "{searchTerm}"
         </div>
       )}

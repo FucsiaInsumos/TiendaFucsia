@@ -190,12 +190,12 @@ const CustomerSelector = ({ selectedCustomer, onCustomerSelect }) => {
 
       {/* Dropdown de resultados */}
       {showDropdown && filteredCustomers.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+        <div className="absolute z-[100] w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-64 overflow-y-auto">
           {filteredCustomers.map(customer => (
             <div
               key={customer.n_document}
               onClick={() => handleCustomerSelect(customer)}
-              className={`p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+              className={`p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors ${
                 customer.isGeneric ? 'bg-orange-50 border-l-4 border-l-orange-400' : ''
               }`}
             >
@@ -226,7 +226,7 @@ const CustomerSelector = ({ selectedCustomer, onCustomerSelect }) => {
 
       {/* CAMBIO: Mensaje actualizado cuando no hay resultados */}
       {showDropdown && searchTerm.trim() !== '' && filteredCustomers.length === 1 && filteredCustomers[0].isGeneric && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-center text-gray-500">
+        <div className="absolute z-[100] w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-4 text-center text-gray-500">
           No se encontraron clientes registrados con "{searchTerm}". 
           <br />
           <span className="text-orange-600">Puedes usar "Cliente Local" para venta rápida.</span>

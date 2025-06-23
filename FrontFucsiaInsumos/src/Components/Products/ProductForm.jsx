@@ -358,7 +358,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }) => {
             />
             <label htmlFor="isFacturable" className="text-sm font-medium text-gray-700">
               <span className="flex items-center">
-                📄 Producto facturable
+                📄 Producto Codificado
                 <span className="ml-1 text-xs text-gray-500" title="Si está marcado, este producto aparecerá en las facturas">
                   ℹ️
                 </span>

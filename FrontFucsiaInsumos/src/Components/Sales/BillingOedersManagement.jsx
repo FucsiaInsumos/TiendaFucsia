@@ -113,7 +113,7 @@ const BillingOrdersManagement = () => {
             <div>
               <h1 className="text-2xl font-semibold text-gray-900">📄 Órdenes para Facturación</h1>
               <p className="text-sm text-gray-600 mt-1">
-                Gestiona las órdenes que contienen productos facturables
+                Gestiona las órdenes que contienen productos codificados
               </p>
             </div>
             
@@ -146,7 +146,7 @@ const BillingOrdersManagement = () => {
                     💰
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Monto total facturable</p>
+                    <p className="text-sm text-gray-600">Monto total codificable</p>
                     <p className="text-lg font-semibold text-gray-900">
                       {formatPrice(billingStats.totalBillableAmount || 0)}
                     </p>
@@ -224,7 +224,7 @@ const BillingOrdersManagement = () => {
                 <div className="text-center">
                   <div className="text-6xl mb-4">🎉</div>
                   <p className="text-gray-500 text-lg">¡No hay órdenes pendientes de facturación!</p>
-                  <p className="text-gray-400">Todas las órdenes con productos facturables han sido procesadas</p>
+                  <p className="text-gray-400">Todas las órdenes con productos codificados han sido procesadas</p>
                 </div>
               </div>
             ) : (
@@ -238,10 +238,10 @@ const BillingOrdersManagement = () => {
                       Cliente
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Items Facturables
+                      Items Codificable
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Facturable
+                      Total Codificable
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Estado
@@ -267,7 +267,7 @@ const BillingOrdersManagement = () => {
                             {order.orderType === 'online' && '🌐 Online'}
                             {order.orderType === 'distributor' && '📦 Distribuidor'}
                             <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                              📄 FACTURABLE
+                              📄 CODIFICADO
                             </span>
                           </div>
                         </div>
@@ -289,7 +289,7 @@ const BillingOrdersManagement = () => {
                           </div>
                           {order.billingInfo?.nonBillableItemsCount > 0 && (
                             <div className="text-xs text-gray-500">
-                              (+{order.billingInfo.nonBillableItemsCount} no facturables)
+                              (+{order.billingInfo.nonBillableItemsCount} no codificado)
                             </div>
                           )}
                         </div>
