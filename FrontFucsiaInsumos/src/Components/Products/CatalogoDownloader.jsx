@@ -199,27 +199,28 @@ const CatalogDownloader = ({
     const doc = new jsPDF('l', 'mm', 'a4');
     const fieldsConfig = getVisibleFields(userRole);
     
-    // Header del documento
-    doc.setFontSize(20);
+    // Header del documento - LIMPIO Y SIMPLE
+    doc.setFontSize(18);
     doc.setTextColor(70, 130, 180);
-    doc.text('CATÁLOGO DE PRODUCTOS - TIENDA FUCSIA', 20, 20);
+    doc.text('CATALOGO DE PRODUCTOS - TIENDA FUCSIA', 20, 20);
     
-    // Información del usuario
+    // Información del usuario - SIN ICONOS
     const userInfo = getUserInfo();
-    doc.setFontSize(12);
+    doc.setFontSize(11);
     doc.setTextColor(100, 100, 100);
-    doc.text(`${userInfo.icon} ${userInfo.label} - ${new Date().toLocaleDateString('es-CO')}`, 20, 30);
+    const dateStr = new Date().toLocaleDateString('es-CO');
+    doc.text(`${userInfo.label} - ${dateStr}`, 20, 30);
     
     // ✅ VERIFICAR SI autoTable ESTÁ DISPONIBLE
     if (typeof doc.autoTable === 'function') {
-      // Usar autoTable si está disponible
+      // Preparar datos para la tabla
       const tableData = products.map(product => {
         const row = [];
         row.push(product.sku || '');
         row.push(product.name || '');
         
         if (fieldsConfig.showCategory) {
-          row.push(product.category?.parentCategory?.name || product.category?.name || 'Sin categoría');
+          row.push(product.category?.parentCategory?.name || product.category?.name || 'Sin categoria');
         }
         
         if (fieldsConfig.showRegularPrice) {
@@ -242,102 +243,88 @@ const CatalogDownloader = ({
           row.push(product.isActive ? 'Activo' : 'Inactivo');
         }
         
-        row.push(product.isPromotion ? 'Sí' : 'No');
-        
-        if (fieldsConfig.showPurchasePrice) {
-          row.push(formatPrice(product.purchasePrice));
-        }
-        
         return row;
       });
       
+      // Definir columnas
       const columns = [];
       columns.push('SKU');
       columns.push('Nombre');
       
-      if (fieldsConfig.showCategory) columns.push('Categoría');
-      if (fieldsConfig.showRegularPrice) columns.push('Precio Regular');
-      if (fieldsConfig.showPromotionPrice) columns.push('Precio Promoción');
-      if (fieldsConfig.showDistributorPrice) columns.push('Precio Distribuidor');
+      if (fieldsConfig.showCategory) columns.push('Categoria');
+      if (fieldsConfig.showRegularPrice) columns.push('Precio');
+      if (fieldsConfig.showPromotionPrice) columns.push('Promocion');
+      if (fieldsConfig.showDistributorPrice) columns.push('Distribuidor');
       if (fieldsConfig.showStock) columns.push('Stock');
       if (fieldsConfig.showStatus) columns.push('Estado');
       
-      columns.push('En Promoción');
-      
-      if (fieldsConfig.showPurchasePrice) columns.push('Precio Compra');
-      
+      // Generar tabla limpia
       doc.autoTable({
         head: [columns],
         body: tableData,
         startY: 40,
         styles: {
-          fontSize: 8,
-          cellPadding: 2,
+          fontSize: 8, // ✅ REDUCIR FUENTE PARA MÁS ESPACIO
+          cellPadding: 2, // ✅ REDUCIR PADDING PARA MÁS ESPACIO
+          overflow: 'linebreak',
+          halign: 'left'
         },
         headStyles: {
           fillColor: [70, 130, 180],
           textColor: 255,
           fontSize: 9,
-          fontStyle: 'bold'
+          fontStyle: 'bold',
+          halign: 'center'
         },
         columnStyles: {
-          0: { cellWidth: 20 },
-          1: { cellWidth: 35 },
-          2: { cellWidth: 25 },
+          0: { cellWidth: 20, halign: 'left' },   // SKU - mantener
+          1: { cellWidth: 55, halign: 'left' },   // ✅ Nombre - más ancho (45 -> 55)
+          2: { cellWidth: 35, halign: 'left' },   // ✅ Categoria - más ancho (30 -> 35)
+          3: { cellWidth: 30, halign: 'right' },  // ✅ Precio - más ancho (25 -> 30)
+          4: { cellWidth: 30, halign: 'right' },  // ✅ Promocion - más ancho (25 -> 30)
+          5: { cellWidth: 30, halign: 'right' },  // ✅ Distribuidor - más ancho (25 -> 30)
+          6: { cellWidth: 18, halign: 'center' }, // Stock - mantener
+          7: { cellWidth: 18, halign: 'center' }  // Estado - mantener
         },
-        margin: { top: 40, left: 10, right: 10 },
+        margin: { top: 40, left: 10, right: 10, bottom: 20 }, // ✅ REDUCIR MÁRGENES (15 -> 10)
         pageBreak: 'auto',
-        showHead: 'everyPage'
+        showHead: 'everyPage',
+        theme: 'grid'
       });
       
-      // Footer con estadísticas
-      const finalY = doc.lastAutoTable.finalY + 10;
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Total de productos: ${products.length}`, 20, finalY);
-      doc.text(`Productos activos: ${products.filter(p => p.isActive).length}`, 20, finalY + 6);
-      doc.text(`En promoción: ${products.filter(p => p.isPromotion).length}`, 20, finalY + 12);
+      // ✅ SIN FOOTER - CÓDIGO COMENTADO ESTÁ PERFECTO
       
     } else {
-      // ✅ FALLBACK: Generar PDF simple sin tabla
+      // ✅ FALLBACK simple para cuando autoTable no está disponible
       console.warn('autoTable no disponible, generando PDF simple');
       
-      doc.setFontSize(14);
+      doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
       doc.text('Lista de Productos:', 20, 50);
       
-      let yPosition = 60;
+      let yPosition = 65;
       const pageHeight = doc.internal.pageSize.height;
-      const maxYPosition = pageHeight - 20;
+      const maxYPosition = pageHeight - 30;
       
-      products.slice(0, 50).forEach((product, index) => { // Limitar a 50 productos para el fallback
+      products.slice(0, 40).forEach((product, index) => {
         if (yPosition > maxYPosition) {
           doc.addPage();
-          yPosition = 20;
+          yPosition = 30;
         }
         
         doc.setFontSize(10);
         doc.text(`${index + 1}. ${product.sku} - ${product.name}`, 20, yPosition);
-        yPosition += 5;
+        yPosition += 6;
         
-        doc.setFontSize(8);
-        doc.text(`   Precio: ${formatPrice(product.price)}`, 25, yPosition);
-        yPosition += 4;
+        doc.setFontSize(9);
+        doc.text(`Precio: ${formatPrice(product.price)}`, 25, yPosition);
         
         if (fieldsConfig.showStock) {
-          doc.text(`   Stock: ${product.stock || 0}`, 25, yPosition);
-          yPosition += 4;
+          doc.text(`Stock: ${product.stock || 0}`, 120, yPosition);
         }
         
-        yPosition += 2; // Espacio entre productos
+        yPosition += 8;
       });
-      
-      // Footer simple
-      doc.setFontSize(10);
-      doc.text(`Total de productos: ${products.length}`, 20, yPosition + 10);
-      if (products.length > 50) {
-        doc.text(`(Mostrando primeros 50 productos)`, 20, yPosition + 15);
-      }
     }
     
     return doc;
@@ -433,7 +420,7 @@ const CatalogDownloader = ({
     switch (role) {
       case 'Distributor':
         return {
-          icon: '💼',
+          icon: '',
           label: 'Distribuidor',
           description: 'Incluye precios especiales para distribuidores',
           color: 'bg-green-50 border-green-200 text-green-800'
@@ -441,14 +428,14 @@ const CatalogDownloader = ({
       case 'Owner':
       case 'Admin':
         return {
-          icon: '👑',
+          icon: '',
           label: 'Administrador',
           description: 'Incluye todos los precios y márgenes de ganancia',
           color: 'bg-purple-50 border-purple-200 text-purple-800'
         };
       default:
         return {
-          icon: '👤',
+          icon: '',
           label: 'Cliente',
           description: 'Incluye precios de venta y productos disponibles',
           color: 'bg-blue-50 border-blue-200 text-blue-800'
