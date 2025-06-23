@@ -54,4 +54,137 @@
   background: rgba(255, 255, 255, 0.7);
 }
 
+/* ✅ ESTILOS PARA IMPRESIÓN DE RECIBOS */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+  }
+  
+  #receipt {
+    max-width: none;
+    margin: 0;
+    padding: 10px;
+  }
+}
+
+/* ✅ ESTILOS MEJORADOS PARA IMPRESIÓN DE RECIBOS */
+@media print {
+  /* Ocultar elementos que no deben imprimirse */
+  .no-print {
+    display: none !important;
+  }
+  
+  /* Configuración general de impresión */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 12px !important;
+    font-family: 'Courier New', Courier, monospace !important;
+  }
+  
+  /* Contenedor del recibo */
+  #receipt {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  .receipt-content {
+    max-width: 80mm !important;
+    margin: 0 auto !important;
+    padding: 5mm !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+  }
+  
+  /* Estilos específicos para elementos del recibo */
+  .receipt-content h1 {
+    font-size: 16px !important;
+    margin: 5px 0 !important;
+  }
+  
+  .receipt-content img {
+    max-width: 40px !important;
+    max-height: 40px !important;
+  }
+  
+  /* Tablas y grids para productos */
+  .receipt-content .grid {
+    display: table !important;
+    width: 100% !important;
+  }
+  
+  .receipt-content .grid > div {
+    display: table-cell !important;
+    padding: 1px 2px !important;
+  }
+  
+  /* Bordes y separadores */
+  .border-dashed {
+    border-style: dashed !important;
+  }
+  
+  .border-t-2 {
+    border-top-width: 2px !important;
+  }
+  
+  /* Espaciado optimizado */
+  .receipt-content .mb-4 {
+    margin-bottom: 8px !important;
+  }
+  
+  .receipt-content .mb-2 {
+    margin-bottom: 4px !important;
+  }
+  
+  .receipt-content .space-y-1 > * + * {
+    margin-top: 2px !important;
+  }
+}
+
+/* Estilos para impresora térmica específica */
+@page {
+  size: 80mm auto;
+  margin: 0;
+}
+
+/* Estilos adicionales para la visualización en pantalla */
+.receipt-content {
+  background: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+/* Animación suave para botones */
+.receipt-content button {
+  transition: all 0.2s ease-in-out;
+}
+
+.receipt-content button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos para el logo */
+.receipt-content img {
+  transition: all 0.3s ease;
+}
+
+.receipt-content img:hover {
+  transform: scale(1.05);
+}
+
 
