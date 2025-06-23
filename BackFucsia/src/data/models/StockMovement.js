@@ -54,8 +54,15 @@ module.exports = (sequelize) => {
       references: {
         model: 'Orders',
         key: 'id'
-      },
-     
+      }
+    },
+    purchaseOrderId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: 'PurchaseOrders',
+        key: 'id'
+      }
     },
     notes: {
       type: DataTypes.TEXT,

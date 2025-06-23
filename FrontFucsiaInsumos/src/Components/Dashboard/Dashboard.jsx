@@ -372,7 +372,7 @@ const Dashboard = () => {
 
               {/* ✅ CARDS SIMPLES SIN DROPDOWN */}
               <Link 
-                to="/proveedores" 
+                to="/compras" 
                 className="bg-white shadow-lg rounded-xl p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 border border-gray-100"
               >
                 <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-3">

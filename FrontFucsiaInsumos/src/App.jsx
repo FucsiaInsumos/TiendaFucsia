@@ -31,6 +31,7 @@ import Checkout from './Components/Checkout/Checkout';
 import OrderConfirmation from './Components/Checkout/OrderConfirmation';
 import MyOrders from './Components/Customer/MyOrders';
 import BillingOrdersManagement from './Components/Sales/BillingOedersManagement';
+import PurchaseManagement from './Components/Purchase/PurchaseManagement'; // ✅ NUEVO COMPONENTE
 
 function App() {
   const dispatch = useDispatch();
@@ -85,6 +86,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          
 
           {/* Rutas protegidas */}
           <Route
@@ -224,6 +226,16 @@ function App() {
             element={
               <PrivateRoute allowedRoles={['Owner', 'Cashier']}>
                 <OrderManagement />
+              </PrivateRoute>
+            }
+          />
+
+          {/* ✅ NUEVA RUTA PARA GESTIÓN DE COMPRAS */}
+          <Route
+            path="/compras"
+            element={
+              <PrivateRoute allowedRoles={['Owner']}>
+                <PurchaseManagement />
               </PrivateRoute>
             }
           />

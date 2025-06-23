@@ -54,7 +54,8 @@ sequelize.models = Object.fromEntries(capsEntries);
 // Para relacionarlos hacemos un destructuring
 const { 
   User, Product, Category, Distributor, DiscountRule, 
-  Order, OrderItem, Payment, StockMovement
+  Order, OrderItem, Payment, StockMovement,
+  Proveedor, PurchaseOrder, PurchaseOrderItem // ✅ NUEVOS MODELOS
 } = sequelize.models;
 
 // Relaciones existentes
@@ -108,6 +109,29 @@ StockMovement.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 Order.hasMany(StockMovement, { foreignKey: 'orderId', as: 'stockMovements' });
 StockMovement.belongsTo(Order, { foreignKey: 'orderId', as: 'order' });
+
+// ✅ NUEVAS RELACIONES PARA SISTEMA DE COMPRAS
+
+// Relaciones para Proveedor
+Proveedor.hasMany(PurchaseOrder, { foreignKey: 'proveedorId', as: 'purchaseOrders' });
+
+// Relaciones para PurchaseOrder
+PurchaseOrder.belongsTo(Proveedor, { foreignKey: 'proveedorId', as: 'proveedor' });
+PurchaseOrder.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
+PurchaseOrder.hasMany(PurchaseOrderItem, { foreignKey: 'purchaseOrderId', as: 'items' });
+
+// Relaciones para PurchaseOrderItem
+PurchaseOrderItem.belongsTo(PurchaseOrder, { foreignKey: 'purchaseOrderId', as: 'purchaseOrder' });
+PurchaseOrderItem.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
+PurchaseOrderItem.belongsTo(Category, { foreignKey: 'categoryId', as: 'category' });
+
+// Relaciones inversas para User y Product
+User.hasMany(PurchaseOrder, { foreignKey: 'createdBy', as: 'createdPurchaseOrders' });
+Product.hasMany(PurchaseOrderItem, { foreignKey: 'productId', as: 'purchaseOrderItems' });
+
+// ✅ RELACIÓN PARA STOCK MOVEMENTS CON PURCHASE ORDERS
+PurchaseOrder.hasMany(StockMovement, { foreignKey: 'purchaseOrderId', as: 'stockMovements' });
+StockMovement.belongsTo(PurchaseOrder, { foreignKey: 'purchaseOrderId', as: 'purchaseOrder' });
 
 //---------------------------------------------------------------------------------//
 // Exportar todos los modelos
