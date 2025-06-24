@@ -241,7 +241,7 @@ function App() {
             }
           />
 
-          {/* ✅ NUEVA RUTA PARA GESTIÓN DE COMPRAS */}
+        
           <Route
             path="/compras"
             element={

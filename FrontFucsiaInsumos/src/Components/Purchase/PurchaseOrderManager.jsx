@@ -290,12 +290,7 @@ const PurchaseOrderManager = () => {
                       {getStatusBadge(order.status)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button 
-                        onClick={() => {/* Ver detalles */}}
-                        className="text-indigo-600 hover:text-indigo-900 mr-4"
-                      >
-                        👁️ Ver
-                      </button>
+                    
                       
                       {/* ✅ LÓGICA MEJORADA PARA BOTÓN DE RECEPCIÓN */}
                       {(order.status === 'pendiente' || order.status === 'parcial') && (
@@ -320,16 +315,8 @@ const PurchaseOrderManager = () => {
                         </span>
                       )}
                       
-                      {/* ✅ BOTÓN PARA VER HISTORIAL DE RECEPCIONES */}
-                      {(order.status === 'parcial' || order.status === 'completada') && (
-                        <button 
-                          onClick={() => {/* Mostrar historial de recepciones */}}
-                          className="text-blue-600 hover:text-blue-900 text-sm"
-                          title="Ver historial de recepciones"
-                        >
-                          📋 Historial
-                        </button>
-                      )}
+                   
+                
                     </td>
                   </tr>
                 ))}
