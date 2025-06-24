@@ -47,7 +47,7 @@ const processPayment = async (req, res) => {
       orderId,
       amount,
       method,
-      status: method === 'credito' ? 'pending' : 'completed',
+      status: method === 'credito' ? 'pending' : 'completed', // ✅ CORRECTO: Solo crédito inicia como pending
       paymentDetails,
       transactionId,
       dueDate: method === 'credito' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null
@@ -60,12 +60,12 @@ const processPayment = async (req, res) => {
 
     if (newTotalPaid >= parseFloat(order.total)) {
       paymentStatus = 'completed';
-      orderStatus = 'completed';
+      orderStatus = 'completed'; // ✅ AGREGAR: También actualizar estado de orden
     }
 
     await order.update({
       paymentStatus,
-      status: orderStatus
+      status: orderStatus // ✅ AGREGAR: Actualizar status de orden también
     }, { transaction });
 
     await transaction.commit();
@@ -481,9 +481,9 @@ const recordCreditPayment = async (req, res) => {
     // Actualizar estado del pago original
     let nuevoEstado = 'pending';
     if (nuevoMontoRestante <= 0) {
-      nuevoEstado = 'completed';
+      nuevoEstado = 'completed'; // ✅ CORRECTO: Cambiar a completed cuando se paga totalmente
     } else if (nuevoTotalAbonado > 0) {
-      nuevoEstado = 'partial';
+      nuevoEstado = 'partial'; // ✅ AGREGAR: Estado intermedio cuando hay abonos parciales
     }
 
     await originalPayment.update({
@@ -500,12 +500,31 @@ const recordCreditPayment = async (req, res) => {
       }
     }, { transaction });
 
-    // Si el pago se completó, actualizar estado de la orden
+    // ✅ CORRECCIÓN CRÍTICA: Si el pago se completó, actualizar estado de la orden
     if (nuevoEstado === 'completed') {
+      // Verificar si TODOS los pagos de la orden están completados
+      const todosPagosCompletados = await Payment.findAll({
+        where: { orderId: originalPayment.orderId }
+      });
+
+      const totalPagadoOrden = todosPagosCompletados.reduce((sum, pago) => {
+        if (pago.id === originalPayment.id) {
+          // Usar el nuevo estado para este pago
+          return sum + (nuevoEstado === 'completed' ? parseFloat(pago.amount) : nuevoTotalAbonado);
+        } else {
+          // Para otros pagos, usar su estado actual
+          return sum + (pago.status === 'completed' ? parseFloat(pago.amount) : 0);
+        }
+      }, 0);
+
+      const ordenCompleta = totalPagadoOrden >= parseFloat(originalPayment.order.total);
+
       await originalPayment.order.update({
-        paymentStatus: 'completed',
-        status: 'completed'
+        paymentStatus: ordenCompleta ? 'completed' : 'partial',
+        status: ordenCompleta ? 'completed' : originalPayment.order.status
       }, { transaction });
+
+      console.log(`✅ Orden ${originalPayment.order.orderNumber} actualizada - Pago completado: ${ordenCompleta}`);
     }
 
     await transaction.commit();

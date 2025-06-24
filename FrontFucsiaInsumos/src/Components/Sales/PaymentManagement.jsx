@@ -82,16 +82,18 @@ const PaymentManagement = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      'pending': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pendiente' },
-      'completed': { bg: 'bg-green-100', text: 'text-green-800', label: 'Completado' },
-      'failed': { bg: 'bg-red-100', text: 'text-red-800', label: 'Fallido' },
-      'refunded': { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Reembolsado' }
+      'pending': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pendiente', icon: '⏳' },
+      'completed': { bg: 'bg-green-100', text: 'text-green-800', label: 'Completado', icon: '✅' },
+      'partial': { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Parcial', icon: '📊' },
+      'failed': { bg: 'bg-red-100', text: 'text-red-800', label: 'Fallido', icon: '❌' },
+      'refunded': { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Reembolsado', icon: '↩️' }
     };
 
     const config = statusConfig[status] || statusConfig['pending'];
     
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+        <span className="mr-1">{config.icon}</span>
         {config.label}
       </span>
     );
@@ -152,6 +154,7 @@ const PaymentManagement = () => {
                   <option value="">Todos</option>
                   <option value="pending">Pendiente</option>
                   <option value="completed">Completado</option>
+                  <option value="partial">Parcial</option> {/* ✅ AGREGAR */}
                   <option value="failed">Fallido</option>
                   <option value="refunded">Reembolsado</option>
                 </select>

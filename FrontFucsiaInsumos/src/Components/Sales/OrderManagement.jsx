@@ -414,25 +414,10 @@ LEYENDA:
     );
   };
 
-  // ✅ FUNCIÓN PARA MOSTRAR ESTADOS DE PAGO MEJORADOS
+  // ✅ FUNCIÓN CORREGIDA PARA MOSTRAR ESTADOS DE PAGO DE TODOS LOS MÉTODOS
   const getPaymentStatusBadge = (order) => {
-    const wompiPayment = order.payments?.find(p => p.method === 'wompi');
-    const { realPaymentStatus } = order;
-
-    const statusConfig = {
-      'pending': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pendiente' },
-      'partial': { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Parcial' },
-      'paid': { bg: 'bg-green-100', text: 'text-green-800', label: 'Pagado' },
-      'completed': { bg: 'bg-green-100', text: 'text-green-800', label: 'Completado' },
-      'failed': { bg: 'bg-red-100', text: 'text-red-800', label: 'Fallido' },
-      // Estados de Wompi
-      'APPROVED': { bg: 'bg-green-100', text: 'text-green-800', label: '✅ Aprobado' },
-      'PENDING': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '⏳ Pendiente' },
-      'DECLINED': { bg: 'bg-red-100', text: 'text-red-800', label: '❌ Rechazado' },
-      'VOIDED': { bg: 'bg-gray-100', text: 'text-gray-800', label: '🚫 Anulado' }
-    };
-
-    if (!wompiPayment) {
+    // Verificar si tiene pagos
+    if (!order.payments || order.payments.length === 0) {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
           Sin pago registrado
@@ -440,18 +425,65 @@ LEYENDA:
       );
     }
 
-    const config = statusConfig[wompiPayment.status] || statusConfig['pending'];
+    // ✅ USAR DIRECTAMENTE order.paymentStatus EN LUGAR DE CALCULARLO
+    const paymentStatus = order.paymentStatus || 'pending';
+    
+    const statusConfig = {
+      'pending': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '⏳ Pendiente' },
+      'partial': { bg: 'bg-orange-100', text: 'text-orange-800', label: '📊 Parcial' },
+      'completed': { bg: 'bg-green-100', text: 'text-green-800', label: '✅ Completado' },
+      'failed': { bg: 'bg-red-100', text: 'text-red-800', label: '❌ Fallido' },
+      // Estados específicos de Wompi (para cuando consultamos la API)
+      'APPROVED': { bg: 'bg-green-100', text: 'text-green-800', label: '✅ Aprobado' },
+      'PENDING': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '⏳ Pendiente' },
+      'DECLINED': { bg: 'bg-red-100', text: 'text-red-800', label: '❌ Rechazado' },
+      'VOIDED': { bg: 'bg-gray-100', text: 'text-gray-800', label: '🚫 Anulado' }
+    };
+
+    const config = statusConfig[paymentStatus] || statusConfig['pending'];
+
+    // Obtener información de métodos de pago
+    const paymentMethods = order.payments.map(p => p.method).join(', ');
+    const totalPaid = order.payments
+      .filter(p => p.status === 'completed')
+      .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+
+    // Verificar si hay pagos de Wompi para mostrar información especial
+    const wompiPayment = order.payments?.find(p => p.method === 'wompi');
+    const { realPaymentStatus } = order;
+
+    // ✅ DEBUG: Mostrar información para troubleshooting
+    console.log(`🔍 [DEBUG Payment Status] Orden ${order.orderNumber}:`, {
+      orderPaymentStatus: order.paymentStatus,
+      calculatedPaymentStatus: paymentStatus,
+      paymentMethods,
+      totalPaid,
+      orderTotal: order.total,
+      paymentsStatuses: order.payments.map(p => ({ method: p.method, status: p.status, amount: p.amount }))
+    });
 
     return (
       <div className="space-y-1">
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
           {config.label}
         </span>
+        
+        {/* Información adicional de métodos de pago */}
+        <div className="text-xs text-gray-600">
+          <div>Métodos: {paymentMethods}</div>
+          {paymentStatus === 'partial' && (
+            <div>Pagado: {formatPrice(totalPaid)}</div>
+          )}
+          {/* ✅ MOSTRAR DISCREPANCIA SI EXISTE */}
+          {order.paymentStatus !== 'completed' && totalPaid >= parseFloat(order.total) && (
+            <div className="text-orange-600 font-medium">⚠️ Requiere actualización</div>
+          )}
+        </div>
 
-        {/* Estado real de Wompi si existe */}
-        {realPaymentStatus && (
-          <div className="text-xs text-gray-600">
-            <span className="text-gray-500">Wompi:</span>
+        {/* Estado real de Wompi si existe y ha sido consultado */}
+        {wompiPayment && realPaymentStatus && (
+          <div className="text-xs text-gray-600 border-t pt-1">
+            <span className="text-gray-500">Wompi Real:</span>
             <span className={`ml-1 px-1 py-0.5 rounded text-xs ${statusConfig[realPaymentStatus.status]?.bg || 'bg-gray-100'} ${statusConfig[realPaymentStatus.status]?.text || 'text-gray-800'}`}>
               {realPaymentStatus.status}
             </span>
@@ -464,7 +496,7 @@ LEYENDA:
         {/* Timestamp de última consulta */}
         {order.lastPaymentCheck && (
           <div className="text-xs text-gray-400">
-            Última consulta: {new Date(order.lastPaymentCheck).toLocaleTimeString()}
+            Consultado: {new Date(order.lastPaymentCheck).toLocaleTimeString()}
           </div>
         )}
       </div>
