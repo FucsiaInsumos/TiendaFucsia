@@ -32,13 +32,15 @@ import OrderConfirmation from './Components/Checkout/OrderConfirmation';
 import MyOrders from './Components/Customer/MyOrders';
 import BillingOrdersManagement from './Components/Sales/BillingOedersManagement';
 import PurchaseManagement from './Components/Purchase/PurchaseManagement'; // ✅ NUEVO COMPONENTE
+import CreditManagement from './Components/Sales/CreditManagement';
+
 
 function App() {
   const dispatch = useDispatch();
   const { user: currentUser } = useSelector(state => state.auth);
- const {discountRules} = useSelector(state => state.discountRules);
- 
- useEffect(() => {
+  const { discountRules } = useSelector(state => state.discountRules);
+
+  useEffect(() => {
     dispatch(getDiscountRules());
   }, [dispatch]);
 
@@ -46,23 +48,23 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
-   
 
 
-    
+
+
     if (token && storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        dispatch(loginSuccess({ 
-          token, 
-          data: { user: parsedUser } 
+        dispatch(loginSuccess({
+          token,
+          data: { user: parsedUser }
         }));
         // El recalculate se hará en el siguiente useEffect al cambiar currentUser
       } catch (error) {
         console.error('Error parsing user from localStorage:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        dispatch(recalculateCartOnUserChange(null)); 
+        dispatch(recalculateCartOnUserChange(null));
       }
     } else {
       dispatch(recalculateCartOnUserChange(null));
@@ -86,7 +88,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
-          
+
 
           {/* Rutas protegidas */}
           <Route
@@ -180,7 +182,7 @@ function App() {
             }
           />
 
-            <Route
+          <Route
             path="/billing-ordenes"
             element={
               <PrivateRoute allowedRoles={['Owner']}>
@@ -194,6 +196,15 @@ function App() {
             element={
               <PrivateRoute allowedRoles={['Owner', 'Cashier']}>
                 <PaymentManagement />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/creditos"
+            element={
+              <PrivateRoute allowedRoles={['Owner', 'Cashier']}>
+                <CreditManagement />
               </PrivateRoute>
             }
           />
@@ -243,7 +254,7 @@ function App() {
           {/* Ruta por defecto para 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-        
+
         {/* Cart Sidebar - siempre disponible */}
         <CartSidebar />
       </div>

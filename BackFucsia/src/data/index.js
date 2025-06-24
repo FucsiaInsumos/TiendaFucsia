@@ -55,7 +55,7 @@ sequelize.models = Object.fromEntries(capsEntries);
 const { 
   User, Product, Category, Distributor, DiscountRule, 
   Order, OrderItem, Payment, StockMovement,
-  Proveedor, PurchaseOrder, PurchaseOrderItem // ✅ NUEVOS MODELOS
+  Proveedor, PurchaseOrder, PurchaseOrderItem, CreditPaymentRecord
 } = sequelize.models;
 
 // Relaciones existentes
@@ -133,10 +133,37 @@ Product.hasMany(PurchaseOrderItem, { foreignKey: 'productId', as: 'purchaseOrder
 PurchaseOrder.hasMany(StockMovement, { foreignKey: 'purchaseOrderId', as: 'stockMovements' });
 StockMovement.belongsTo(PurchaseOrder, { foreignKey: 'purchaseOrderId', as: 'purchaseOrder' });
 
+// ✅ NUEVAS ASOCIACIONES PARA ABONOS DE CRÉDITOS
+Payment.hasMany(CreditPaymentRecord, {
+  foreignKey: 'paymentId',
+  as: 'abonos'
+});
+
+CreditPaymentRecord.belongsTo(Payment, {
+  foreignKey: 'paymentId',
+  as: 'payment'
+});
+
+CreditPaymentRecord.belongsTo(User, {
+  foreignKey: 'recordedBy',
+  targetKey: 'n_document',
+  as: 'recordedByUser',
+  constraints: false // ✅ DESACTIVAR CONSTRAINTS para permitir NULL
+});
+
+User.hasMany(CreditPaymentRecord, {
+  foreignKey: 'recordedBy',
+  sourceKey: 'n_document',
+  as: 'recordedPayments',
+  constraints: false // ✅ DESACTIVAR CONSTRAINTS para permitir NULL
+});
+
 //---------------------------------------------------------------------------------//
 // Exportar todos los modelos
 module.exports = {
   ...sequelize.models,
   conn: sequelize,
   sequelize, // Para poder usarlo en otros archivos si es necesario
+ 
 };
+

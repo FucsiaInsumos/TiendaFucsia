@@ -117,72 +117,73 @@ const Dashboard = () => {
         return (
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              
+
               {/* ✅ CARD VENTAS Y CAJA - CON ÁREA EXPANDIDA */}
-            
-<div
-  className="relative bg-white shadow-lg rounded-xl p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 border border-gray-100"
-  onMouseEnter={handleVentasMouseEnter}
-  onMouseLeave={handleVentasMouseLeave}
-  style={{ 
-    zIndex: isVentasDropdownOpen ? 999 : 1,
-    position: 'relative'
-  }}
->
-  <div className="mb-4">
-    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
-      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-      </svg>
-    </div>
-    <h2 className="text-xl font-semibold text-gray-800 mb-2">Ventas y Caja</h2>
-    <p className="text-sm text-gray-600">Gestiona ventas y punto de venta</p>
-  </div>
-  
-  {/* ✅ DROPDOWN FUERA DEL CONTENIDO DE LA CARD */}
-  {isVentasDropdownOpen && (
-    <div 
-      className="absolute w-64 bg-white rounded-lg border border-gray-200"
-      style={{
-        position: 'absolute',
-        top: '100%',
-        left: '0',
-        marginTop: '4px',
-        zIndex: 9999,
-        backgroundColor: 'white',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-        border: '1px solid #e5e7eb',
-        borderRadius: '0.5rem'
-      }}
-      onMouseEnter={handleVentasMouseEnter}
-      onMouseLeave={handleVentasMouseLeave}
-    >
-      <div className="py-2">
-        <Link 
-          to="/caja" 
-          className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
-        >
-          <span className="mr-3">🏪</span>
-          Punto de Venta (POS)
-        </Link>
-        <Link 
-          to="/ordenes" 
-          className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
-        >
-          <span className="mr-3">📋</span>
-          Gestionar Órdenes
-        </Link>
-        <Link 
-          to="/pagos" 
-          className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
-        >
-          <span className="mr-3">💳</span>
-          Gestionar Pagos
-        </Link>
-      </div>
-    </div>
-  )}
-</div>
+
+              <div
+                className="relative bg-white shadow-lg rounded-xl p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 border border-gray-100"
+                onMouseEnter={handleVentasMouseEnter}
+                onMouseLeave={handleVentasMouseLeave}
+                style={{
+                  zIndex: isVentasDropdownOpen ? 999 : 1,
+                  position: 'relative'
+                }}
+              >
+                <div className="mb-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-800 mb-2">Ventas y Caja</h2>
+                  <p className="text-sm text-gray-600">Gestiona ventas y punto de venta</p>
+                </div>
+
+                {/* ✅ DROPDOWN FUERA DEL CONTENIDO DE LA CARD */}
+                {isVentasDropdownOpen && (
+                  <div
+                    className="absolute w-64 bg-white rounded-lg border border-gray-200"
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '0',
+                      marginTop: '4px',
+                      zIndex: 9999,
+                      backgroundColor: 'white',
+                      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '0.5rem'
+                    }}
+                    onMouseEnter={handleVentasMouseEnter}
+                    onMouseLeave={handleVentasMouseLeave}
+                  >
+                    <div className="py-2">
+                      <Link
+                        to="/caja"
+                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                      >
+                        <span className="mr-3">🏪</span>
+                        Punto de Venta (POS)
+                      </Link>
+                      <Link
+                        to="/ordenes"
+                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                      >
+                        <span className="mr-3">📋</span>
+                        Gestionar Órdenes
+                      </Link>
+                      <Link
+                        to="/pagos"
+                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                      >
+                        <span className="mr-3">💳</span>
+                        Gestionar Pagos
+                      </Link>
+
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* ✅ CARD PRODUCTOS - CON ÁREA EXPANDIDA */}
               <div
@@ -199,24 +200,24 @@ const Dashboard = () => {
                   <h2 className="text-xl font-semibold text-gray-800 mb-2">Productos</h2>
                   <p className="text-sm text-gray-600">Gestiona tu inventario</p>
                 </div>
-                
+
                 {isProductsDropdownOpen && (
-                  <div 
+                  <div
                     className="absolute left-0 top-full w-64 bg-white shadow-2xl rounded-lg border border-gray-200 z-50"
                     style={{ marginTop: '4px' }}
                     onMouseEnter={handleProductsMouseEnter}
                     onMouseLeave={handleProductsMouseLeave}
                   >
                     <div className="py-2">
-                      <Link 
-                        to="/productos" 
+                      <Link
+                        to="/productos"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition-colors duration-200"
                       >
                         <span className="mr-3">📦</span>
                         Gestionar Productos
                       </Link>
-                      <Link 
-                        to="/categorias" 
+                      <Link
+                        to="/categorias"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition-colors duration-200"
                       >
                         <span className="mr-3">🏷️</span>
@@ -242,24 +243,24 @@ const Dashboard = () => {
                   <h2 className="text-xl font-semibold text-gray-800 mb-2">Descuentos y Precios</h2>
                   <p className="text-sm text-gray-600">Gestiona descuentos y precios especiales</p>
                 </div>
-                
+
                 {isDiscountsDropdownOpen && (
-                  <div 
+                  <div
                     className="absolute left-0 top-full w-64 bg-white shadow-2xl rounded-lg border border-gray-200 z-50"
                     style={{ marginTop: '4px' }}
                     onMouseEnter={handleDiscountsMouseEnter}
                     onMouseLeave={handleDiscountsMouseLeave}
                   >
                     <div className="py-2">
-                      <Link 
-                        to="/reglas-descuento" 
+                      <Link
+                        to="/reglas-descuento"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-200"
                       >
                         <span className="mr-3">🎯</span>
                         Reglas de Descuento
                       </Link>
-                      <Link 
-                        to="/calculadora-precios" 
+                      <Link
+                        to="/calculadora-precios"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-200"
                       >
                         <span className="mr-3">🧮</span>
@@ -285,31 +286,31 @@ const Dashboard = () => {
                   <h2 className="text-xl font-semibold text-gray-800 mb-2">Gestión de Usuarios</h2>
                   <p className="text-sm text-gray-600">Administra usuarios del sistema</p>
                 </div>
-                
+
                 {isUsersDropdownOpen && (
-                  <div 
+                  <div
                     className="absolute left-0 top-full w-64 bg-white shadow-2xl rounded-lg border border-gray-200 z-50"
                     style={{ marginTop: '4px' }}
                     onMouseEnter={handleUsersMouseEnter}
                     onMouseLeave={handleUsersMouseLeave}
                   >
                     <div className="py-2">
-                      <Link 
-                        to="/usuarios" 
+                      <Link
+                        to="/usuarios"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors duration-200"
                       >
                         <span className="mr-3">👥</span>
                         Lista de Usuarios
                       </Link>
-                      <Link 
-                        to="/usuarios/crear" 
+                      <Link
+                        to="/usuarios/crear"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors duration-200"
                       >
                         <span className="mr-3">➕</span>
                         Crear Usuario
                       </Link>
-                      <Link 
-                        to="/distribuidores" 
+                      <Link
+                        to="/distribuidores"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors duration-200"
                       >
                         <span className="mr-3">🚚</span>
@@ -335,31 +336,38 @@ const Dashboard = () => {
                   <h2 className="text-xl font-semibold text-gray-800 mb-2">Pagos y Facturación</h2>
                   <p className="text-sm text-gray-600">Gestiona pagos y facturación</p>
                 </div>
-                
+
                 {isPagosDropdownOpen && (
-                  <div 
+                  <div
                     className="absolute left-0 top-full w-64 bg-white shadow-2xl rounded-lg border border-gray-200 z-50"
                     style={{ marginTop: '4px' }}
                     onMouseEnter={handlePagosMouseEnter}
                     onMouseLeave={handlePagosMouseLeave}
                   >
                     <div className="py-2">
-                      <Link 
-                        to="/pagos" 
+                      <Link
+                        to="/pagos"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
                       >
                         <span className="mr-3">💰</span>
                         Gestión de Pagos
                       </Link>
-                      <Link 
-                        to="/billing-ordenes" 
+                      <Link
+                        to="/billing-ordenes"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
                       >
                         <span className="mr-3">🧾</span>
                         Facturación
                       </Link>
-                      <Link 
-                        to="/ordenes" 
+                      <Link
+                        to="/creditos"
+                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                      >
+                        <span className="mr-3">💳</span>
+                        Cargar pagos credito
+                      </Link>
+                      <Link
+                        to="/ordenes"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
                       >
                         <span className="mr-3">🔍</span>
@@ -371,8 +379,8 @@ const Dashboard = () => {
               </div>
 
               {/* ✅ CARDS SIMPLES SIN DROPDOWN */}
-              <Link 
-                to="/compras" 
+              <Link
+                to="/compras"
                 className="bg-white shadow-lg rounded-xl p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 border border-gray-100"
               >
                 <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-3">
@@ -384,8 +392,8 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600">Gestiona proveedores</p>
               </Link>
 
-              <Link 
-                to="/estadisticas" 
+              <Link
+                to="/creditos"
                 className="bg-white shadow-lg rounded-xl p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 border border-gray-100"
               >
                 <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-3">
@@ -397,8 +405,8 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600">Reportes y análisis</p>
               </Link>
 
-              <Link 
-                to="/stock" 
+              <Link
+                to="/stock"
                 className="bg-white shadow-lg rounded-xl p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 border border-gray-100"
               >
                 <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-3">
@@ -432,24 +440,24 @@ const Dashboard = () => {
                   <h2 className="text-xl font-semibold text-gray-800 mb-2">Caja</h2>
                   <p className="text-sm text-gray-600">Punto de venta y gestión de órdenes</p>
                 </div>
-                
+
                 {isCajaDropdownOpen && (
-                  <div 
+                  <div
                     className="absolute left-0 top-full w-64 bg-white shadow-2xl rounded-lg border border-gray-200 z-50"
                     style={{ marginTop: '4px' }}
                     onMouseEnter={handleCajaMouseEnter}
                     onMouseLeave={handleCajaMouseLeave}
                   >
                     <div className="py-2">
-                      <Link 
-                        to="/caja" 
+                      <Link
+                        to="/caja"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
                       >
                         <span className="mr-3">🏪</span>
                         Punto de Venta
                       </Link>
-                      <Link 
-                        to="/ordenes" 
+                      <Link
+                        to="/ordenes"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
                       >
                         <span className="mr-3">📋</span>
@@ -477,7 +485,7 @@ const Dashboard = () => {
       <div className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-           
+
             <p className="text-xl text-gray-600">
               Bienvenido, <span className="font-semibold text-blue-600">{user.email}</span>
             </p>
@@ -485,7 +493,7 @@ const Dashboard = () => {
               {user.role === 'Owner' ? '👑 Propietario' : '💼 Cajero'}
             </div>
           </div>
-          
+
           {renderSections()}
         </div>
       </div>
