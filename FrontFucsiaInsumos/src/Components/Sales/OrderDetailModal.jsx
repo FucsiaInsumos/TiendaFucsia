@@ -339,9 +339,17 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
                       <tr key={payment.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {payment.method === 'wompi' && '💳 Wompi'}
-                          {payment.method === 'cash' && '💵 Efectivo'}
-                          {payment.method === 'transfer' && '🏦 Transferencia'}
-                          {payment.method === 'credit' && '💳 Crédito'}
+                          {payment.method === 'efectivo' && '💵 Efectivo'}
+                          {payment.method === 'tarjeta' && '💳 Tarjeta'}
+                          {payment.method === 'credito' && '📄 Crédito'}
+                          {payment.method === 'nequi' && '📱 Nequi'}
+                          {payment.method === 'bancolombia' && '🏦 Bancolombia'}
+                          {payment.method === 'daviplata' && '📱 Daviplata'}
+                          {payment.method === 'combinado' && '🔄 Combinado'}
+                          {/* Fallback para métodos no contemplados */}
+                          {!['wompi', 'efectivo', 'tarjeta', 'credito', 'nequi', 'bancolombia', 'daviplata', 'combinado'].includes(payment.method) && (
+                            `💰 ${payment.method.charAt(0).toUpperCase() + payment.method.slice(1)}`
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {formatPrice(payment.amount)}

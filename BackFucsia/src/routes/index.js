@@ -16,5 +16,6 @@ router.use("/orders", require("./orderRoutes"));
 router.use("/payments", require("./paymentRoutes"));
 router.use("/stock", require("./stockRoutes"));
 router.use("/wompi", require("./wompiRoutes"));
+router.use("/purchase", require("./purchaseRoutes")); // ✅ AGREGAR RUTAS DE COMPRAS
 
 module.exports = router;

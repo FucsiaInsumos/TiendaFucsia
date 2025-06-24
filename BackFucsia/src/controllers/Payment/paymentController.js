@@ -1,4 +1,4 @@
-const { Payment, Order, User, conn } = require('../../data');
+const { Payment, Order, User, CreditPaymentRecord, conn } = require('../../data');
 const { Op } = require('sequelize');
 
 // Procesar pago
@@ -47,7 +47,7 @@ const processPayment = async (req, res) => {
       orderId,
       amount,
       method,
-      status: method === 'credito' ? 'pending' : 'completed',
+      status: method === 'credito' ? 'pending' : 'completed', // ✅ CORRECTO: Solo crédito inicia como pending
       paymentDetails,
       transactionId,
       dueDate: method === 'credito' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null
@@ -60,12 +60,12 @@ const processPayment = async (req, res) => {
 
     if (newTotalPaid >= parseFloat(order.total)) {
       paymentStatus = 'completed';
-      orderStatus = 'completed';
+      orderStatus = 'completed'; // ✅ AGREGAR: También actualizar estado de orden
     }
 
     await order.update({
       paymentStatus,
-      status: orderStatus
+      status: orderStatus // ✅ AGREGAR: Actualizar status de orden también
     }, { transaction });
 
     await transaction.commit();
@@ -304,10 +304,326 @@ const refundPayment = async (req, res) => {
   }
 };
 
+// =============================================================================
+// FUNCIONES PARA GESTIÓN DE CRÉDITOS
+// =============================================================================
+
+// Obtener pagos a crédito
+const getCreditPayments = async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 20, 
+      status,
+      startDate,
+      endDate 
+    } = req.query;
+
+    const whereClause = { method: 'credito' };
+    
+    // Filtrar por estado de pago
+    if (status) {
+      if (status === 'overdue') {
+        whereClause.dueDate = { [Op.lt]: new Date() };
+        whereClause.status = { [Op.in]: ['pending', 'partial'] };
+      } else {
+        whereClause.status = status;
+      }
+    }
+    
+    if (startDate || endDate) {
+      whereClause.createdAt = {};
+      if (startDate) whereClause.createdAt[Op.gte] = new Date(startDate);
+      if (endDate) whereClause.createdAt[Op.lte] = new Date(endDate);
+    }
+
+    const payments = await Payment.findAndCountAll({
+      where: whereClause,
+      include: [
+        {
+          model: Order,
+          as: 'order',
+          include: [
+            {
+              model: User,
+              as: 'customer',
+              attributes: { exclude: ['password'] }
+            }
+          ]
+        },
+        {
+          model: CreditPaymentRecord,
+          as: 'abonos',
+          required: false
+        }
+      ],
+      limit: parseInt(limit),
+      offset: (parseInt(page) - 1) * parseInt(limit),
+      order: [['createdAt', 'DESC']]
+    });
+
+    // Calcular montos abonados para cada pago
+    const paymentsWithAmounts = payments.rows.map(payment => {
+      const totalAbonos = payment.abonos?.reduce((sum, abono) => sum + parseFloat(abono.amount), 0) || 0;
+      
+      return {
+        ...payment.toJSON(),
+        paidAmount: totalAbonos,
+        remainingAmount: parseFloat(payment.amount) - totalAbonos
+      };
+    });
+
+    res.json({
+      error: false,
+      message: 'Pagos a crédito obtenidos exitosamente',
+      data: {
+        payments: paymentsWithAmounts,
+        totalPayments: payments.count,
+        totalPages: Math.ceil(payments.count / parseInt(limit)),
+        currentPage: parseInt(page),
+        summary: {
+          totalPending: paymentsWithAmounts.reduce((sum, p) => sum + Math.max(0, p.remainingAmount), 0),
+          totalOverdue: paymentsWithAmounts.filter(p => p.dueDate && new Date(p.dueDate) < new Date() && p.remainingAmount > 0).reduce((sum, p) => sum + p.remainingAmount, 0)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error al obtener pagos a crédito:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
+// Registrar abono a un pago a crédito
+const recordCreditPayment = async (req, res) => {
+  const transaction = await conn.transaction();
+  
+  try {
+    const { id } = req.params;
+    const { amount, notes, paymentMethod = 'efectivo' } = req.body;
+
+    // Buscar el pago original
+    const originalPayment = await Payment.findByPk(id, {
+      include: [
+        {
+          model: Order,
+          as: 'order',
+          include: [{ model: User, as: 'customer' }]
+        },
+        {
+          model: CreditPaymentRecord,
+          as: 'abonos'
+        }
+      ]
+    });
+
+    if (!originalPayment) {
+      await transaction.rollback();
+      return res.status(404).json({
+        error: true,
+        message: 'Pago no encontrado'
+      });
+    }
+
+    if (originalPayment.method !== 'credito') {
+      await transaction.rollback();
+      return res.status(400).json({
+        error: true,
+        message: 'Solo se pueden registrar abonos en pagos a crédito'
+      });
+    }
+
+    // Calcular monto ya abonado
+    const totalAbonado = originalPayment.abonos?.reduce((sum, abono) => sum + parseFloat(abono.amount), 0) || 0;
+    const montoRestante = parseFloat(originalPayment.amount) - totalAbonado;
+
+    if (parseFloat(amount) > montoRestante) {
+      await transaction.rollback();
+      return res.status(400).json({
+        error: true,
+        message: `El abono no puede ser mayor al saldo pendiente: ${montoRestante}`
+      });
+    }
+
+    // ✅ OBTENER n_document DEL USUARIO AUTENTICADO O DEL CLIENTE DE LA ORDEN
+    let recordedByDocument = null;
+    
+    // Prioridad 1: Usuario autenticado (cajero/administrador registrando el abono)
+    if (req.user?.n_document) {
+      recordedByDocument = req.user.n_document;
+      console.log(`💰 [Abono] Registrado por usuario autenticado: ${recordedByDocument}`);
+    } 
+    // Prioridad 2: Cliente de la orden (si es el mismo cliente abonando)
+    else if (originalPayment.order?.customer?.n_document) {
+      recordedByDocument = originalPayment.order.customer.n_document;
+      console.log(`💰 [Abono] Registrado por cliente de la orden: ${recordedByDocument}`);
+    }
+    
+    console.log(`💰 [Abono] Documento a registrar: ${recordedByDocument || 'NULL'}`);
+
+    // Registrar el abono
+    const abono = await CreditPaymentRecord.create({
+      paymentId: originalPayment.id,
+      amount: parseFloat(amount),
+      paymentMethod,
+      notes: notes || 'Abono registrado',
+      recordedBy: recordedByDocument, // ✅ USAR n_document O NULL
+      recordedAt: new Date()
+    }, { transaction });
+
+    // Calcular nuevo saldo
+    const nuevoTotalAbonado = totalAbonado + parseFloat(amount);
+    const nuevoMontoRestante = parseFloat(originalPayment.amount) - nuevoTotalAbonado;
+
+    // Actualizar estado del pago original
+    let nuevoEstado = 'pending';
+    if (nuevoMontoRestante <= 0) {
+      nuevoEstado = 'completed'; // ✅ CORRECTO: Cambiar a completed cuando se paga totalmente
+    } else if (nuevoTotalAbonado > 0) {
+      nuevoEstado = 'partial'; // ✅ AGREGAR: Estado intermedio cuando hay abonos parciales
+    }
+
+    await originalPayment.update({
+      status: nuevoEstado,
+      paymentDetails: {
+        ...originalPayment.paymentDetails,
+        totalAbonado: nuevoTotalAbonado,
+        montoRestante: nuevoMontoRestante,
+        ultimoAbono: {
+          fecha: new Date(),
+          monto: parseFloat(amount),
+          metodo: paymentMethod
+        }
+      }
+    }, { transaction });
+
+    // ✅ CORRECCIÓN CRÍTICA: Si el pago se completó, actualizar estado de la orden
+    if (nuevoEstado === 'completed') {
+      // Verificar si TODOS los pagos de la orden están completados
+      const todosPagosCompletados = await Payment.findAll({
+        where: { orderId: originalPayment.orderId }
+      });
+
+      const totalPagadoOrden = todosPagosCompletados.reduce((sum, pago) => {
+        if (pago.id === originalPayment.id) {
+          // Usar el nuevo estado para este pago
+          return sum + (nuevoEstado === 'completed' ? parseFloat(pago.amount) : nuevoTotalAbonado);
+        } else {
+          // Para otros pagos, usar su estado actual
+          return sum + (pago.status === 'completed' ? parseFloat(pago.amount) : 0);
+        }
+      }, 0);
+
+      const ordenCompleta = totalPagadoOrden >= parseFloat(originalPayment.order.total);
+
+      await originalPayment.order.update({
+        paymentStatus: ordenCompleta ? 'completed' : 'partial',
+        status: ordenCompleta ? 'completed' : originalPayment.order.status
+      }, { transaction });
+
+      console.log(`✅ Orden ${originalPayment.order.orderNumber} actualizada - Pago completado: ${ordenCompleta}`);
+    }
+
+    await transaction.commit();
+
+    res.json({
+      error: false,
+      message: 'Abono registrado exitosamente',
+      data: {
+        abono,
+        paymentStatus: {
+          totalAmount: parseFloat(originalPayment.amount),
+          totalPaid: nuevoTotalAbonado,
+          remaining: nuevoMontoRestante,
+          status: nuevoEstado,
+          isCompleted: nuevoEstado === 'completed'
+        },
+        recordedBy: {
+          document: recordedByDocument,
+          source: req.user?.n_document ? 'authenticated_user' : 'order_customer'
+        }
+      }
+    });
+
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Error al registrar abono:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Error interno del servidor',
+      details: error.message
+    });
+  }
+};
+
+// Obtener historial de abonos de un pago
+const getCreditPaymentHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const payment = await Payment.findByPk(id, {
+      include: [
+        {
+          model: Order,
+          as: 'order',
+          include: [{ model: User, as: 'customer', attributes: { exclude: ['password'] } }]
+        },
+        {
+          model: CreditPaymentRecord,
+          as: 'abonos',
+          include: [
+            {
+              model: User,
+              as: 'recordedByUser',
+              attributes: ['first_name', 'last_name', 'n_document']
+            }
+          ],
+          order: [['createdAt', 'DESC']]
+        }
+      ]
+    });
+
+    if (!payment) {
+      return res.status(404).json({
+        error: true,
+        message: 'Pago no encontrado'
+      });
+    }
+
+    const totalAbonado = payment.abonos?.reduce((sum, abono) => sum + parseFloat(abono.amount), 0) || 0;
+    const montoRestante = parseFloat(payment.amount) - totalAbonado;
+
+    res.json({
+      error: false,
+      message: 'Historial de abonos obtenido exitosamente',
+      data: {
+        payment: {
+          ...payment.toJSON(),
+          totalAbonado,
+          montoRestante
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error al obtener historial de abonos:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
 module.exports = {
   processPayment,
   getPaymentsByOrder,
   getAllPayments,
   updatePaymentStatus,
-  refundPayment
+  refundPayment,
+  getCreditPayments,
+  recordCreditPayment,
+  getCreditPaymentHistory
 };

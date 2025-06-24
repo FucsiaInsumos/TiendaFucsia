@@ -104,6 +104,52 @@ const BillingOrdersManagement = () => {
     );
   };
 
+  // ✅ NUEVA FUNCIÓN PARA MOSTRAR ESTADO DE PAGO GENERAL
+  const getPaymentStatusBadge = (order) => {
+    // Verificar si tiene pagos
+    if (!order.payments || order.payments.length === 0) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          Sin pago registrado
+        </span>
+      );
+    }
+
+    // Usar el paymentStatus de la orden directamente
+    const paymentStatus = order.paymentStatus || 'pending';
+    
+    const statusConfig = {
+      'pending': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '⏳ Pendiente' },
+      'partial': { bg: 'bg-orange-100', text: 'text-orange-800', label: '📊 Parcial' },
+      'completed': { bg: 'bg-green-100', text: 'text-green-800', label: '✅ Completado' },
+      'failed': { bg: 'bg-red-100', text: 'text-red-800', label: '❌ Fallido' }
+    };
+
+    const config = statusConfig[paymentStatus] || statusConfig['pending'];
+
+    // Mostrar información de métodos de pago
+    const paymentMethods = order.payments.map(p => p.method).join(', ');
+    const totalPaid = order.payments
+      .filter(p => p.status === 'completed')
+      .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+
+    return (
+      <div className="space-y-1">
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+          {config.label}
+        </span>
+        
+        {/* Información adicional */}
+        <div className="text-xs text-gray-600">
+          <div>Métodos: {paymentMethods}</div>
+          {paymentStatus === 'partial' && (
+            <div>Pagado: {formatPrice(totalPaid)}</div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
@@ -247,6 +293,9 @@ const BillingOrdersManagement = () => {
                       Estado
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Estado Pago
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Fecha
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -306,6 +355,9 @@ const BillingOrdersManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getStatusBadge(order.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getPaymentStatusBadge(order)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(order.createdAt).toLocaleDateString('es-CO')}

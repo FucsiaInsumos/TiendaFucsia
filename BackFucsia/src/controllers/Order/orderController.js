@@ -541,11 +541,27 @@ if (orderType === 'local') {
           transactionId: `${orderNumber}-${paymentMethod.toUpperCase()}`
         }, { transaction });
 
-        // Actualizar estado de pago de la orden
+        // ✅ CORRECCIÓN CRÍTICA: Actualizar estado de orden DESPUÉS de crear el pago
+        let newPaymentStatus = 'pending';
+        let newOrderStatus = 'pending';
+
+        if (paymentMethod === 'credito') {
+          newPaymentStatus = 'pending';
+          newOrderStatus = 'confirmed'; // Confirmada pero pendiente de pago
+        } else {
+          // ✅ CORREGIR: Para cualquier otro método de pago (efectivo, tarjeta, etc.)
+          newPaymentStatus = 'completed';
+          newOrderStatus = 'completed'; // Orden completada
+        }
+
+        console.log(`💳 [Single Payment] Actualizando orden: paymentStatus=${newPaymentStatus}, orderStatus=${newOrderStatus}`);
+        
         await order.update({
-          paymentStatus: paymentMethod === 'credito' ? 'pending' : 'completed',
-          status: paymentMethod === 'credito' ? 'confirmed' : 'completed'
+          paymentStatus: newPaymentStatus,
+          status: newOrderStatus
         }, { transaction });
+
+        console.log(`✅ [Single Payment] Orden ${orderNumber} actualizada exitosamente - Estado: ${newOrderStatus}, Pago: ${newPaymentStatus}`);
       }
     }
 
@@ -1209,7 +1225,7 @@ const getOrdersRequiringBilling = async (req, res) => {
             {
               model: Product,
               as: 'product',
-              where: { isFacturable: true }, // ✅ SOLO PRODUCTOS FACTURABLES
+              where: { isFacturable: true },
               include: [
                 {
                   model: Category,
@@ -1230,7 +1246,7 @@ const getOrdersRequiringBilling = async (req, res) => {
         },
         {
           model: Payment,
-          as: 'payments'
+          as: 'payments' // ✅ ASEGURAR QUE SE INCLUYAN LOS PAGOS
         }
       ],
       limit: parseInt(limit),
@@ -1238,6 +1254,20 @@ const getOrdersRequiringBilling = async (req, res) => {
       order: [['createdAt', 'DESC']],
       distinct: true // ✅ IMPORTANTE para COUNT correcto con JOINS
     });
+
+    // ✅ DEBUG: Verificar que los pagos se estén incluyendo
+    if (orders.length > 0) {
+      console.log('🔍 [DEBUG Billing] Primera orden con pagos:', {
+        orderNumber: orders[0].orderNumber,
+        paymentsCount: orders[0].payments?.length || 0,
+        paymentStatus: orders[0].paymentStatus,
+        payments: orders[0].payments?.map(p => ({
+          method: p.method,
+          amount: p.amount,
+          status: p.status
+        })) || []
+      });
+    }
 
     // ✅ PROCESAR ÓRDENES PARA SEPARAR ITEMS FACTURABLES Y NO FACTURABLES
     const processedOrders = orders.map(order => {
@@ -1362,6 +1392,89 @@ const markOrderAsBilled = async (req, res) => {
   }
 };
 
+// ✅ FUNCIÓN TEMPORAL PARA CORREGIR INCONSISTENCIAS DE PAGO
+const fixPaymentStatusInconsistencies = async (req, res) => {
+  const transaction = await conn.transaction();
+  
+  try {
+    console.log('🔧 [FIX] Iniciando corrección de inconsistencias de estado de pago...');
+
+    // Buscar todas las órdenes con pagos completados pero paymentStatus incorrecto
+    const orders = await Order.findAll({
+      include: [
+        {
+          model: Payment,
+          as: 'payments'
+        }
+      ]
+    });
+
+    let correctedCount = 0;
+
+    for (const order of orders) {
+      if (!order.payments || order.payments.length === 0) continue;
+
+      // Calcular el total pagado de pagos completados
+      const totalPaid = order.payments
+        .filter(p => p.status === 'completed')
+        .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+
+      const orderTotal = parseFloat(order.total);
+      
+      let correctPaymentStatus = 'pending';
+      let correctOrderStatus = order.status;
+
+      // Determinar el estado correcto
+      if (totalPaid >= orderTotal) {
+        correctPaymentStatus = 'completed';
+        if (order.status === 'pending' || order.status === 'confirmed') {
+          correctOrderStatus = 'completed';
+        }
+      } else if (totalPaid > 0) {
+        correctPaymentStatus = 'partial';
+        if (order.status === 'pending') {
+          correctOrderStatus = 'confirmed';
+        }
+      }
+
+      // Si hay inconsistencia, corregir
+      if (order.paymentStatus !== correctPaymentStatus || order.status !== correctOrderStatus) {
+        console.log(`🔧 [FIX] Corrigiendo orden ${order.orderNumber}:`);
+        console.log(`   Estado anterior: paymentStatus=${order.paymentStatus}, status=${order.status}`);
+        console.log(`   Estado nuevo: paymentStatus=${correctPaymentStatus}, status=${correctOrderStatus}`);
+        console.log(`   Total pagado: ${totalPaid}, Total orden: ${orderTotal}`);
+
+        await order.update({
+          paymentStatus: correctPaymentStatus,
+          status: correctOrderStatus
+        }, { transaction });
+
+        correctedCount++;
+      }
+    }
+
+    await transaction.commit();
+
+    res.json({
+      error: false,
+      message: `Corrección completada. ${correctedCount} órdenes corregidas.`,
+      data: {
+        correctedOrders: correctedCount,
+        totalOrders: orders.length
+      }
+    });
+
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Error al corregir inconsistencias:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Error al corregir inconsistencias',
+      details: error.message
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrders,
@@ -1371,5 +1484,6 @@ module.exports = {
   cancelOrder,
   calculatePrice,
   getOrdersRequiringBilling,
-  markOrderAsBilled
+  markOrderAsBilled,
+  fixPaymentStatusInconsistencies // ✅ FUNCIÓN TEMPORAL
 };

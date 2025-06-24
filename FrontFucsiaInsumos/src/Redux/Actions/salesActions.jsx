@@ -241,3 +241,43 @@ export const calculatePricesForCartAPI = (items, userId) => async (dispatch) => 
     throw error; // Relanzar para que el componente que llama pueda manejarlo
   }
 };
+
+// =============================================================================
+// CREDIT MANAGEMENT ACTIONS
+// =============================================================================
+
+// Obtener pagos a crédito
+export const getCreditPayments = (params = {}) => async (dispatch) => {
+  try {
+    const response = await api.get('/payments/credits', { params });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Error al obtener pagos a crédito';
+    console.error('Get credit payments error:', errorMessage);
+    throw error;
+  }
+};
+
+// Registrar abono a un pago a crédito
+export const recordCreditPayment = (paymentId, abonData) => async (dispatch) => {
+  try {
+    const response = await api.post(`/payments/${paymentId}/record-payment`, abonData);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Error al registrar abono';
+    console.error('Record credit payment error:', errorMessage);
+    throw error;
+  }
+};
+
+// Obtener historial de abonos de un pago
+export const getCreditPaymentHistory = (paymentId) => async (dispatch) => {
+  try {
+    const response = await api.get(`/payments/${paymentId}/payment-history`);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Error al obtener historial de abonos';
+    console.error('Get credit payment history error:', errorMessage);
+    throw error;
+  }
+};
