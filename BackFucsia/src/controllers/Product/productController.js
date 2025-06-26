@@ -560,7 +560,6 @@ const calculateProductPrice = async (req, res) => {
 
 
 
-
 // Función auxiliar para encontrar descuentos aplicables
 const findApplicableDiscounts = async (productId, categoryId, quantity, itemTotal, userType) => {
   try {
@@ -694,6 +693,272 @@ const getFacturableProducts = async (req, res) => {
   }
 };
 
+// Obtener productos simplificados para Excel/Exportación
+const getProductsForExport = async (req, res) => {
+  try {
+    const products = await Product.findAll({
+      attributes: [
+        'id', 'sku', 'name', 'purchasePrice', 'price', 
+        'distributorPrice', 'stock', 'minStock', 'isActive'
+      ],
+      where: { isActive: true },
+      include: [
+        {
+          model: Category,
+          as: 'category',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: Category,
+              as: 'parentCategory',
+              attributes: ['id', 'name']
+            }
+          ]
+        }
+      ],
+      order: [['name', 'ASC']]
+    });
+
+    // Formatear datos para Excel
+    const exportData = products.map(product => ({
+      id: product.id,
+      sku: product.sku,
+      name: product.name,
+      categoryName: product.category.name,
+      parentCategoryName: product.category.parentCategory ? product.category.parentCategory.name : 'N/A',
+      purchasePrice: parseFloat(product.purchasePrice),
+      price: parseFloat(product.price),
+      distributorPrice: product.distributorPrice ? parseFloat(product.distributorPrice) : null,
+      currentStock: product.stock,
+      minStock: product.minStock,
+      stockToAdd: 0 // Campo vacío para que llenen en Excel
+    }));
+
+    return res.status(200).json({
+      error: false,
+      message: 'Productos para exportación obtenidos exitosamente',
+      data: exportData,
+      totalProducts: exportData.length
+    });
+  } catch (error) {
+    console.error('Error al obtener productos para exportación:', error);
+    return res.status(500).json({
+      error: true,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
+// Carga masiva de productos desde Excel/JSON
+const bulkCreateProducts = async (req, res) => {
+  try {
+    const { products } = req.body;
+
+    if (!products || !Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({
+        error: true,
+        message: 'Se requiere un array de productos válido'
+      });
+    }
+
+    const results = {
+      created: [],
+      errors: [],
+      skipped: []
+    };
+
+    for (let i = 0; i < products.length; i++) {
+      const productData = products[i];
+      
+      try {
+        // Validaciones básicas
+        if (!productData.sku || !productData.name || !productData.categoryId) {
+          results.errors.push({
+            row: i + 1,
+            sku: productData.sku || 'SIN SKU',
+            error: 'SKU, nombre y categoría son obligatorios'
+          });
+          continue;
+        }
+
+        // Verificar si el producto ya existe
+        const existingProduct = await Product.findOne({ where: { sku: productData.sku } });
+        if (existingProduct) {
+          results.skipped.push({
+            row: i + 1,
+            sku: productData.sku,
+            reason: 'Producto ya existe'
+          });
+          continue;
+        }
+
+        // Verificar que la categoría existe
+        const category = await Category.findByPk(productData.categoryId);
+        if (!category) {
+          results.errors.push({
+            row: i + 1,
+            sku: productData.sku,
+            error: 'Categoría no encontrada'
+          });
+          continue;
+        }
+
+        // Crear el producto
+        const newProduct = await Product.create({
+          sku: productData.sku,
+          name: productData.name,
+          description: productData.description || '',
+          purchasePrice: productData.purchasePrice || 0,
+          price: productData.price || 0,
+          distributorPrice: productData.distributorPrice || null,
+          stock: productData.stock || 0,
+          minStock: productData.minStock || 5,
+          isPromotion: productData.isPromotion || false,
+          isFacturable: productData.isFacturable || false,
+          promotionPrice: productData.promotionPrice || null,
+          categoryId: productData.categoryId,
+          tags: productData.tags || [],
+          image_url: [], // Se cargan después manualmente
+          specificAttributes: productData.specificAttributes || null,
+          isActive: true
+        });
+
+        results.created.push({
+          row: i + 1,
+          sku: productData.sku,
+          id: newProduct.id,
+          name: productData.name
+        });
+
+      } catch (error) {
+        console.error(`Error al crear producto fila ${i + 1}:`, error);
+        results.errors.push({
+          row: i + 1,
+          sku: productData.sku || 'SIN SKU',
+          error: error.message
+        });
+      }
+    }
+
+    return res.status(200).json({
+      error: false,
+      message: 'Proceso de carga masiva completado',
+      results: {
+        total: products.length,
+        created: results.created.length,
+        errors: results.errors.length,
+        skipped: results.skipped.length,
+        details: results
+      }
+    });
+
+  } catch (error) {
+    console.error('Error en carga masiva:', error);
+    return res.status(500).json({
+      error: true,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
+// Actualización masiva de stock
+const bulkUpdateStock = async (req, res) => {
+  try {
+    const { stockUpdates } = req.body;
+
+    if (!stockUpdates || !Array.isArray(stockUpdates) || stockUpdates.length === 0) {
+      return res.status(400).json({
+        error: true,
+        message: 'Se requiere un array de actualizaciones de stock válido'
+      });
+    }
+
+    const results = {
+      updated: [],
+      errors: [],
+      notFound: []
+    };
+
+    for (let i = 0; i < stockUpdates.length; i++) {
+      const update = stockUpdates[i];
+      
+      try {
+        if (!update.sku && !update.id) {
+          results.errors.push({
+            row: i + 1,
+            error: 'Se requiere SKU o ID del producto'
+          });
+          continue;
+        }
+
+        // Buscar el producto por SKU o ID
+        let product;
+        if (update.id) {
+          product = await Product.findByPk(update.id);
+        } else {
+          product = await Product.findOne({ where: { sku: update.sku } });
+        }
+
+        if (!product) {
+          results.notFound.push({
+            row: i + 1,
+            sku: update.sku || 'N/A',
+            id: update.id || 'N/A'
+          });
+          continue;
+        }
+
+        // Actualizar stock (sumar al stock actual si es stockToAdd, o reemplazar si es newStock)
+        const newStock = update.stockToAdd ? 
+          product.stock + parseInt(update.stockToAdd) : 
+          parseInt(update.newStock || product.stock);
+
+        await product.update({ 
+          stock: newStock,
+          ...(update.minStock && { minStock: parseInt(update.minStock) }),
+          ...(update.price && { price: parseFloat(update.price) }),
+          ...(update.purchasePrice && { purchasePrice: parseFloat(update.purchasePrice) })
+        });
+
+        results.updated.push({
+          row: i + 1,
+          sku: product.sku,
+          name: product.name,
+          previousStock: product.stock,
+          newStock: newStock
+        });
+
+      } catch (error) {
+        console.error(`Error al actualizar stock fila ${i + 1}:`, error);
+        results.errors.push({
+          row: i + 1,
+          sku: update.sku || 'N/A',
+          error: error.message
+        });
+      }
+    }
+
+    return res.status(200).json({
+      error: false,
+      message: 'Proceso de actualización masiva completado',
+      results: {
+        total: stockUpdates.length,
+        updated: results.updated.length,
+        errors: results.errors.length,
+        notFound: results.notFound.length,
+        details: results
+      }
+    });
+
+  } catch (error) {
+    console.error('Error en actualización masiva:', error);
+    return res.status(500).json({
+      error: true,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
 module.exports = {
   createProduct,
   getProducts,
@@ -702,6 +967,9 @@ module.exports = {
   deleteProduct,
   filterProducts,
   calculateProductPrice,
-  getFacturableProducts
+  getFacturableProducts,
+  getProductsForExport,
+  bulkCreateProducts,
+  bulkUpdateStock
   // calculatePrice, 
 };

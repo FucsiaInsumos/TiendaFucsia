@@ -56,6 +56,26 @@ const getCategories = async (req, res) => {
   }
 };
 
+// Obtener todas las categorías planas (sin jerarquía anidada) - alternativa más simple
+const getCategoriesFlat = async (req, res) => {
+  try {
+    const categories = await Category.findAll({
+      include: [
+        {
+          model: Category,
+          as: 'parentCategory',
+          attributes: ['id', 'name']
+        }
+      ],
+      order: [['name', 'ASC']]
+    });
+    return res.status(200).json({ error: false, data: categories });
+  } catch (error) {
+    console.error('Error al obtener categorías planas:', error);
+    return res.status(500).json({ error: true, message: 'Error interno del servidor.' });
+  }
+};
+
 // Obtener una categoría por ID con su jerarquía
 const getCategoryById = async (req, res) => {
   try {
@@ -176,9 +196,46 @@ const deleteCategory = async (req, res) => {
   }
 };
 
+// Obtener categorías simplificadas para Excel/Exportación
+const getCategoriesForExport = async (req, res) => {
+  try {
+    const categories = await Category.findAll({
+      attributes: ['id', 'name', 'parentId'],
+      where: { isActive: true },
+      include: [
+        {
+          model: Category,
+          as: 'parentCategory',
+          attributes: ['id', 'name']
+        }
+      ],
+      order: [['name', 'ASC']]
+    });
+
+    // Formatear datos para Excel
+    const exportData = categories.map(category => ({
+      id: category.id,
+      name: category.name,
+      parentCategoryName: category.parentCategory ? category.parentCategory.name : 'CATEGORIA PRINCIPAL',
+      level: category.parentId ? 'SUBCATEGORIA' : 'CATEGORIA PRINCIPAL'
+    }));
+
+    return res.status(200).json({ 
+      error: false, 
+      message: 'Categorías para exportación obtenidas exitosamente',
+      data: exportData 
+    });
+  } catch (error) {
+    console.error('Error al obtener categorías para exportación:', error);
+    return res.status(500).json({ error: true, message: 'Error interno del servidor.' });
+  }
+};
+
 module.exports = {
   createCategory,
   getCategories,
+  getCategoriesFlat,
+  getCategoriesForExport,
   getCategoryById,
   updateCategory,
   deleteCategory
