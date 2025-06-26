@@ -69,8 +69,8 @@ Category.hasMany(Category, { foreignKey: 'parentId', as: 'subcategories' });
 Category.belongsTo(Category, { foreignKey: 'parentId', as: 'parentCategory' });
 
 // Relaciones para Distributor
-User.hasOne(Distributor, { foreignKey: 'userId', as: 'distributor' });
-Distributor.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+User.hasOne(Distributor, { foreignKey: 'userId', sourceKey: 'n_document', as: 'distributor' });
+Distributor.belongsTo(User, { foreignKey: 'userId', targetKey: 'n_document', as: 'user' });
 
 // Relaciones para DiscountRule
 Product.hasMany(DiscountRule, { foreignKey: 'productId', as: 'discountRules' });
@@ -80,11 +80,11 @@ Category.hasMany(DiscountRule, { foreignKey: 'categoryId', as: 'discountRules' }
 DiscountRule.belongsTo(Category, { foreignKey: 'categoryId', as: 'category' });
 
 // Relaciones para Orders
-User.hasMany(Order, { foreignKey: 'userId', as: 'orders' });
-Order.belongsTo(User, { foreignKey: 'userId', as: 'customer' });
+User.hasMany(Order, { foreignKey: 'userId', sourceKey: 'n_document', as: 'orders' });
+Order.belongsTo(User, { foreignKey: 'userId', targetKey: 'n_document', as: 'customer' });
 
-User.hasMany(Order, { foreignKey: 'cashierId', as: 'processedOrders' });
-Order.belongsTo(User, { foreignKey: 'cashierId', as: 'cashier' });
+User.hasMany(Order, { foreignKey: 'cashierId', sourceKey: 'n_document', as: 'processedOrders' });
+Order.belongsTo(User, { foreignKey: 'cashierId', targetKey: 'n_document', as: 'cashier' });
 
 // Relaciones para OrderItems
 Order.hasMany(OrderItem, { foreignKey: 'orderId', as: 'items' });
@@ -104,8 +104,8 @@ Payment.belongsTo(Order, { foreignKey: 'orderId', as: 'order' });
 Product.hasMany(StockMovement, { foreignKey: 'productId', as: 'stockMovements' });
 StockMovement.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
 
-User.hasMany(StockMovement, { foreignKey: 'userId', as: 'stockMovements' });
-StockMovement.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+User.hasMany(StockMovement, { foreignKey: 'userId', sourceKey: 'n_document', as: 'stockMovements' });
+StockMovement.belongsTo(User, { foreignKey: 'userId', targetKey: 'n_document', as: 'user' });
 
 Order.hasMany(StockMovement, { foreignKey: 'orderId', as: 'stockMovements' });
 StockMovement.belongsTo(Order, { foreignKey: 'orderId', as: 'order' });
@@ -117,7 +117,7 @@ Proveedor.hasMany(PurchaseOrder, { foreignKey: 'proveedorId', as: 'purchaseOrder
 
 // Relaciones para PurchaseOrder
 PurchaseOrder.belongsTo(Proveedor, { foreignKey: 'proveedorId', as: 'proveedor' });
-PurchaseOrder.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
+PurchaseOrder.belongsTo(User, { foreignKey: 'createdBy', targetKey: 'n_document', as: 'creator' });
 PurchaseOrder.hasMany(PurchaseOrderItem, { foreignKey: 'purchaseOrderId', as: 'items' });
 
 // Relaciones para PurchaseOrderItem
@@ -126,7 +126,7 @@ PurchaseOrderItem.belongsTo(Product, { foreignKey: 'productId', as: 'product' })
 PurchaseOrderItem.belongsTo(Category, { foreignKey: 'categoryId', as: 'category' });
 
 // Relaciones inversas para User y Product
-User.hasMany(PurchaseOrder, { foreignKey: 'createdBy', as: 'createdPurchaseOrders' });
+User.hasMany(PurchaseOrder, { foreignKey: 'createdBy', sourceKey: 'n_document', as: 'createdPurchaseOrders' });
 Product.hasMany(PurchaseOrderItem, { foreignKey: 'productId', as: 'purchaseOrderItems' });
 
 // ✅ RELACIÓN PARA STOCK MOVEMENTS CON PURCHASE ORDERS

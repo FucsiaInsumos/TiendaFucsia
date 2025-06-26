@@ -11,7 +11,7 @@ import Navbar from './Components/Navbar';
 import Login from './Components/Auth/Login';
 import RegisterForm from './Components/Auth/RegisterForm';
 import Dashboard from './Components/Dashboard/Dashboard';
-import Tienda from './Components/Tienda/Tienda';
+// import Tienda from './Components/Tienda/Tienda';
 import NotFound from './Components/NotFound';
 import Unauthorized from './Components/Auth/Unauthorized';
 import Landing from './Components/Landing';
@@ -83,7 +83,7 @@ function App() {
         <Routes>
           {/* Rutas públicas */}
           <Route path="/" element={<Landing />} />
-          <Route path="/tienda" element={<Tienda />} />
+          {/* <Route path="/tienda" element={<Tienda />} /> */}
           <Route path="/catalogo" element={<ProductCatalog />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<RegisterForm />} />

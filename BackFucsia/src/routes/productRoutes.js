@@ -7,6 +7,9 @@ const {
   updateProduct,
   deleteProduct,
   getFacturableProducts,
+  getProductsForExport,
+  bulkCreateProducts,
+  bulkUpdateStock,
   // calculatePrice,
 } = require('../controllers/Product/productController');
 const { verifyToken } = require('../middleware/isAuth'); // Asumiendo que tienes autenticación
@@ -22,10 +25,22 @@ router.post(
     upload.array('images', 5), 
     createProduct
 );
+
+// Carga masiva de productos (desde Excel/JSON)
+router.post('/bulk', bulkCreateProducts);
+
+// Actualización masiva de stock
+router.put('/bulk/stock', bulkUpdateStock);
+
 router.get('/', getProducts); // Correcto: esta ruta manejará /products y /products?name=...
-router.get('/:id', getProductById);
+
+// Obtener productos para exportación/Excel (debe ir antes de /:id)
+router.get('/export', getProductsForExport);
+
 // ✅ AGREGAR ESTA RUTA
 router.get('/facturable', getFacturableProducts);
+
+router.get('/:id', getProductById);
 router.put(
     '/:id', 
     upload.array('images', 5), 
@@ -34,10 +49,6 @@ router.put(
 router.delete('/:id', deleteProduct);
 // router.post('/calculate-price', calculatePrice);
 
-// Aplicar verifyToken a todas las rutas de productos si es necesario
-// router.use(verifyToken);
-
-module.exports = router;
 // Aplicar verifyToken a todas las rutas de productos si es necesario
 // router.use(verifyToken);
 

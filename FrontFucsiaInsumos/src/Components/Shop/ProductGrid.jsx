@@ -190,7 +190,7 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory }) => {
             <div className="p-4">
               <div className="mb-2">
                 <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 mb-1">
-                  {product.name}
+                  {product.category.name}
                 </h3>
                 <p className="text-sm text-gray-500">SKU: {product.sku}</p>
               </div>

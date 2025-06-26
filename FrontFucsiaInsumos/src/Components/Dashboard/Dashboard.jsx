@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Navigate, Link } from 'react-router-dom';
+import DashboardStats from './DashboardStats'; // ✅ IMPORTAR COMPONENTE DE ESTADÍSTICAS
 
 const Dashboard = () => {
   const { isAuthenticated, user } = useSelector(state => state.auth);
@@ -10,6 +11,9 @@ const Dashboard = () => {
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
+
+  // ✅ Estado para controlar la vista actual
+  const [currentView, setCurrentView] = useState('dashboard');
 
   // ✅ Estados para dropdowns
   const [isVentasDropdownOpen, setIsVentasDropdownOpen] = useState(false);
@@ -392,9 +396,10 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600">Gestiona proveedores</p>
               </Link>
 
-              <Link
-                to="/creditos"
-                className="bg-white shadow-lg rounded-xl p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 border border-gray-100"
+              {/* ✅ ESTADÍSTICAS - NUEVA FUNCIONALIDAD */}
+              <div
+                className="bg-white shadow-lg rounded-xl p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 border border-gray-100 cursor-pointer"
+                onClick={() => setCurrentView('estadisticas')}
               >
                 <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-3">
                   <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -402,8 +407,8 @@ const Dashboard = () => {
                   </svg>
                 </div>
                 <h2 className="text-xl font-semibold text-gray-800 mb-2">Estadísticas</h2>
-                <p className="text-sm text-gray-600">Reportes y análisis</p>
-              </Link>
+                <p className="text-sm text-gray-600">Reportes y análisis detallados</p>
+              </div>
 
               <Link
                 to="/stock"
@@ -482,21 +487,54 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-
-            <p className="text-xl text-gray-600">
-              Bienvenido, <span className="font-semibold text-blue-600">{user.email}</span>
-            </p>
-            <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-              {user.role === 'Owner' ? '👑 Propietario' : '💼 Cajero'}
+      {/* ✅ HEADER CON NAVEGACIÓN */}
+      {currentView !== 'dashboard' && (
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between py-4">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => setCurrentView('dashboard')}
+                  className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Volver al Dashboard
+                </button>
+                <div className="text-gray-300">|</div>
+                <h1 className="text-xl font-semibold text-gray-900">
+                  {currentView === 'estadisticas' ? 'Estadísticas y Análisis' : 'Dashboard'}
+                </h1>
+              </div>
+              <div className="text-sm text-gray-500">
+                {user.email} • {user.role === 'Owner' ? 'Propietario' : 'Cajero'}
+              </div>
             </div>
           </div>
-
-          {renderSections()}
         </div>
-      </div>
+      )}
+
+      {/* ✅ CONTENIDO PRINCIPAL */}
+      {currentView === 'estadisticas' ? (
+        <DashboardStats />
+      ) : (
+        <div className="py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">Dashboard Fucsia</h1>
+              <p className="text-xl text-gray-600">
+                Bienvenido, <span className="font-semibold text-blue-600">{user.email}</span>
+              </p>
+              <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                {user.role === 'Owner' ? '👑 Propietario' : '💼 Cajero'}
+              </div>
+            </div>
+
+            {renderSections()}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
