@@ -7,6 +7,7 @@ import discountRuleReducer from '../Reducer/discountRuleReducer';
 import distributorReducer from '../Reducer/distributorReducer';
 import cartReducer from '../Reducer/cartReducer';
 import purchaseReducer from '../Reducer/purchaseReducer'; // ✅ NUEVO REDUCER
+import dashboardReducer from '../Reducer/dashboardReducer'; // ✅ DASHBOARD REDUCER
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -16,6 +17,7 @@ const rootReducer = combineReducers({
   distributors: distributorReducer,
   cart: cartReducer,
   purchase: purchaseReducer, // ✅ AGREGAR PURCHASE REDUCER
+  dashboard: dashboardReducer, // ✅ AGREGAR DASHBOARD REDUCER
   // Agrega otros reducers aquí
 });
 
