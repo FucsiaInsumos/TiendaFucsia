@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../Redux/Actions/authActions';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import logo from '/public/logo.jpg'; // Adjust the path as necessary
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -43,7 +44,7 @@ const Login = () => {
         <div>
           <img
             className="mx-auto h-12 w-auto"
-            src="/public/logo.jpg"
+            src={logo}
             alt="Your Logo"
           />
           <h2 className="mt-6 text-center text-2xl font-extrabold text-gray-900">
