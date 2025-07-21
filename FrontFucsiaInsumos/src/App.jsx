@@ -30,7 +30,7 @@ import CartSidebar from './Components/Cart/CartSidebar';
 import Checkout from './Components/Checkout/Checkout';
 import OrderConfirmation from './Components/Checkout/OrderConfirmation';
 import MyOrders from './Components/Customer/MyOrders';
-import BillingOrdersManagement from './Components/Sales/BillingOedersManagement';
+import BillingOrdersManagement from './Components/Sales/BillingOrdersManagement';
 import PurchaseManagement from './Components/Purchase/PurchaseManagement'; // ✅ NUEVO COMPONENTE
 import CreditManagement from './Components/Sales/CreditManagement';
 
