@@ -188,7 +188,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios-Cejas",
+    "SUBCATEGORIA": "Accesorios",
     "sku": "F00015",
     "Name": "BROCHA ROSADA ",
     "purchase price": 2699,
@@ -201,7 +201,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios-Cejas",
+    "SUBCATEGORIA": "Accesorios",
     "sku": "F00016",
     "Name": "BROCHA DE LUJO",
     "purchase price": 2782,
@@ -214,7 +214,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios-Cejas",
+    "SUBCATEGORIA": "Accesorios",
     "sku": "F00017",
     "Name": "BROCHA ROSADA PESTAÑAS",
     "purchase price": 3000,
@@ -3198,7 +3198,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "Accesorios",
     "sku": "F00260",
     "Name": "MALETA PEQUEÑA CON DIVISIONES",
     "purchase price": 50064,
@@ -3211,7 +3211,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "Accesorios",
     "sku": "F00261",
     "Name": "MALETA PARA LASHISTA GRANDE",
     "purchase price": 89298,
@@ -3830,7 +3830,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "Accesorios",
     "sku": "F00310",
     "Name": "ALMOHADA PARA LASHISTA",
     "purchase price": 66585,
@@ -4959,7 +4959,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "Accesorios",
     "sku": "F00397",
     "Name": "MANIQUI PRACTICA OJOS REMOVIBLES",
     "purchase price": 48240,
@@ -4973,7 +4973,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "Accesorios",
     "sku": "F00398",
     "Name": "MANIQUI PARA PRACTICA",
     "purchase price": 14300,
