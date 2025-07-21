@@ -175,7 +175,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Cejas",
     "sku": "F00014",
     "Name": "BROCHA BLANCA",
     "purchase price": 2488,
@@ -188,7 +188,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Cejas",
     "sku": "F00015",
     "Name": "BROCHA ROSADA ",
     "purchase price": 2699,
@@ -201,7 +201,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Cejas",
     "sku": "F00016",
     "Name": "BROCHA DE LUJO",
     "purchase price": 2782,
@@ -214,7 +214,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Cejas",
     "sku": "F00017",
     "Name": "BROCHA ROSADA PESTAÑAS",
     "purchase price": 3000,
@@ -253,7 +253,7 @@
   },
   {
     "CATEGORIA": "Cejas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Cejas",
     "sku": "F00020",
     "Name": "VERNIER PEQUEÑO",
     "purchase price": 3082,
@@ -3250,7 +3250,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Micropigmentacion",
     "sku": "F00264",
     "Name": "COBAN ",
     "purchase price": 2300,
@@ -3503,7 +3503,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-varios",
     "sku": "F00284",
     "Name": "MICROBRUSH X 100 ",
     "purchase price": 2377,
@@ -3516,7 +3516,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-varios",
     "sku": "F00285",
     "Name": "CAMPO DE MESA X50 ROSADO / NEGRO ",
     "purchase price": 14182,
@@ -3529,7 +3529,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-varios",
     "sku": "F00286",
     "Name": "APLICADORES X50",
     "purchase price": 6145,
@@ -3542,7 +3542,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-varios",
     "sku": "F00287",
     "Name": "CEPILLOS X 50 UND",
     "purchase price": 4459,
@@ -3844,7 +3844,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "Accesorios-varios",
     "sku": "F00311",
     "Name": "SABANA ELASTICA CUBRE CAMILLA",
     "purchase price": 40324,
