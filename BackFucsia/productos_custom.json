@@ -175,7 +175,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00014",
     "Name": "BROCHA BLANCA",
     "purchase price": 2488,
@@ -188,7 +188,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00015",
     "Name": "BROCHA ROSADA ",
     "purchase price": 2699,
@@ -201,7 +201,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00016",
     "Name": "BROCHA DE LUJO",
     "purchase price": 2782,
@@ -214,7 +214,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00017",
     "Name": "BROCHA ROSADA PESTAÑAS",
     "purchase price": 3000,
@@ -293,7 +293,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00023",
     "Name": "PIEDRA JADE PARA ADHESIVO",
     "purchase price": 3526,
@@ -306,7 +306,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00024",
     "Name": "MANILLA SOPORTE DE PESTAÑAS",
     "purchase price": 4333,
@@ -426,7 +426,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00033",
     "Name": "BROCHA CAFE",
     "purchase price": 3000,
@@ -542,7 +542,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00042",
     "Name": "MANILLA PARA PINZAS",
     "purchase price": 9595,
@@ -555,7 +555,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00043",
     "Name": "ORGANIZADOR DE PINZAS CUADRADO",
     "purchase price": 19043,
@@ -568,7 +568,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00044",
     "Name": "ORGANIZADOR PINZAS",
     "purchase price": 10500,
@@ -1185,7 +1185,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00093",
     "Name": "FUNDA PARA ALMOHADA COLORES SURTIDOS",
     "purchase price": 36500,
@@ -1276,7 +1276,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00100",
     "Name": "CEPILLO CON ESTUCHE VARIADO",
     "purchase price": 1043,
@@ -2897,7 +2897,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00235",
     "Name": "ESPEJO RETROVISOR MARIPOSA",
     "purchase price": 14970,
@@ -2910,7 +2910,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00236",
     "Name": "ESPEJO CUADRADO RETROVISOR",
     "purchase price": 8305,
@@ -2924,7 +2924,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00237",
     "Name": "LUPA ESPEJO RETROVISOR CORAZON",
     "purchase price": 6646,
@@ -2937,7 +2937,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00238",
     "Name": "ESPEJO CORAZON BRILLOS RETROVISOR",
     "purchase price": 15114,
@@ -3002,7 +3002,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00243",
     "Name": "AISLADOR DE PESTAÑAS ",
     "purchase price": 12166,
@@ -3015,7 +3015,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00244",
     "Name": "PALETA PARA PESTAÑAS",
     "purchase price": 13000,
@@ -3028,7 +3028,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00245",
     "Name": "PALETA MARIPOSA PARA PESTAÑAS",
     "purchase price": 26127,
@@ -3041,7 +3041,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00247",
     "Name": "PALETA TRANSPARENTE VIDRIO PESTAÑAS",
     "purchase price": 5220,
@@ -3067,7 +3067,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00249",
     "Name": "MEDIDOR DE PESTAÑAS ",
     "purchase price": 1219,
@@ -3080,7 +3080,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00250",
     "Name": "PARCHES REUTULIZABLES PARA LIFTING",
     "purchase price": 7000,
@@ -3106,7 +3106,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00252",
     "Name": "ESPONJA PARA PRACTICA ROSADA U",
     "purchase price": 700,
@@ -3198,7 +3198,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00260",
     "Name": "MALETA PEQUEÑA CON DIVISIONES",
     "purchase price": 50064,
@@ -3211,7 +3211,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00261",
     "Name": "MALETA PARA LASHISTA GRANDE",
     "purchase price": 89298,
@@ -3302,7 +3302,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00268",
     "Name": "PALETA LIFTING FUCSIA",
     "purchase price": 1500,
@@ -3328,7 +3328,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00270",
     "Name": "LUPA ESPEJO ROSADA ",
     "purchase price": 2000,
@@ -3556,7 +3556,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00288",
     "Name": "PESTAÑAS DE PRACTICA 8MM",
     "purchase price": 6710,
@@ -3830,7 +3830,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00310",
     "Name": "ALMOHADA PARA LASHISTA",
     "purchase price": 66585,
@@ -4959,7 +4959,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00397",
     "Name": "MANIQUI PRACTICA OJOS REMOVIBLES",
     "purchase price": 48240,
@@ -4973,7 +4973,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00398",
     "Name": "MANIQUI PARA PRACTICA",
     "purchase price": 14300,
@@ -4986,7 +4986,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "accesorios-Pestañas",
     "sku": "F00399",
     "Name": "MEZCLADOR PARA ADHESIVOS",
     "purchase price": 28749,
@@ -5090,7 +5090,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "accesorios-Pestañas",
     "sku": "F00407",
     "Name": "BOMBA AIRE O PERA",
     "purchase price": 2800,
@@ -5480,7 +5480,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "accesorios-Pestañas",
     "sku": "F00439",
     "Name": "BOQUILLA PARA ADHESIVO",
     "purchase price": 135,
