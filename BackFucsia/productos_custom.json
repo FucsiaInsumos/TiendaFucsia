@@ -40,7 +40,19 @@
     "Facturable": "true",
     "isPromotion": "false"
   },
- 
+  {
+    "CATEGORIA": "Cejas",
+    "SUBCATEGORIA": "Henna",
+    "sku": "F00004",
+    "Name": "HENNA MENELA CASTAÑO MEDIO",
+    "purchase price": 49266,
+    "price": 63000,
+    "distributorPrice": 56700,
+    "Stock actual": 4,
+    "Stock mínimo": 0,
+    "Facturable": "true",
+    "isPromotion": "false"
+  },
   {
     "CATEGORIA": "Organización",
     "SUBCATEGORIA": "Carritos",
@@ -68,7 +80,32 @@
     "Facturable": "false",
     "isPromotion": "false"
   },
- 
+  {
+    "CATEGORIA": "Cejas",
+    "SUBCATEGORIA": "Henna",
+    "sku": "F00007",
+    "Name":"HENNA MENELA CASTAÑO OSCURO",
+    "purchase price": 52182,
+    "price": 63000,
+    "distributorPrice": 56700,
+    "Stock actual": 4,
+    "Stock mínimo": 0,
+    "Facturable": "true",
+    "isPromotion": "false"
+  },
+  {
+    "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Cintas",
+    "sku": "F00008",
+    "Name":"CINTA TRANSPORE DE COLORES",
+    "purchase price": 1686,
+    "price": 4500,
+    "distributorPrice": 4050,
+    "Stock actual": 201,
+    "Stock mínimo": 100,
+    "Facturable": "true",
+    "isPromotion": "false"
+  },
   {
     "CATEGORIA": "Pestañas",
     "SUBCATEGORIA": "Cintas",
@@ -4896,7 +4933,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Henna",
+    "SUBCATEGORIA": "Henna - Accesorios",
     "sku": "F00395",
     "Name": "MEZCLADOR ELECTRICO DE HENNA",
     "purchase price": 9000,
@@ -5908,7 +5945,7 @@
   },
   {
     "CATEGORIA": "Labios",
-    "SUBCATEGORIA": "Henna",
+    "SUBCATEGORIA": "Henna -Labios",
     "sku": "F00478",
     "Name": "HENNA PARA LABIOS (TONO ROJO)",
     "purchase price": 6800,
