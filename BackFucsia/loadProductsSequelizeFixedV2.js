@@ -196,42 +196,47 @@ async function loadProductsWithSequelize() {
                     
                     // Preparar datos del producto
                     const productData = {
-                        sku: producto.sku || `AUTO-${Date.now()}-${i + index}`,
-                        name: producto.Name || producto.name || 'Producto sin nombre',
-                        description: producto.description || 
-                                   (producto.CATEGORIA && producto.SUBCATEGORIA ? 
-                                    `${producto.CATEGORIA} - ${producto.SUBCATEGORIA}` : 
-                                    producto.CATEGORIA || producto.SUBCATEGORIA || null),
-                        purchasePrice: parseFloat(producto['purchase price'] || producto.purchasePrice || 0),
-                        price: parseFloat(producto.price || 0),
-                        distributorPrice: producto.distributorPrice ? parseFloat(producto.distributorPrice) : null,
-                        stock: parseInt(producto['Stock actual'] || producto.stock || 0),
-                        minStock: parseInt(producto['Stock mínimo'] || producto.minStock || 5),
-                        isPromotion: (producto.isPromotion === 'true' || producto.isPromotion === true),
-                        isFacturable: (producto.Facturable === 'true' || producto.isFacturable === 'true' || producto.isFacturable === true),
-                        promotionPrice: producto['Precio de promoción'] ? parseFloat(producto['Precio de promoción']) : null,
-                        categoryId: finalCategoryId,
-                        tags: [],
-                        image_url: [],
-                        specificAttributes: null,
-                        isActive: true
-                    };
-                    
-                    // Crear el producto
-                    await Product.create(productData, { transaction });
-                    creados++;
-                    
-                    if (creados % 25 === 0) {
-                        console.log(`📈 Progreso: ${creados} productos creados...`);
-                    }
-                    
-                } catch (error) {
-                    errores++;
-                    if (errores <= 3) {
-                        console.error(`❌ Error procesando producto ${i + index + 1}:`, error.message);
-                    }
-                }
-            }
+            sku: producto.sku || `AUTO-${Date.now()}-${i + index}`,
+            name: producto.Name || producto.name || 'Producto sin nombre',
+            description: producto.description ||
+                (producto.CATEGORIA && producto.SUBCATEGORIA ?
+                    `${producto.CATEGORIA} - ${producto.SUBCATEGORIA}` :
+                    producto.CATEGORIA || producto.SUBCATEGORIA || null),
+            purchasePrice: parseFloat(producto['purchase price'] || producto.purchasePrice || 0),
+            price: parseFloat(producto.price || 0),
+            distributorPrice: producto.distributorPrice ? parseFloat(producto.distributorPrice) : null,
+            stock: parseInt(producto['Stock actual'] || producto.stock || 0),
+            minStock: parseInt(producto['Stock mínimo'] || producto.minStock || 5),
+            isPromotion: (producto.isPromotion === 'true' || producto.isPromotion === true),
+            isFacturable: (producto.Facturable === 'true' || producto.isFacturable === 'true' || producto.isFacturable === true),
+            promotionPrice: producto['Precio de promoción'] ? parseFloat(producto['Precio de promoción']) : null,
+            categoryId: finalCategoryId,
+            tags: [],
+            image_url: [],
+            specificAttributes: null,
+            isActive: true
+        };
+
+        // Crear el producto
+        await Product.create(productData, { transaction });
+        creados++;
+
+        if (creados % 25 === 0) {
+            console.log(`📈 Progreso: ${creados} productos creados...`);
+        }
+
+    } catch (error) {
+        errores++;
+        // Log mejorado: muestra el índice, el SKU, el nombre, la categoría, subcategoría y el motivo exacto
+        console.error(`❌ Error procesando producto ${i + index + 1}: ${error.message}`);
+        console.error(`   SKU: ${producto.sku || 'N/A'} | Nombre: ${producto.Name || producto.name || 'N/A'}`);
+        console.error(`   Categoría: ${producto.CATEGORIA || 'N/A'} | Subcategoría: ${producto.SUBCATEGORIA || 'N/A'}`);
+        console.error(`   Datos:`, JSON.stringify(producto, null, 2));
+        if (!finalCategoryId) {
+            console.error('   ⚠️ Motivo: No se encontró categoryId para este producto. Revisa los nombres de categoría/subcategoría.');
+        }
+    }
+}
         }
         
         // Confirmar transacción
