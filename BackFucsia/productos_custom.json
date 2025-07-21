@@ -1,7 +1,7 @@
 [
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00001",
     "Name": "AGUJA THUNDER 1P 0.30",
     "purchase price": 4331,
@@ -266,7 +266,7 @@
   },
   {
     "CATEGORIA": "Cejas",
-    "SUBCATEGORIA": "depilacion",
+    "SUBCATEGORIA": "Depilacion",
     "sku": "F00021",
     "Name": "PALOS DE NARANJOX100",
     "purchase price": 3311,
@@ -1093,7 +1093,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00086",
     "Name": "0,16 16CF  AGUJA MICROBLADING SESGADA",
     "purchase price": 15000,
@@ -1198,7 +1198,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00094",
     "Name": "SHAMPOO DEZHMA 150ML",
     "purchase price": 20000,
@@ -1211,7 +1211,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00095",
     "Name": "SHAMPOO DEZHMA 55ML",
     "purchase price": 13000,
@@ -1224,7 +1224,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00096",
     "Name": "SHAMPOO PARA CEJAS Y PESTAÑAS 150ML",
     "purchase price": 10900,
@@ -1237,7 +1237,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00097",
     "Name": "SHAMPOO 50ML ",
     "purchase price": 10619,
@@ -1250,7 +1250,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00098",
     "Name": "SHAMPOO DQ 150ML ",
     "purchase price": 12619,
@@ -2950,7 +2950,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Micropigmentacion",
     "sku": "F00239",
     "Name": "VITAMINA A+ VITAMINA E ",
     "purchase price": 707,
@@ -2963,7 +2963,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Micropigmentacion",
     "sku": "F00240",
     "Name": "VITAMINA YODI E+B3",
     "purchase price": 903,
@@ -2989,7 +2989,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Anillos",
+    "SUBCATEGORIA": "Anillos-Pestañas",
     "sku": "F00242",
     "Name": "FLOR PARA ADHESIVO *50U",
     "purchase price": 3202,
@@ -3119,7 +3119,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Micropigmentacion",
     "sku": "F00254",
     "Name": "MANTEQUILLA HIDRATANTE X 20GR PROTÓN",
     "purchase price": 5477,
@@ -3132,7 +3132,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Micropigmentacion",
     "sku": "F00255",
     "Name": "MANTEQUILLA HIDRATANTE X 20GR CEREZA",
     "purchase price": 5477,
@@ -3145,7 +3145,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Micropigmentacion",
     "sku": "F00256",
     "Name": "EXFOLIANTE PARA CEJAS SANDIA",
     "purchase price": 14468,
@@ -3384,7 +3384,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Anillos",
+    "SUBCATEGORIA": "Anillos-Micropigmentacion",
     "sku": "F00274",
     "Name": "ANILLOS CON TAPA X100",
     "purchase price": 10000,
@@ -3397,7 +3397,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Anillos",
+    "SUBCATEGORIA": "Anillos-Micropigmentacion",
     "sku": "F00275",
     "Name": "ANILLO SILICONA X 100",
     "purchase price": 4703,
@@ -3411,6 +3411,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Anillos-Pestañas",
     "sku": "F00276",
     "Name": "ANILLOS SIN DIVISIÓN X100",
     "purchase price": 1751,
@@ -3423,6 +3424,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Anillos-Pestañas",
     "sku": "F00277",
     "Name": "ANILLOS CON DIVISIÓN X100",
     "purchase price": 1751,
@@ -3435,6 +3437,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Anillos-Pestañas",
     "sku": "F00278",
     "Name": "ANILLOS PARA ARMAR ABANICOS CORAZON X100",
     "purchase price": 5000,
@@ -3569,7 +3572,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00289",
     "Name": "AGUJA THUNDER 1P 0.25",
     "purchase price": 3060,
@@ -3582,7 +3585,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00290",
     "Name": "AGUJA THUNDER 1P RS 0.35",
     "purchase price": 3060,
@@ -3595,7 +3598,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00291",
     "Name": "AGUJA THUNDER 3RS 0.30",
     "purchase price": 3060,
@@ -3712,7 +3715,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00300",
     "Name": "AGUJA PERLA NEGRA 1RL 0.25 - 0.30",
     "purchase price": 2997,
@@ -3857,7 +3860,7 @@
   },
   {
     "CATEGORIA": "Piel",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Piel",
     "sku": "F00312",
     "Name": "AGUJA DERMAPEN NANO",
     "purchase price": 4000,
@@ -3870,7 +3873,7 @@
   },
   {
     "CATEGORIA": "Piel",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Piel",
     "sku": "F00313",
     "Name": "AGUJA DERMAPEN 12 PUNTAS",
     "purchase price": 4000,
@@ -3883,7 +3886,7 @@
   },
   {
     "CATEGORIA": "Piel",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Piel",
     "sku": "F00314",
     "Name": "AGUJA DERMAPEN 36 AGUJAS ",
     "purchase price": 3625,
@@ -3896,7 +3899,7 @@
   },
   {
     "CATEGORIA": "Piel",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Piel",
     "sku": "F00315",
     "Name": "AGUJA DERMAPEN 42 PUNTAS",
     "purchase price": 4000,
@@ -3922,7 +3925,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00317",
     "Name": "AGUJA CHARMANT 2 1RL",
     "purchase price": 4000,
@@ -3935,7 +3938,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00318",
     "Name": "AGUJA CHARMANT 1 1RL",
     "purchase price": 4000,
@@ -3948,7 +3951,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00319",
     "Name": "AGUJA CHARMANT 2 2 PUNTAS",
     "purchase price": 4000,
@@ -4052,7 +4055,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Pestañas",
     "sku": "F00327",
     "Name": "BOTOX DQ PARA CEJAS PESTAÑAS",
     "purchase price": 12619,
@@ -4144,7 +4147,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Pestañas",
     "sku": "F00334",
     "Name": "SERUM FORTALECEDOR DE PESTAÑAS DQ",
     "purchase price": 10619,
@@ -4248,7 +4251,7 @@
   },
   {
     "CATEGORIA": "Piel",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Piel",
     "sku": "F00342",
     "Name": "AGUA DE ROSAS 35ML",
     "purchase price": 2620,
@@ -4340,7 +4343,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Accesorios",
     "sku": "F00349",
     "Name": "PAÑITOS HUMEDOS SIN ALCOHOL ",
     "purchase price": 6800,
@@ -4482,7 +4485,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00360",
     "Name": "ORGANIZADOR DE PESTAÑAS",
     "purchase price": 24846,
@@ -4826,7 +4829,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "Accesorios-Micropigmentacion",
     "sku": "F00387",
     "Name": "SOPORTE DERMOGRAFO",
     "purchase price": 4971,
@@ -4839,7 +4842,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00388",
     "Name": "SOPORTE CINTA",
     "purchase price": 16000,
@@ -4880,7 +4883,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00391",
     "Name": "CARTILLA COLORIMETRIA",
     "purchase price": 6200,
@@ -4893,7 +4896,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00392",
     "Name": "HIGROMETRO",
     "purchase price": 16193,
@@ -4946,7 +4949,7 @@
   },
   {
     "CATEGORIA": "Piel",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Piel",
     "sku": "F00396",
     "Name": "GEL ALOE VERA Y COCO",
     "purchase price": 13146,
@@ -4999,7 +5002,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00400",
     "Name": "PADS LIMPIADORES DE ADHESIVO X 200",
     "purchase price": 4000,
@@ -5012,7 +5015,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Accesorios",
     "sku": "F00401",
     "Name": "DISPENSADOR AGUA 150ML TRANSPARENTE",
     "purchase price": 2600,
@@ -5025,7 +5028,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Accesorios",
     "sku": "F00402",
     "Name": "DISPENSADOR AGUA NEGRO 250 ML ",
     "purchase price": 3200,
@@ -5038,7 +5041,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00403",
     "Name": "0,25 17CF  AGUJA MICROBLADING SESGADA",
     "purchase price": 1500,
@@ -5051,7 +5054,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Accesorios",
     "sku": "F00404",
     "Name": "DISPENSADOR AGUA 250ML TRANSPARENTE",
     "purchase price": 3200,
@@ -5064,7 +5067,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Accesorios",
     "sku": "F00405",
     "Name": "DISPENSADOR AGUA ROSADO 250ML",
     "purchase price": 2905,
@@ -5077,7 +5080,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Accesorios",
     "sku": "F00406",
     "Name": "DISPENSADOR AGUA TRANSPARENTE 500 ML",
     "purchase price": 3243,
@@ -5572,7 +5575,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Pestañas",
     "sku": "F00447",
     "Name": "PULUK TOXTOX LASH VITAL",
     "purchase price": 18182,
@@ -5585,7 +5588,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Pestañas",
     "sku": "F00448",
     "Name": "PULUK TOXTOX LASH VOLUMEN",
     "purchase price": 18200,
@@ -5598,7 +5601,7 @@
   },
   {
     "CATEGORIA": "Piel",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Piel",
     "sku": "F00450",
     "Name": "MANTEQUILLA DE COCO 100G ",
     "purchase price": 19500,
@@ -5932,7 +5935,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Labios",
+    "SUBCATEGORIA": "Labios-Micropigmentacion",
     "sku": "F00477",
     "Name": "PINCEL DOBLE PARA LABIOS ",
     "purchase price": 12300,
@@ -5958,7 +5961,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00479",
     "Name": "ACRILICO TRASPARENTE CON TAPA ",
     "purchase price": 13000,
@@ -5971,7 +5974,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00480",
     "Name": "BANDA SILICONA DE PESTAÑAS ",
     "purchase price": 3300,
@@ -5997,7 +6000,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00482",
     "Name": "SET MASCARILLA X5 PIEZAS ",
     "purchase price": 9300,
@@ -6036,7 +6039,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Accesorios",
     "sku": "F00485",
     "Name": "GLUTARALDEIDO 250ML",
     "purchase price": 4300,
@@ -6254,7 +6257,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00503",
     "Name": "AGUJA MAST OCEAN 0.30",
     "purchase price": 3400,
@@ -6267,7 +6270,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00504",
     "Name": "AGUJA MAST OCEAN 0.35",
     "purchase price": 3400,
@@ -6280,7 +6283,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00505",
     "Name": "AGUJA MAST OCEAN 0.40",
     "purchase price": 3400,
@@ -6348,7 +6351,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00510",
     "Name": "AGUJA THUNDER 1P R 0.35",
     "purchase price": 3060,
@@ -6361,7 +6364,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00511",
     "Name": "AGUJA THUNDER 3RL 0.25",
     "purchase price": 3060,
@@ -6453,7 +6456,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Anillos",
+    "SUBCATEGORIA": "Anillo-Pestañass",
     "sku": "F00518",
     "Name": "ANILLOS PARA ARMAR ABANICOS FLOR X 100",
     "purchase price": 11000,
@@ -6492,7 +6495,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00521",
     "Name": "JABÓN ANTIBACTERIAL YODI 500ML",
     "purchase price": 25500,
@@ -6505,7 +6508,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00522",
     "Name": "ESPUMA LIMPIADORA 85ML YODI",
     "purchase price": 14500,
@@ -6518,7 +6521,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00523",
     "Name": "ESPUMA LIMPIADORA 200ML YODI",
     "purchase price": 25500,
@@ -6556,7 +6559,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Anillos",
+    "SUBCATEGORIA": "Anillo-Pestañass",
     "sku": "F00526",
     "Name": "ANILLOS CON DIVISIÓN Y SIN DIVISION X50",
     "purchase price": 2000,
@@ -6686,7 +6689,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00536",
     "Name": "DIADEMA CON VELCRO",
     "purchase price": 5000,
@@ -6763,7 +6766,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00543",
     "Name": "ORGANIZADOR PEQUEÑO CON TAPA MADERA",
     "purchase price": 8000,
@@ -6848,7 +6851,7 @@
   },
   {
     "CATEGORIA": "Organización",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Varios",
     "sku": "F00542",
     "Name": "ACRILICO ORGANIZADOR CON 3 DIVISIONES ",
     "purchase price": 20000,
@@ -6861,7 +6864,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "Name": "PALETA PARA FOTOS PERSONALIZADA",
     "purchase price": 45000,
     "price": 70000,
@@ -6870,7 +6873,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00546",
     "Name": "AGUJA PERLA NEGRA 3RL 0.25 - 0.30",
     "purchase price": 2997,
@@ -6921,4 +6924,5 @@
     "Facturable": "true",
     "isPromotion": "false"
   }
-]
+]  
+
