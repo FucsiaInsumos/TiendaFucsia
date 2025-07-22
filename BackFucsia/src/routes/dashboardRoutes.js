@@ -13,7 +13,10 @@ const {
 } = require('../controllers/Dashboard/dashboardController');
 
 // Todas las rutas requieren autenticación
+
 router.use(verifyToken);
+
+
 router.use(byRol);
 
 // Estadísticas generales

@@ -461,6 +461,13 @@ const Dashboard = () => {
                         <span className="mr-3">🏪</span>
                         Punto de Venta
                       </Link>
+                       <Link
+                        to="/calculadora-precios"
+                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-200"
+                      >
+                        <span className="mr-3">🧮</span>
+                        Calculadora de Precios
+                      </Link>
                       <Link
                         to="/ordenes"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
