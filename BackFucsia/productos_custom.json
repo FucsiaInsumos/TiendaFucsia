@@ -504,6 +504,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00039",
     "Name": "0.15D MIX MARRON NAGARAKU",
     "purchase price": 15000,
@@ -1544,6 +1545,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00120",
     "Name": "0.03D 9MM  NAGARAKU",
     "purchase price": 10500,
@@ -1556,6 +1558,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00121",
     "Name": "0.03D 10MM  NAGARAKU",
     "purchase price": 10500,
@@ -1568,6 +1571,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00122",
     "Name": "0.03D 11MM  NAGARAKU",
     "purchase price": 10500,
@@ -1580,6 +1584,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00123",
     "Name": "0.03D 12MM  NAGARAKU",
     "purchase price": 10500,
@@ -1592,6 +1597,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00124",
     "Name": "0.03D 13MM  NAGARAKU",
     "purchase price": 15348,
@@ -1604,6 +1610,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00125",
     "Name": "0.03D 14MM  NAGARAKU",
     "purchase price": 10500,
@@ -1616,6 +1623,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00126",
     "Name": "0.03D 15MM  NAGARAKU",
     "purchase price": 10500,
@@ -1628,6 +1636,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00127",
     "Name": "0.05D 9MM NAGARAKU ",
     "purchase price": 11445,
@@ -1640,6 +1649,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00128",
     "Name": "0.05D 10MM NAGARAKU ",
     "purchase price": 9811,
@@ -1652,6 +1662,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00129",
     "Name": "0.05D 11MM NAGARAKU",
     "purchase price": 9058,
@@ -1664,6 +1675,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00130",
     "Name": "0.05D 12MM NAGARAKU ",
     "purchase price": 10254,
@@ -1676,6 +1688,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00131",
     "Name": "0.05D 13MM NAGARAKU ",
     "purchase price": 9080,
@@ -1688,6 +1701,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00132",
     "Name": "0.05D 14MM NAGARAKU ",
     "purchase price": 11102,
@@ -1700,6 +1714,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00134",
     "Name": "0.07D 8MM NAGARAKU ",
     "purchase price": 9574,
@@ -1712,6 +1727,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00135",
     "Name": "0.07D 9MM NAGARAKU ",
     "purchase price": 9136,
@@ -1724,6 +1740,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00136",
     "Name": "0.07D 10MM NAGARAKU ",
     "purchase price": 9682,
@@ -1736,6 +1753,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00137",
     "Name": "0.07D 11MM NAGARAKU ",
     "purchase price": 10500,
@@ -1748,6 +1766,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00138",
     "Name": "0.07D 12MM NAGARAKU ",
     "purchase price": 9682,
@@ -1760,6 +1779,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00139",
     "Name": "0.07D 13MM NAGARAKU ",
     "purchase price": 10500,
@@ -1772,6 +1792,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00140",
     "Name": "0.07D 14MM NAGARAKU ",
     "purchase price": 9682,
@@ -1784,6 +1805,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00141",
     "Name": "0.07D 15MM NAGARAKU ",
     "purchase price": 9656,
@@ -1796,6 +1818,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00143",
     "Name": "0.10D 9MM  NAGARAKU",
     "purchase price": 7946,
@@ -1808,6 +1831,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00144",
     "Name": "0.10D 10MM  NAGARAKU",
     "purchase price": 7946,
@@ -1820,6 +1844,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00145",
     "Name": "0.10D 11MM  NAGARAKU",
     "purchase price": 7946,
@@ -1832,6 +1857,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00146",
     "Name": "0.10D 12MM  NAGARAKU",
     "purchase price": 8005,
@@ -1844,6 +1870,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00147",
     "Name": "0.10D 13MM  NAGARAKU",
     "purchase price": 8005,
@@ -1856,6 +1883,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00148",
     "Name": "0.10D 14MM  NAGARAKU",
     "purchase price": 8005,
@@ -1868,6 +1896,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00149",
     "Name": "0.10D 15MM  NAGARAKU",
     "purchase price": 8005,
@@ -1880,6 +1909,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00150",
     "Name": "0.15D 9MM NAGARAKU ",
     "purchase price": 8941,
@@ -1892,6 +1922,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00151",
     "Name": "0.15D 10MM NAGARAKU ",
     "purchase price": 10056,
@@ -1904,6 +1935,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00152",
     "Name": "0.15D 11MM NAGARAKU ",
     "purchase price": 8282,
@@ -1916,6 +1948,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00153",
     "Name": "0.15D 12MM NAGARAKU ",
     "purchase price": 10500,
@@ -1928,6 +1961,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00154",
     "Name": "0.15D 13MM NAGARAKU ",
     "purchase price": 10000,
@@ -1940,6 +1974,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00155",
     "Name": "0.15D 14MM NAGARAKU ",
     "purchase price": 10228,
@@ -1952,6 +1987,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00156",
     "Name": "0.15D 15MM NAGARAKU ",
     "purchase price": 9509,
@@ -1964,6 +2000,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00157",
     "Name": "0.20D 9MM  NAGARAKU",
     "purchase price": 8005,
@@ -1976,6 +2013,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00158",
     "Name": "0.20D 10MM  NAGARAKU",
     "purchase price": 8005,
@@ -1988,6 +2026,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00159",
     "Name": "0.20D 11MM  NAGARAKU",
     "purchase price": 8005,
@@ -2000,6 +2039,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00160",
     "Name": "0.20D 12MM  NAGARAKU",
     "purchase price": 8282,
@@ -2012,6 +2052,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00161",
     "Name": "0.20D 13MM  NAGARAKU",
     "purchase price": 8005,
@@ -2024,6 +2065,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00162",
     "Name": "0.20D 14MM  NAGARAKU",
     "purchase price": 8281,
@@ -2036,6 +2078,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00163",
     "Name": "0.20D 15MM  NAGARAKU",
     "purchase price": 8281,
@@ -2048,6 +2091,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00164",
     "Name": "0.07D Y 8MM NAGARAKU",
     "purchase price": 16698,
@@ -2060,6 +2104,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00165",
     "Name": "0.07D Y 9MM NAGARAKU",
     "purchase price": 15939,
@@ -2072,6 +2117,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00166",
     "Name": "0.07D Y 10MM NAGARAKU",
     "purchase price": 18181,
@@ -2084,6 +2130,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00167",
     "Name": " 0.07D Y 11MM NAGARAKU",
     "purchase price": 12297,
@@ -2096,6 +2143,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00168",
     "Name": "0.07D Y 12MM NAGARAKU ",
     "purchase price": 17867,
@@ -2108,6 +2156,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00169",
     "Name": "0.07D Y 13MM NAGARAKU",
     "purchase price": 14732,
@@ -2120,6 +2169,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00170",
     "Name": " 0.07D Y 14MM NAGARAKU",
     "purchase price": 15483,
@@ -2132,6 +2182,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00171",
     "Name": " 0.07D Y 15MM NAGARAKU",
     "purchase price": 17984,
@@ -2144,6 +2195,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00172",
     "Name": "0.07D W 3D 8MM NAGARAKU  ",
     "purchase price": 16811,
@@ -2156,6 +2208,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00173",
     "Name": "0.07D W 3D 9MM NAGARAKU ",
     "purchase price": 26500,
@@ -2168,6 +2221,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00174",
     "Name": "0.07D W 3D  10MM NAGARAKU ",
     "purchase price": 22500,
@@ -2180,6 +2234,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00175",
     "Name": "0.07D W 3D 11MM NAGARAKU ",
     "purchase price": 22047,
@@ -2192,6 +2247,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00176",
     "Name": "0.07D W 3D 12MM NAGARAKU ",
     "purchase price": 22123,
@@ -2204,6 +2260,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00177",
     "Name": "0.07D W 3D 13MM NAGARAKU ",
     "purchase price": 23473,
@@ -2216,6 +2273,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00178",
     "Name": "0.07D W 3D  14MM NAGARAKU ",
     "purchase price": 24547,
@@ -2228,6 +2286,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00179",
     "Name": "0.07D W 3D  15MM NAGARAKU ",
     "purchase price": 25000,
@@ -2240,6 +2299,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00180",
     "Name": "0.07D W 4D 9MM NAGARAKU",
     "purchase price": 27030,
@@ -2252,6 +2312,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00181",
     "Name": "0.07D W 4D 10MM NAGARAKU",
     "purchase price": 24200,
@@ -2264,6 +2325,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00182",
     "Name": "0.07D W 4D 11MM NAGARAKU",
     "purchase price": 24200,
@@ -2276,6 +2338,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00183",
     "Name": "0.07D W 4D 12MM NAGARAKU",
     "purchase price": 24200,
@@ -2288,6 +2351,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00184",
     "Name": "0.07D W 4D 13MM NAGARAKU",
     "purchase price": 24200,
@@ -2300,6 +2364,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00185",
     "Name": "0.07D W 4D 14MM NAGARAKU",
     "purchase price": 24200,
@@ -2312,6 +2377,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00186",
     "Name": "0.07D W 4D 15MM NAGARAKU",
     "purchase price": 24200,
@@ -2324,6 +2390,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00187",
     "Name": "0.07D W 5D 9MM NAGARAKU",
     "purchase price": 29500,
@@ -2336,6 +2403,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00188",
     "Name": "0.07D W 5D 10MM NAGARAKU",
     "purchase price": 29500,
@@ -2348,6 +2416,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00189",
     "Name": "0.07D W 5D 11MM NAGARAKU",
     "purchase price": 29500,
@@ -2360,6 +2429,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00190",
     "Name": "0.07D W 5D 12MM NAGARAKU",
     "purchase price": 29500,
@@ -2372,6 +2442,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00191",
     "Name": "0.07D W 5D 13MM NAGARAKU",
     "purchase price": 29500,
@@ -2384,6 +2455,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00192",
     "Name": "0.07D W 6D 9MM NAGARAKU",
     "purchase price": 26830,
@@ -2396,6 +2468,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00193",
     "Name": "0.07D W 6D 10MM NAGARAKU",
     "purchase price": 26645,
@@ -2408,6 +2481,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00194",
     "Name": "0.07D W 6D 11MM NAGARAKU",
     "purchase price": 32184,
@@ -2420,6 +2494,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00195",
     "Name": "0.07D W 6D 12MM NAGARAKU",
     "purchase price": 29682,
@@ -2432,6 +2507,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00196",
     "Name": "0.07D W 6D 13MM NAGARAKU",
     "purchase price": 29789,
@@ -2444,6 +2520,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00197",
     "Name": "0.07D W 6D 14MM NAGARAKU",
     "purchase price": 29636,
@@ -2456,6 +2533,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00198",
     "Name": "0.07D W 7D 13MM NAGARAKU",
     "purchase price": 43921,
@@ -2494,6 +2572,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00201",
     "Name": "PESTAÑAS AUTOFLORACION",
     "purchase price": 19001,
@@ -2506,6 +2585,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00202",
     "Name": "0.07D MIX NAGARAKU 16-20MM",
     "purchase price": 15842,
@@ -2518,6 +2598,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00203",
     "Name": "0.07C MIX NAGARAKU ",
     "purchase price": 10500,
@@ -2530,6 +2611,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00204",
     "Name": "0.15C MIX NAGARAKU ",
     "purchase price": 10000,
@@ -2542,6 +2624,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00205",
     "Name": "0.20C MIX NAGARAKU ",
     "purchase price": 10179,
@@ -2554,6 +2637,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00206",
     "Name": "0.03D MIX NAGARAKU ",
     "purchase price": 9046,
@@ -2566,6 +2650,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00207",
     "Name": "0.05D MIX NAGARAKU ",
     "purchase price": 14467,
@@ -2578,6 +2663,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00208",
     "Name": "0.07D MIX NAGARAKU 7-15MM",
     "purchase price": 10500,
@@ -2590,6 +2676,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00209",
     "Name": "0.10D MIX NAGARAKU",
     "purchase price": 10000,
@@ -2602,6 +2689,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00210",
     "Name": "0.15D MIX NAGARAKU ",
     "purchase price": 11500,
@@ -2614,6 +2702,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00211",
     "Name": "0.20D MIX NAGARAKU",
     "purchase price": 8728,
@@ -2626,6 +2715,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00212",
     "Name": "0.10D MIX AZUL NAGARAKU",
     "purchase price": 5240,
@@ -2638,6 +2728,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00213",
     "Name": "STAR 0.12 D MIX",
     "purchase price": 10925,
@@ -2651,6 +2742,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00214",
     "Name": "STAR 0.20 D MIX",
     "purchase price": 10088,
@@ -2664,6 +2756,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00215",
     "Name": "NAGARAKU 0.15L MIX 8-15MM",
     "purchase price": 23388,
@@ -2676,6 +2769,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00216",
     "Name": "0.15D LC NAGARAKU MIX 7- 15 MM ",
     "purchase price": 13181,
@@ -2689,6 +2783,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00217",
     "Name": "0.07D W 3D MIX 8-15 NAGARAKU",
     "purchase price": 23000,
@@ -2701,6 +2796,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00218",
     "Name": "0.07D W 4D MIX ",
     "purchase price": 26490,
@@ -2713,6 +2809,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00219",
     "Name": "0.07D W 5D MIX ",
     "purchase price": 34000,
@@ -2725,6 +2822,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00220",
     "Name": "0.07D W 6D MIX ",
     "purchase price": 31170,
@@ -2737,6 +2835,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00221",
     "Name": "0.07D 12MM NAGARAKU COLOR",
     "purchase price": 9328,
@@ -2749,6 +2848,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00222",
     "Name": "MARRON 0.07D Y MIX 8-14",
     "purchase price": 20000,
@@ -2761,6 +2861,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00223",
     "Name": "MARRON 0.07D W 3D MIX 8-14",
     "purchase price": 25000,
@@ -2773,6 +2874,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00224",
     "Name": "0.07D Y MIX 8-15 NAGARAKU",
     "purchase price": 19000,
@@ -2785,6 +2887,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00225",
     "Name": "DEZHMA MIX Y",
     "purchase price": 30000,
@@ -2797,6 +2900,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00226",
     "Name": "DEZHMA MIX 3D ",
     "purchase price": 30000,
@@ -2809,6 +2913,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00227",
     "Name": "DEZHMA MIX 4D ",
     "purchase price": 35000,
@@ -2821,6 +2926,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00228",
     "Name": "DEZHMA MIX 5D ",
     "purchase price": 38000,
@@ -2833,6 +2939,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00229",
     "Name": "PESTAÑAS CON APLIQUE DE MARIPOSA ",
     "purchase price": 17762,
@@ -2871,6 +2978,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00233",
     "Name": "PESTAÑAS PUNTO CLUSTER CLÁSICA 68",
     "purchase price": 13259,
@@ -2884,6 +2992,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00234",
     "Name": "PESTAÑAS PUNTO CLUSTER VOLUMEN 66",
     "purchase price": 13259,
@@ -3411,7 +3520,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Anillos-Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00276",
     "Name": "ANILLOS SIN DIVISIÓN X100",
     "purchase price": 1751,
@@ -3424,7 +3533,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Anillos-Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00277",
     "Name": "ANILLOS CON DIVISIÓN X100",
     "purchase price": 1751,
@@ -4382,6 +4491,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00352",
     "Name": "PESTAÑAS TIRA ATENEA",
     "purchase price": 7821,
@@ -5858,6 +5968,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00471",
     "Name": "NAGARAKU ANIME ESPIGA MIX/13MM",
     "purchase price": 17000,
@@ -6065,6 +6176,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00487",
     "Name": "0.07D W 5D 14MM NAGARAKU",
     "purchase price": 28300,
@@ -6077,6 +6189,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00488",
     "Name": "DEZHMA 3D CLOVER 9MM ",
     "purchase price": 30000,
@@ -6089,6 +6202,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00489",
     "Name": "DEZHMA 3D CLOVER 10MM ",
     "purchase price": 30000,
@@ -6101,6 +6215,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00490",
     "Name": "DEZHMA 3D CLOVER 11MM ",
     "purchase price": 30000,
@@ -6113,6 +6228,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00491",
     "Name": "DEZHMA 3D CLOVER 12MM ",
     "purchase price": 30000,
@@ -6125,6 +6241,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00492",
     "Name": "DEZHMA 3D CLOVER 13MM ",
     "purchase price": 30000,
@@ -6137,6 +6254,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00493",
     "Name": "DEZHMA 4D CLOVER 9MM ",
     "purchase price": 35000,
@@ -6149,6 +6267,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00494",
     "Name": "DEZHMA 4D CLOVER 10MM ",
     "purchase price": 35000,
@@ -6161,6 +6280,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00495",
     "Name": "DEZHMA 4D CLOVER 11MM ",
     "purchase price": 35000,
@@ -6173,6 +6293,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00496",
     "Name": "DEZHMA 4D CLOVER 12MM ",
     "purchase price": 35000,
@@ -6185,6 +6306,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00497",
     "Name": "DEZHMA 4D CLOVER 13MM ",
     "purchase price": 35000,
@@ -6197,6 +6319,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00498",
     "Name": "DEZHMA 5D CLOVER 9MM ",
     "purchase price": 38000,
@@ -6209,6 +6332,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00499",
     "Name": "DEZHMA 5D CLOVER 10MM ",
     "purchase price": 38000,
@@ -6221,6 +6345,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00500",
     "Name": "DEZHMA 5D CLOVER 11MM ",
     "purchase price": 38000,
@@ -6233,6 +6358,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00501",
     "Name": "DEZHMA 5D CLOVER 12MM ",
     "purchase price": 38000,
@@ -6245,6 +6371,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00502",
     "Name": "DEZHMA 5D CLOVER 13MM ",
     "purchase price": 38000,
