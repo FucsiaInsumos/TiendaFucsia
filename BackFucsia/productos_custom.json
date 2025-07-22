@@ -1,7 +1,7 @@
 [
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00001",
     "Name": "AGUJA THUNDER 1P 0.30",
     "purchase price": 4331,
@@ -44,7 +44,7 @@
     "CATEGORIA": "Cejas",
     "SUBCATEGORIA": "Henna",
     "sku": "F00004",
-    "Name": " HENNA MENELA CASTAÑO MEDIO",
+    "Name": "HENNA MENELA CASTAÑO MEDIO",
     "purchase price": 49266,
     "price": 63000,
     "distributorPrice": 56700,
@@ -84,7 +84,7 @@
     "CATEGORIA": "Cejas",
     "SUBCATEGORIA": "Henna",
     "sku": "F00007",
-    "Name": "HENNA MENELA CASTAÑO OSCURO",
+    "Name":"HENNA MENELA CASTAÑO OSCURO",
     "purchase price": 52182,
     "price": 63000,
     "distributorPrice": 56700,
@@ -97,7 +97,7 @@
     "CATEGORIA": "Pestañas",
     "SUBCATEGORIA": "Cintas",
     "sku": "F00008",
-    "Name": "CINTA TRANSPORE DE COLORES",
+    "Name":"CINTA TRANSPORE DE COLORES",
     "purchase price": 1686,
     "price": 4500,
     "distributorPrice": 4050,
@@ -175,7 +175,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00014",
     "Name": "BROCHA BLANCA",
     "purchase price": 2488,
@@ -188,7 +188,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00015",
     "Name": "BROCHA ROSADA ",
     "purchase price": 2699,
@@ -201,7 +201,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00016",
     "Name": "BROCHA DE LUJO",
     "purchase price": 2782,
@@ -214,7 +214,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00017",
     "Name": "BROCHA ROSADA PESTAÑAS",
     "purchase price": 3000,
@@ -253,7 +253,7 @@
   },
   {
     "CATEGORIA": "Cejas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Cejas",
     "sku": "F00020",
     "Name": "VERNIER PEQUEÑO",
     "purchase price": 3082,
@@ -266,7 +266,7 @@
   },
   {
     "CATEGORIA": "Cejas",
-    "SUBCATEGORIA": "depilacion",
+    "SUBCATEGORIA": "Depilacion",
     "sku": "F00021",
     "Name": "PALOS DE NARANJOX100",
     "purchase price": 3311,
@@ -293,7 +293,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00023",
     "Name": "PIEDRA JADE PARA ADHESIVO",
     "purchase price": 3526,
@@ -306,7 +306,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00024",
     "Name": "MANILLA SOPORTE DE PESTAÑAS",
     "purchase price": 4333,
@@ -426,7 +426,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00033",
     "Name": "BROCHA CAFE",
     "purchase price": 3000,
@@ -504,6 +504,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00039",
     "Name": "0.15D MIX MARRON NAGARAKU",
     "purchase price": 15000,
@@ -542,7 +543,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00042",
     "Name": "MANILLA PARA PINZAS",
     "purchase price": 9595,
@@ -555,7 +556,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00043",
     "Name": "ORGANIZADOR DE PINZAS CUADRADO",
     "purchase price": 19043,
@@ -568,7 +569,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00044",
     "Name": "ORGANIZADOR PINZAS",
     "purchase price": 10500,
@@ -1093,7 +1094,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00086",
     "Name": "0,16 16CF  AGUJA MICROBLADING SESGADA",
     "purchase price": 15000,
@@ -1185,7 +1186,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00093",
     "Name": "FUNDA PARA ALMOHADA COLORES SURTIDOS",
     "purchase price": 36500,
@@ -1198,7 +1199,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00094",
     "Name": "SHAMPOO DEZHMA 150ML",
     "purchase price": 20000,
@@ -1211,7 +1212,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00095",
     "Name": "SHAMPOO DEZHMA 55ML",
     "purchase price": 13000,
@@ -1224,7 +1225,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00096",
     "Name": "SHAMPOO PARA CEJAS Y PESTAÑAS 150ML",
     "purchase price": 10900,
@@ -1237,7 +1238,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00097",
     "Name": "SHAMPOO 50ML ",
     "purchase price": 10619,
@@ -1250,7 +1251,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00098",
     "Name": "SHAMPOO DQ 150ML ",
     "purchase price": 12619,
@@ -1276,7 +1277,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00100",
     "Name": "CEPILLO CON ESTUCHE VARIADO",
     "purchase price": 1043,
@@ -1544,6 +1545,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00120",
     "Name": "0.03D 9MM  NAGARAKU",
     "purchase price": 10500,
@@ -1556,6 +1558,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00121",
     "Name": "0.03D 10MM  NAGARAKU",
     "purchase price": 10500,
@@ -1568,6 +1571,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00122",
     "Name": "0.03D 11MM  NAGARAKU",
     "purchase price": 10500,
@@ -1580,6 +1584,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00123",
     "Name": "0.03D 12MM  NAGARAKU",
     "purchase price": 10500,
@@ -1592,6 +1597,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00124",
     "Name": "0.03D 13MM  NAGARAKU",
     "purchase price": 15348,
@@ -1604,6 +1610,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00125",
     "Name": "0.03D 14MM  NAGARAKU",
     "purchase price": 10500,
@@ -1616,6 +1623,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00126",
     "Name": "0.03D 15MM  NAGARAKU",
     "purchase price": 10500,
@@ -1628,6 +1636,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00127",
     "Name": "0.05D 9MM NAGARAKU ",
     "purchase price": 11445,
@@ -1640,6 +1649,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00128",
     "Name": "0.05D 10MM NAGARAKU ",
     "purchase price": 9811,
@@ -1652,6 +1662,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00129",
     "Name": "0.05D 11MM NAGARAKU",
     "purchase price": 9058,
@@ -1664,6 +1675,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00130",
     "Name": "0.05D 12MM NAGARAKU ",
     "purchase price": 10254,
@@ -1676,6 +1688,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00131",
     "Name": "0.05D 13MM NAGARAKU ",
     "purchase price": 9080,
@@ -1688,6 +1701,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00132",
     "Name": "0.05D 14MM NAGARAKU ",
     "purchase price": 11102,
@@ -1700,6 +1714,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00134",
     "Name": "0.07D 8MM NAGARAKU ",
     "purchase price": 9574,
@@ -1712,6 +1727,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00135",
     "Name": "0.07D 9MM NAGARAKU ",
     "purchase price": 9136,
@@ -1724,6 +1740,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00136",
     "Name": "0.07D 10MM NAGARAKU ",
     "purchase price": 9682,
@@ -1736,6 +1753,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00137",
     "Name": "0.07D 11MM NAGARAKU ",
     "purchase price": 10500,
@@ -1748,6 +1766,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00138",
     "Name": "0.07D 12MM NAGARAKU ",
     "purchase price": 9682,
@@ -1760,6 +1779,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00139",
     "Name": "0.07D 13MM NAGARAKU ",
     "purchase price": 10500,
@@ -1772,6 +1792,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00140",
     "Name": "0.07D 14MM NAGARAKU ",
     "purchase price": 9682,
@@ -1784,6 +1805,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00141",
     "Name": "0.07D 15MM NAGARAKU ",
     "purchase price": 9656,
@@ -1796,6 +1818,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00143",
     "Name": "0.10D 9MM  NAGARAKU",
     "purchase price": 7946,
@@ -1808,6 +1831,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00144",
     "Name": "0.10D 10MM  NAGARAKU",
     "purchase price": 7946,
@@ -1820,6 +1844,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00145",
     "Name": "0.10D 11MM  NAGARAKU",
     "purchase price": 7946,
@@ -1832,6 +1857,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00146",
     "Name": "0.10D 12MM  NAGARAKU",
     "purchase price": 8005,
@@ -1844,6 +1870,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00147",
     "Name": "0.10D 13MM  NAGARAKU",
     "purchase price": 8005,
@@ -1856,6 +1883,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00148",
     "Name": "0.10D 14MM  NAGARAKU",
     "purchase price": 8005,
@@ -1868,6 +1896,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00149",
     "Name": "0.10D 15MM  NAGARAKU",
     "purchase price": 8005,
@@ -1880,6 +1909,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00150",
     "Name": "0.15D 9MM NAGARAKU ",
     "purchase price": 8941,
@@ -1892,6 +1922,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00151",
     "Name": "0.15D 10MM NAGARAKU ",
     "purchase price": 10056,
@@ -1904,6 +1935,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00152",
     "Name": "0.15D 11MM NAGARAKU ",
     "purchase price": 8282,
@@ -1916,6 +1948,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00153",
     "Name": "0.15D 12MM NAGARAKU ",
     "purchase price": 10500,
@@ -1928,6 +1961,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00154",
     "Name": "0.15D 13MM NAGARAKU ",
     "purchase price": 10000,
@@ -1940,6 +1974,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00155",
     "Name": "0.15D 14MM NAGARAKU ",
     "purchase price": 10228,
@@ -1952,6 +1987,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00156",
     "Name": "0.15D 15MM NAGARAKU ",
     "purchase price": 9509,
@@ -1964,6 +2000,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00157",
     "Name": "0.20D 9MM  NAGARAKU",
     "purchase price": 8005,
@@ -1976,6 +2013,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00158",
     "Name": "0.20D 10MM  NAGARAKU",
     "purchase price": 8005,
@@ -1988,6 +2026,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00159",
     "Name": "0.20D 11MM  NAGARAKU",
     "purchase price": 8005,
@@ -2000,6 +2039,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00160",
     "Name": "0.20D 12MM  NAGARAKU",
     "purchase price": 8282,
@@ -2012,6 +2052,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00161",
     "Name": "0.20D 13MM  NAGARAKU",
     "purchase price": 8005,
@@ -2024,6 +2065,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00162",
     "Name": "0.20D 14MM  NAGARAKU",
     "purchase price": 8281,
@@ -2036,6 +2078,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00163",
     "Name": "0.20D 15MM  NAGARAKU",
     "purchase price": 8281,
@@ -2048,6 +2091,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00164",
     "Name": "0.07D Y 8MM NAGARAKU",
     "purchase price": 16698,
@@ -2060,6 +2104,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00165",
     "Name": "0.07D Y 9MM NAGARAKU",
     "purchase price": 15939,
@@ -2072,6 +2117,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00166",
     "Name": "0.07D Y 10MM NAGARAKU",
     "purchase price": 18181,
@@ -2084,6 +2130,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00167",
     "Name": " 0.07D Y 11MM NAGARAKU",
     "purchase price": 12297,
@@ -2096,6 +2143,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00168",
     "Name": "0.07D Y 12MM NAGARAKU ",
     "purchase price": 17867,
@@ -2108,6 +2156,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00169",
     "Name": "0.07D Y 13MM NAGARAKU",
     "purchase price": 14732,
@@ -2120,6 +2169,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00170",
     "Name": " 0.07D Y 14MM NAGARAKU",
     "purchase price": 15483,
@@ -2132,6 +2182,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00171",
     "Name": " 0.07D Y 15MM NAGARAKU",
     "purchase price": 17984,
@@ -2144,6 +2195,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00172",
     "Name": "0.07D W 3D 8MM NAGARAKU  ",
     "purchase price": 16811,
@@ -2156,6 +2208,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00173",
     "Name": "0.07D W 3D 9MM NAGARAKU ",
     "purchase price": 26500,
@@ -2168,6 +2221,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00174",
     "Name": "0.07D W 3D  10MM NAGARAKU ",
     "purchase price": 22500,
@@ -2180,6 +2234,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00175",
     "Name": "0.07D W 3D 11MM NAGARAKU ",
     "purchase price": 22047,
@@ -2192,6 +2247,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00176",
     "Name": "0.07D W 3D 12MM NAGARAKU ",
     "purchase price": 22123,
@@ -2204,6 +2260,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00177",
     "Name": "0.07D W 3D 13MM NAGARAKU ",
     "purchase price": 23473,
@@ -2216,6 +2273,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00178",
     "Name": "0.07D W 3D  14MM NAGARAKU ",
     "purchase price": 24547,
@@ -2228,6 +2286,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00179",
     "Name": "0.07D W 3D  15MM NAGARAKU ",
     "purchase price": 25000,
@@ -2240,6 +2299,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00180",
     "Name": "0.07D W 4D 9MM NAGARAKU",
     "purchase price": 27030,
@@ -2252,6 +2312,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00181",
     "Name": "0.07D W 4D 10MM NAGARAKU",
     "purchase price": 24200,
@@ -2264,6 +2325,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00182",
     "Name": "0.07D W 4D 11MM NAGARAKU",
     "purchase price": 24200,
@@ -2276,6 +2338,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00183",
     "Name": "0.07D W 4D 12MM NAGARAKU",
     "purchase price": 24200,
@@ -2288,6 +2351,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00184",
     "Name": "0.07D W 4D 13MM NAGARAKU",
     "purchase price": 24200,
@@ -2300,6 +2364,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00185",
     "Name": "0.07D W 4D 14MM NAGARAKU",
     "purchase price": 24200,
@@ -2312,6 +2377,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00186",
     "Name": "0.07D W 4D 15MM NAGARAKU",
     "purchase price": 24200,
@@ -2324,6 +2390,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00187",
     "Name": "0.07D W 5D 9MM NAGARAKU",
     "purchase price": 29500,
@@ -2336,6 +2403,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00188",
     "Name": "0.07D W 5D 10MM NAGARAKU",
     "purchase price": 29500,
@@ -2348,6 +2416,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00189",
     "Name": "0.07D W 5D 11MM NAGARAKU",
     "purchase price": 29500,
@@ -2360,6 +2429,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00190",
     "Name": "0.07D W 5D 12MM NAGARAKU",
     "purchase price": 29500,
@@ -2372,6 +2442,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00191",
     "Name": "0.07D W 5D 13MM NAGARAKU",
     "purchase price": 29500,
@@ -2384,6 +2455,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00192",
     "Name": "0.07D W 6D 9MM NAGARAKU",
     "purchase price": 26830,
@@ -2396,6 +2468,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00193",
     "Name": "0.07D W 6D 10MM NAGARAKU",
     "purchase price": 26645,
@@ -2408,6 +2481,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00194",
     "Name": "0.07D W 6D 11MM NAGARAKU",
     "purchase price": 32184,
@@ -2420,6 +2494,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00195",
     "Name": "0.07D W 6D 12MM NAGARAKU",
     "purchase price": 29682,
@@ -2432,6 +2507,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00196",
     "Name": "0.07D W 6D 13MM NAGARAKU",
     "purchase price": 29789,
@@ -2444,6 +2520,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00197",
     "Name": "0.07D W 6D 14MM NAGARAKU",
     "purchase price": 29636,
@@ -2456,6 +2533,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00198",
     "Name": "0.07D W 7D 13MM NAGARAKU",
     "purchase price": 43921,
@@ -2494,6 +2572,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00201",
     "Name": "PESTAÑAS AUTOFLORACION",
     "purchase price": 19001,
@@ -2506,6 +2585,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00202",
     "Name": "0.07D MIX NAGARAKU 16-20MM",
     "purchase price": 15842,
@@ -2518,6 +2598,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00203",
     "Name": "0.07C MIX NAGARAKU ",
     "purchase price": 10500,
@@ -2530,6 +2611,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00204",
     "Name": "0.15C MIX NAGARAKU ",
     "purchase price": 10000,
@@ -2542,6 +2624,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00205",
     "Name": "0.20C MIX NAGARAKU ",
     "purchase price": 10179,
@@ -2554,6 +2637,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00206",
     "Name": "0.03D MIX NAGARAKU ",
     "purchase price": 9046,
@@ -2566,6 +2650,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00207",
     "Name": "0.05D MIX NAGARAKU ",
     "purchase price": 14467,
@@ -2578,6 +2663,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00208",
     "Name": "0.07D MIX NAGARAKU 7-15MM",
     "purchase price": 10500,
@@ -2590,6 +2676,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00209",
     "Name": "0.10D MIX NAGARAKU",
     "purchase price": 10000,
@@ -2602,6 +2689,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00210",
     "Name": "0.15D MIX NAGARAKU ",
     "purchase price": 11500,
@@ -2614,6 +2702,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00211",
     "Name": "0.20D MIX NAGARAKU",
     "purchase price": 8728,
@@ -2626,6 +2715,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00212",
     "Name": "0.10D MIX AZUL NAGARAKU",
     "purchase price": 5240,
@@ -2638,6 +2728,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00213",
     "Name": "STAR 0.12 D MIX",
     "purchase price": 10925,
@@ -2651,6 +2742,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00214",
     "Name": "STAR 0.20 D MIX",
     "purchase price": 10088,
@@ -2664,6 +2756,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00215",
     "Name": "NAGARAKU 0.15L MIX 8-15MM",
     "purchase price": 23388,
@@ -2676,6 +2769,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00216",
     "Name": "0.15D LC NAGARAKU MIX 7- 15 MM ",
     "purchase price": 13181,
@@ -2689,6 +2783,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00217",
     "Name": "0.07D W 3D MIX 8-15 NAGARAKU",
     "purchase price": 23000,
@@ -2701,6 +2796,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00218",
     "Name": "0.07D W 4D MIX ",
     "purchase price": 26490,
@@ -2713,6 +2809,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00219",
     "Name": "0.07D W 5D MIX ",
     "purchase price": 34000,
@@ -2725,6 +2822,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00220",
     "Name": "0.07D W 6D MIX ",
     "purchase price": 31170,
@@ -2737,6 +2835,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00221",
     "Name": "0.07D 12MM NAGARAKU COLOR",
     "purchase price": 9328,
@@ -2749,6 +2848,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00222",
     "Name": "MARRON 0.07D Y MIX 8-14",
     "purchase price": 20000,
@@ -2761,6 +2861,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00223",
     "Name": "MARRON 0.07D W 3D MIX 8-14",
     "purchase price": 25000,
@@ -2773,6 +2874,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00224",
     "Name": "0.07D Y MIX 8-15 NAGARAKU",
     "purchase price": 19000,
@@ -2785,6 +2887,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00225",
     "Name": "DEZHMA MIX Y",
     "purchase price": 30000,
@@ -2797,6 +2900,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00226",
     "Name": "DEZHMA MIX 3D ",
     "purchase price": 30000,
@@ -2809,6 +2913,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00227",
     "Name": "DEZHMA MIX 4D ",
     "purchase price": 35000,
@@ -2821,6 +2926,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00228",
     "Name": "DEZHMA MIX 5D ",
     "purchase price": 38000,
@@ -2833,6 +2939,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00229",
     "Name": "PESTAÑAS CON APLIQUE DE MARIPOSA ",
     "purchase price": 17762,
@@ -2871,6 +2978,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00233",
     "Name": "PESTAÑAS PUNTO CLUSTER CLÁSICA 68",
     "purchase price": 13259,
@@ -2884,6 +2992,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00234",
     "Name": "PESTAÑAS PUNTO CLUSTER VOLUMEN 66",
     "purchase price": 13259,
@@ -2897,7 +3006,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00235",
     "Name": "ESPEJO RETROVISOR MARIPOSA",
     "purchase price": 14970,
@@ -2910,7 +3019,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00236",
     "Name": "ESPEJO CUADRADO RETROVISOR",
     "purchase price": 8305,
@@ -2924,7 +3033,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00237",
     "Name": "LUPA ESPEJO RETROVISOR CORAZON",
     "purchase price": 6646,
@@ -2937,7 +3046,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00238",
     "Name": "ESPEJO CORAZON BRILLOS RETROVISOR",
     "purchase price": 15114,
@@ -2950,7 +3059,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Micropigmentacion",
     "sku": "F00239",
     "Name": "VITAMINA A+ VITAMINA E ",
     "purchase price": 707,
@@ -2963,7 +3072,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Micropigmentacion",
     "sku": "F00240",
     "Name": "VITAMINA YODI E+B3",
     "purchase price": 903,
@@ -2989,7 +3098,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Anillos",
+    "SUBCATEGORIA": "Anillos-Pestañas",
     "sku": "F00242",
     "Name": "FLOR PARA ADHESIVO *50U",
     "purchase price": 3202,
@@ -3002,7 +3111,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00243",
     "Name": "AISLADOR DE PESTAÑAS ",
     "purchase price": 12166,
@@ -3015,7 +3124,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00244",
     "Name": "PALETA PARA PESTAÑAS",
     "purchase price": 13000,
@@ -3028,7 +3137,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00245",
     "Name": "PALETA MARIPOSA PARA PESTAÑAS",
     "purchase price": 26127,
@@ -3041,7 +3150,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00247",
     "Name": "PALETA TRANSPARENTE VIDRIO PESTAÑAS",
     "purchase price": 5220,
@@ -3067,7 +3176,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00249",
     "Name": "MEDIDOR DE PESTAÑAS ",
     "purchase price": 1219,
@@ -3080,7 +3189,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00250",
     "Name": "PARCHES REUTULIZABLES PARA LIFTING",
     "purchase price": 7000,
@@ -3106,7 +3215,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00252",
     "Name": "ESPONJA PARA PRACTICA ROSADA U",
     "purchase price": 700,
@@ -3119,7 +3228,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Micropigmentacion",
     "sku": "F00254",
     "Name": "MANTEQUILLA HIDRATANTE X 20GR PROTÓN",
     "purchase price": 5477,
@@ -3132,7 +3241,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Micropigmentacion",
     "sku": "F00255",
     "Name": "MANTEQUILLA HIDRATANTE X 20GR CEREZA",
     "purchase price": 5477,
@@ -3145,7 +3254,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Micropigmentacion",
     "sku": "F00256",
     "Name": "EXFOLIANTE PARA CEJAS SANDIA",
     "purchase price": 14468,
@@ -3198,7 +3307,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00260",
     "Name": "MALETA PEQUEÑA CON DIVISIONES",
     "purchase price": 50064,
@@ -3211,7 +3320,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00261",
     "Name": "MALETA PARA LASHISTA GRANDE",
     "purchase price": 89298,
@@ -3250,7 +3359,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Micropigmentacion",
     "sku": "F00264",
     "Name": "COBAN ",
     "purchase price": 2300,
@@ -3302,7 +3411,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00268",
     "Name": "PALETA LIFTING FUCSIA",
     "purchase price": 1500,
@@ -3328,7 +3437,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00270",
     "Name": "LUPA ESPEJO ROSADA ",
     "purchase price": 2000,
@@ -3384,7 +3493,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Anillos",
+    "SUBCATEGORIA": "Anillos-Micropigmentacion",
     "sku": "F00274",
     "Name": "ANILLOS CON TAPA X100",
     "purchase price": 10000,
@@ -3397,7 +3506,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Anillos",
+    "SUBCATEGORIA": "Anillos-Micropigmentacion",
     "sku": "F00275",
     "Name": "ANILLO SILICONA X 100",
     "purchase price": 4703,
@@ -3411,6 +3520,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00276",
     "Name": "ANILLOS SIN DIVISIÓN X100",
     "purchase price": 1751,
@@ -3423,6 +3533,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00277",
     "Name": "ANILLOS CON DIVISIÓN X100",
     "purchase price": 1751,
@@ -3435,6 +3546,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Anillos-Pestañas",
     "sku": "F00278",
     "Name": "ANILLOS PARA ARMAR ABANICOS CORAZON X100",
     "purchase price": 5000,
@@ -3503,7 +3615,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-varios",
     "sku": "F00284",
     "Name": "MICROBRUSH X 100 ",
     "purchase price": 2377,
@@ -3516,7 +3628,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-varios",
     "sku": "F00285",
     "Name": "CAMPO DE MESA X50 ROSADO / NEGRO ",
     "purchase price": 14182,
@@ -3529,7 +3641,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-varios",
     "sku": "F00286",
     "Name": "APLICADORES X50",
     "purchase price": 6145,
@@ -3542,7 +3654,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-varios",
     "sku": "F00287",
     "Name": "CEPILLOS X 50 UND",
     "purchase price": 4459,
@@ -3556,7 +3668,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00288",
     "Name": "PESTAÑAS DE PRACTICA 8MM",
     "purchase price": 6710,
@@ -3569,7 +3681,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00289",
     "Name": "AGUJA THUNDER 1P 0.25",
     "purchase price": 3060,
@@ -3582,7 +3694,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00290",
     "Name": "AGUJA THUNDER 1P RS 0.35",
     "purchase price": 3060,
@@ -3595,7 +3707,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00291",
     "Name": "AGUJA THUNDER 3RS 0.30",
     "purchase price": 3060,
@@ -3712,7 +3824,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00300",
     "Name": "AGUJA PERLA NEGRA 1RL 0.25 - 0.30",
     "purchase price": 2997,
@@ -3830,7 +3942,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00310",
     "Name": "ALMOHADA PARA LASHISTA",
     "purchase price": 66585,
@@ -3844,7 +3956,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "Accesorios-varios",
     "sku": "F00311",
     "Name": "SABANA ELASTICA CUBRE CAMILLA",
     "purchase price": 40324,
@@ -3857,7 +3969,7 @@
   },
   {
     "CATEGORIA": "Piel",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Piel",
     "sku": "F00312",
     "Name": "AGUJA DERMAPEN NANO",
     "purchase price": 4000,
@@ -3870,7 +3982,7 @@
   },
   {
     "CATEGORIA": "Piel",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Piel",
     "sku": "F00313",
     "Name": "AGUJA DERMAPEN 12 PUNTAS",
     "purchase price": 4000,
@@ -3883,7 +3995,7 @@
   },
   {
     "CATEGORIA": "Piel",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Piel",
     "sku": "F00314",
     "Name": "AGUJA DERMAPEN 36 AGUJAS ",
     "purchase price": 3625,
@@ -3896,7 +4008,7 @@
   },
   {
     "CATEGORIA": "Piel",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Piel",
     "sku": "F00315",
     "Name": "AGUJA DERMAPEN 42 PUNTAS",
     "purchase price": 4000,
@@ -3922,7 +4034,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00317",
     "Name": "AGUJA CHARMANT 2 1RL",
     "purchase price": 4000,
@@ -3935,7 +4047,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00318",
     "Name": "AGUJA CHARMANT 1 1RL",
     "purchase price": 4000,
@@ -3948,7 +4060,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00319",
     "Name": "AGUJA CHARMANT 2 2 PUNTAS",
     "purchase price": 4000,
@@ -4052,7 +4164,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Pestañas",
     "sku": "F00327",
     "Name": "BOTOX DQ PARA CEJAS PESTAÑAS",
     "purchase price": 12619,
@@ -4144,7 +4256,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Pestañas",
     "sku": "F00334",
     "Name": "SERUM FORTALECEDOR DE PESTAÑAS DQ",
     "purchase price": 10619,
@@ -4248,7 +4360,7 @@
   },
   {
     "CATEGORIA": "Piel",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Piel",
     "sku": "F00342",
     "Name": "AGUA DE ROSAS 35ML",
     "purchase price": 2620,
@@ -4340,7 +4452,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Accesorios",
     "sku": "F00349",
     "Name": "PAÑITOS HUMEDOS SIN ALCOHOL ",
     "purchase price": 6800,
@@ -4379,6 +4491,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00352",
     "Name": "PESTAÑAS TIRA ATENEA",
     "purchase price": 7821,
@@ -4469,7 +4582,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Cintas",
+    "SUBCATEGORIA": "Cintas-Accesorios",
     "sku": "F00359",
     "Name": "MICROPORE BLANCO ",
     "purchase price": 1100,
@@ -4482,7 +4595,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00360",
     "Name": "ORGANIZADOR DE PESTAÑAS",
     "purchase price": 24846,
@@ -4826,7 +4939,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "Accesorios-Micropigmentacion",
     "sku": "F00387",
     "Name": "SOPORTE DERMOGRAFO",
     "purchase price": 4971,
@@ -4839,7 +4952,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00388",
     "Name": "SOPORTE CINTA",
     "purchase price": 16000,
@@ -4880,7 +4993,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00391",
     "Name": "CARTILLA COLORIMETRIA",
     "purchase price": 6200,
@@ -4893,7 +5006,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00392",
     "Name": "HIGROMETRO",
     "purchase price": 16193,
@@ -4906,7 +5019,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Marcacion",
+    "SUBCATEGORIA": "Marcacion-Accesorios",
     "sku": "F00393",
     "Name": "VERNIER - PIE DE REY",
     "purchase price": 3625,
@@ -4933,7 +5046,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Henna",
+    "SUBCATEGORIA": "Henna - Accesorios",
     "sku": "F00395",
     "Name": "MEZCLADOR ELECTRICO DE HENNA",
     "purchase price": 9000,
@@ -4946,7 +5059,7 @@
   },
   {
     "CATEGORIA": "Piel",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Piel",
     "sku": "F00396",
     "Name": "GEL ALOE VERA Y COCO",
     "purchase price": 13146,
@@ -4959,7 +5072,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00397",
     "Name": "MANIQUI PRACTICA OJOS REMOVIBLES",
     "purchase price": 48240,
@@ -4973,7 +5086,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "Accesorios-Pestañas",
     "sku": "F00398",
     "Name": "MANIQUI PARA PRACTICA",
     "purchase price": 14300,
@@ -4986,7 +5099,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "accesorios-Pestañas",
     "sku": "F00399",
     "Name": "MEZCLADOR PARA ADHESIVOS",
     "purchase price": 28749,
@@ -4999,7 +5112,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00400",
     "Name": "PADS LIMPIADORES DE ADHESIVO X 200",
     "purchase price": 4000,
@@ -5012,7 +5125,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Accesorios",
     "sku": "F00401",
     "Name": "DISPENSADOR AGUA 150ML TRANSPARENTE",
     "purchase price": 2600,
@@ -5025,7 +5138,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Accesorios",
     "sku": "F00402",
     "Name": "DISPENSADOR AGUA NEGRO 250 ML ",
     "purchase price": 3200,
@@ -5038,7 +5151,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00403",
     "Name": "0,25 17CF  AGUJA MICROBLADING SESGADA",
     "purchase price": 1500,
@@ -5051,7 +5164,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Accesorios",
     "sku": "F00404",
     "Name": "DISPENSADOR AGUA 250ML TRANSPARENTE",
     "purchase price": 3200,
@@ -5064,7 +5177,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Accesorios",
     "sku": "F00405",
     "Name": "DISPENSADOR AGUA ROSADO 250ML",
     "purchase price": 2905,
@@ -5077,7 +5190,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Accesorios",
     "sku": "F00406",
     "Name": "DISPENSADOR AGUA TRANSPARENTE 500 ML",
     "purchase price": 3243,
@@ -5090,7 +5203,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "accesorios-Pestañas",
     "sku": "F00407",
     "Name": "BOMBA AIRE O PERA",
     "purchase price": 2800,
@@ -5480,7 +5593,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "accesorios",
+    "SUBCATEGORIA": "accesorios-Pestañas",
     "sku": "F00439",
     "Name": "BOQUILLA PARA ADHESIVO",
     "purchase price": 135,
@@ -5572,7 +5685,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Pestañas",
     "sku": "F00447",
     "Name": "PULUK TOXTOX LASH VITAL",
     "purchase price": 18182,
@@ -5585,7 +5698,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Pestañas",
     "sku": "F00448",
     "Name": "PULUK TOXTOX LASH VOLUMEN",
     "purchase price": 18200,
@@ -5598,7 +5711,7 @@
   },
   {
     "CATEGORIA": "Piel",
-    "SUBCATEGORIA": "Hidratacion",
+    "SUBCATEGORIA": "Hidratacion-Piel",
     "sku": "F00450",
     "Name": "MANTEQUILLA DE COCO 100G ",
     "purchase price": 19500,
@@ -5855,6 +5968,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00471",
     "Name": "NAGARAKU ANIME ESPIGA MIX/13MM",
     "purchase price": 17000,
@@ -5932,7 +6046,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Labios",
+    "SUBCATEGORIA": "Labios-Micropigmentacion",
     "sku": "F00477",
     "Name": "PINCEL DOBLE PARA LABIOS ",
     "purchase price": 12300,
@@ -5945,7 +6059,7 @@
   },
   {
     "CATEGORIA": "Labios",
-    "SUBCATEGORIA": "Henna",
+    "SUBCATEGORIA": "Henna -Labios",
     "sku": "F00478",
     "Name": "HENNA PARA LABIOS (TONO ROJO)",
     "purchase price": 6800,
@@ -5958,7 +6072,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00479",
     "Name": "ACRILICO TRASPARENTE CON TAPA ",
     "purchase price": 13000,
@@ -5971,7 +6085,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00480",
     "Name": "BANDA SILICONA DE PESTAÑAS ",
     "purchase price": 3300,
@@ -5997,7 +6111,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00482",
     "Name": "SET MASCARILLA X5 PIEZAS ",
     "purchase price": 9300,
@@ -6036,7 +6150,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Accesorios",
     "sku": "F00485",
     "Name": "GLUTARALDEIDO 250ML",
     "purchase price": 4300,
@@ -6062,6 +6176,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00487",
     "Name": "0.07D W 5D 14MM NAGARAKU",
     "purchase price": 28300,
@@ -6074,6 +6189,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00488",
     "Name": "DEZHMA 3D CLOVER 9MM ",
     "purchase price": 30000,
@@ -6086,6 +6202,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00489",
     "Name": "DEZHMA 3D CLOVER 10MM ",
     "purchase price": 30000,
@@ -6098,6 +6215,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00490",
     "Name": "DEZHMA 3D CLOVER 11MM ",
     "purchase price": 30000,
@@ -6110,6 +6228,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00491",
     "Name": "DEZHMA 3D CLOVER 12MM ",
     "purchase price": 30000,
@@ -6122,6 +6241,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00492",
     "Name": "DEZHMA 3D CLOVER 13MM ",
     "purchase price": 30000,
@@ -6134,6 +6254,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00493",
     "Name": "DEZHMA 4D CLOVER 9MM ",
     "purchase price": 35000,
@@ -6146,6 +6267,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00494",
     "Name": "DEZHMA 4D CLOVER 10MM ",
     "purchase price": 35000,
@@ -6158,6 +6280,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00495",
     "Name": "DEZHMA 4D CLOVER 11MM ",
     "purchase price": 35000,
@@ -6170,6 +6293,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00496",
     "Name": "DEZHMA 4D CLOVER 12MM ",
     "purchase price": 35000,
@@ -6182,6 +6306,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00497",
     "Name": "DEZHMA 4D CLOVER 13MM ",
     "purchase price": 35000,
@@ -6194,6 +6319,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00498",
     "Name": "DEZHMA 5D CLOVER 9MM ",
     "purchase price": 38000,
@@ -6206,6 +6332,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00499",
     "Name": "DEZHMA 5D CLOVER 10MM ",
     "purchase price": 38000,
@@ -6218,6 +6345,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00500",
     "Name": "DEZHMA 5D CLOVER 11MM ",
     "purchase price": 38000,
@@ -6230,6 +6358,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00501",
     "Name": "DEZHMA 5D CLOVER 12MM ",
     "purchase price": 38000,
@@ -6242,6 +6371,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
+    "SUBCATEGORIA": "Pestaña",
     "sku": "F00502",
     "Name": "DEZHMA 5D CLOVER 13MM ",
     "purchase price": 38000,
@@ -6254,7 +6384,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00503",
     "Name": "AGUJA MAST OCEAN 0.30",
     "purchase price": 3400,
@@ -6267,7 +6397,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00504",
     "Name": "AGUJA MAST OCEAN 0.35",
     "purchase price": 3400,
@@ -6280,7 +6410,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00505",
     "Name": "AGUJA MAST OCEAN 0.40",
     "purchase price": 3400,
@@ -6348,7 +6478,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00510",
     "Name": "AGUJA THUNDER 1P R 0.35",
     "purchase price": 3060,
@@ -6361,7 +6491,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00511",
     "Name": "AGUJA THUNDER 3RL 0.25",
     "purchase price": 3060,
@@ -6453,7 +6583,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Anillos",
+    "SUBCATEGORIA": "Anillo-Pestañass",
     "sku": "F00518",
     "Name": "ANILLOS PARA ARMAR ABANICOS FLOR X 100",
     "purchase price": 11000,
@@ -6492,7 +6622,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00521",
     "Name": "JABÓN ANTIBACTERIAL YODI 500ML",
     "purchase price": 25500,
@@ -6505,7 +6635,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00522",
     "Name": "ESPUMA LIMPIADORA 85ML YODI",
     "purchase price": 14500,
@@ -6518,7 +6648,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Limpieza",
+    "SUBCATEGORIA": "Limpieza-Pestañas",
     "sku": "F00523",
     "Name": "ESPUMA LIMPIADORA 200ML YODI",
     "purchase price": 25500,
@@ -6556,7 +6686,7 @@
   },
   {
     "CATEGORIA": "Pestañas",
-    "SUBCATEGORIA": "Anillos",
+    "SUBCATEGORIA": "Anillo-Pestañass",
     "sku": "F00526",
     "Name": "ANILLOS CON DIVISIÓN Y SIN DIVISION X50",
     "purchase price": 2000,
@@ -6686,7 +6816,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00536",
     "Name": "DIADEMA CON VELCRO",
     "purchase price": 5000,
@@ -6763,7 +6893,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "sku": "F00543",
     "Name": "ORGANIZADOR PEQUEÑO CON TAPA MADERA",
     "purchase price": 8000,
@@ -6848,7 +6978,7 @@
   },
   {
     "CATEGORIA": "Organización",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Varios",
     "sku": "F00542",
     "Name": "ACRILICO ORGANIZADOR CON 3 DIVISIONES ",
     "purchase price": 20000,
@@ -6861,7 +6991,7 @@
   },
   {
     "CATEGORIA": "Accesorios",
-    "SUBCATEGORIA": "Organización",
+    "SUBCATEGORIA": "Organización-Accesorios",
     "Name": "PALETA PARA FOTOS PERSONALIZADA",
     "purchase price": 45000,
     "price": 70000,
@@ -6870,7 +7000,7 @@
   },
   {
     "CATEGORIA": "Micropigmentacion",
-    "SUBCATEGORIA": "Agujas",
+    "SUBCATEGORIA": "Agujas-Micropigmentacion",
     "sku": "F00546",
     "Name": "AGUJA PERLA NEGRA 3RL 0.25 - 0.30",
     "purchase price": 2997,
@@ -6921,4 +7051,5 @@
     "Facturable": "true",
     "isPromotion": "false"
   }
-]
+]  
+
