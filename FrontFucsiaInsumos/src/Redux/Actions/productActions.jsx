@@ -137,14 +137,19 @@ export const filterProducts = (filters) => async (dispatch) => {
     if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
     if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
     if (filters.name) queryParams.append('name', filters.name);
-     if (filters.isFacturable !== undefined && filters.isFacturable !== '') { // ✅ NUEVO FILTRO
+    if (filters.sku) queryParams.append('sku', filters.sku); // ✅ NUEVO: Filtro por SKU
+    if (filters.isFacturable !== undefined && filters.isFacturable !== '') {
       queryParams.append('isFacturable', filters.isFacturable);
     }
 
-    const response = await api.get(`/product?${queryParams.toString()}`);
+    console.log('🔍 Aplicando filtros:', filters);
+    console.log('🌐 URL de filtros:', `/product/filter?${queryParams.toString()}`);
+
+    const response = await api.get(`/product/filter?${queryParams.toString()}`);
     dispatch(getProductsSuccess(response.data));
     return response.data;
   } catch (error) {
+    console.error('❌ Error al filtrar productos:', error);
     const errorMessage = error.response?.data?.message || 'Error al filtrar productos';
     dispatch(getProductsFailure(errorMessage));
     throw error;
