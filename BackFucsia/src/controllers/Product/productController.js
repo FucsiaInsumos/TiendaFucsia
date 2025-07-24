@@ -331,29 +331,46 @@ const deleteProduct = async (req, res) => {
 // Endpoint para filtrar productos
 const filterProducts = async (req, res) => {
   try {
-    const { categoryId, minPrice, maxPrice, name, isFacturable } = req.query;
+    const { categoryId, minPrice, maxPrice, name, sku, isFacturable } = req.query;
 
     let filters = {};
-    if (categoryId) {
+    
+    // Filtro por categoría
+    if (categoryId && categoryId.trim() !== '') {
       filters.categoryId = categoryId;
     }
+    
+    // Filtro por rango de precios
     if (minPrice || maxPrice) {
       filters.price = {};
-      if (minPrice) {
+      if (minPrice && minPrice.trim() !== '') {
         filters.price[Op.gte] = parseFloat(minPrice);
       }
-      if (maxPrice) {
+      if (maxPrice && maxPrice.trim() !== '') {
         filters.price[Op.lte] = parseFloat(maxPrice);
       }
     }
-    if (name) {
+    
+    // Filtro por nombre (búsqueda parcial)
+    if (name && name.trim() !== '') {
       filters.name = {
-        [Op.iLike]: `%${name}%`
+        [Op.iLike]: `%${name.trim()}%`
       };
     }
-     if (isFacturable !== undefined) {
+    
+    // ✅ NUEVO: Filtro por SKU (búsqueda parcial)
+    if (sku && sku.trim() !== '') {
+      filters.sku = {
+        [Op.iLike]: `%${sku.trim()}%`
+      };
+    }
+    
+    // Filtro por facturable
+    if (isFacturable !== undefined && isFacturable !== '') {
       filters.isFacturable = isFacturable === 'true';
     }
+
+    console.log('🔍 Filtros aplicados:', filters);
 
     const products = await Product.findAll({
       where: filters,

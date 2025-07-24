@@ -1,16 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { filterProducts, getProducts } from '../../Redux/Actions/productActions';
 
 const ProductFilters = ({ categories }) => {
   const dispatch = useDispatch();
+  
   const [filters, setFilters] = useState({
     categoryId: '',
     minPrice: '',
     maxPrice: '',
     name: '',
-    isFacturable:''
+    sku: '',
+    isFacturable: ''
   });
+
+  // ✅ FILTRO AUTOMÁTICO: Al cambiar el nombre o SKU, filtrar automáticamente
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (filters.name.trim() || filters.sku.trim()) {
+        applyFilters();
+      }
+    }, 500); // Esperar 500ms después de dejar de escribir
+
+    return () => clearTimeout(timer);
+  }, [filters.name, filters.sku]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -41,16 +54,21 @@ const ProductFilters = ({ categories }) => {
       minPrice: '',
       maxPrice: '',
       name: '',
+      sku: '',
       isFacturable: ''
     });
     dispatch(getProducts());
   };
 
   const flattenCategories = (categories) => {
+    if (!categories || !Array.isArray(categories)) {
+      return [];
+    }
+    
     let flattened = [];
     categories.forEach(category => {
       flattened.push({ id: category.id, name: category.name, level: 0 });
-      if (category.subcategories) {
+      if (category.subcategories && Array.isArray(category.subcategories)) {
         category.subcategories.forEach(sub => {
           flattened.push({ id: sub.id, name: sub.name, level: 1, parent: category.name });
         });
@@ -59,12 +77,12 @@ const ProductFilters = ({ categories }) => {
     return flattened;
   };
 
- return (
+  return (
     <div className="bg-white p-4 rounded-lg shadow border">
       <h3 className="text-lg font-semibold mb-4">Filtros</h3>
       
       {/* ✅ REORDENADO - BÚSQUEDA PRIMERO */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         
         {/* ✅ 1. FILTRO POR NOMBRE - PRIMERO Y MÁS PROMINENTE */}
         <div className="md:col-span-2">
@@ -83,7 +101,24 @@ const ProductFilters = ({ categories }) => {
           />
         </div>
 
-        {/* ✅ 2. FILTRO POR CATEGORÍA */}
+        {/* ✅ 2. NUEVO: FILTRO POR SKU */}
+        <div>
+          <label htmlFor="sku" className="block text-sm font-medium text-gray-700 mb-1">
+            🏷️ SKU
+          </label>
+          <input
+            type="text"
+            id="sku"
+            name="sku"
+            value={filters.sku}
+            onChange={handleFilterChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Código SKU..."
+            autoComplete="off"
+          />
+        </div>
+
+        {/* ✅ 3. FILTRO POR CATEGORÍA */}
         <div>
           <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-1">
             Categoría
@@ -105,7 +140,7 @@ const ProductFilters = ({ categories }) => {
           </select>
         </div>
 
-        {/* ✅ 3. FILTRO POR FACTURACIÓN */}
+        {/* ✅ 4. FILTRO POR FACTURACIÓN */}
         <div>
           <label htmlFor="isFacturable" className="block text-sm font-medium text-gray-700 mb-1">
             Facturación
@@ -123,7 +158,7 @@ const ProductFilters = ({ categories }) => {
           </select>
         </div>
 
-        {/* ✅ 4. FILTRO POR PRECIO MÍNIMO */}
+        {/* ✅ 5. FILTRO POR PRECIO MÍNIMO */}
         <div>
           <label htmlFor="minPrice" className="block text-sm font-medium text-gray-700 mb-1">
             Precio mínimo
@@ -143,7 +178,7 @@ const ProductFilters = ({ categories }) => {
 
       {/* ✅ SEGUNDA FILA - PRECIO MÁXIMO Y BOTONES */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-        {/* ✅ 5. FILTRO POR PRECIO MÁXIMO */}
+        {/* ✅ 6. FILTRO POR PRECIO MÁXIMO */}
         <div>
           <label htmlFor="maxPrice" className="block text-sm font-medium text-gray-700 mb-1">
             Precio máximo

@@ -10,6 +10,7 @@ const {
   getProductsForExport,
   bulkCreateProducts,
   bulkUpdateStock,
+  filterProducts, // ✅ AGREGADO: Importar filterProducts
   // calculatePrice,
 } = require('../controllers/Product/productController');
 const { verifyToken } = require('../middleware/isAuth'); // Asumiendo que tienes autenticación
@@ -33,6 +34,9 @@ router.post('/bulk', bulkCreateProducts);
 router.put('/bulk/stock', bulkUpdateStock);
 
 router.get('/', getProducts); // Correcto: esta ruta manejará /products y /products?name=...
+
+// ✅ NUEVA RUTA: Filtros específicos (debe ir ANTES de las rutas específicas)
+router.get('/filter', filterProducts);
 
 // Obtener productos para exportación/Excel (debe ir antes de /:id)
 router.get('/export', getProductsForExport);
