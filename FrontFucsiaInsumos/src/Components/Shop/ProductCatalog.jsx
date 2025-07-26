@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getCategories } from '../../Redux/Actions/categoryActions';
 import { getProducts } from '../../Redux/Actions/productActions';
 import { toggleCart } from '../../Redux/Reducer/cartReducer';
@@ -11,6 +11,7 @@ import CatalogDownloader from '../Products/CatalogoDownloader';
 
 const ProductCatalog = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { categories } = useSelector(state => state.categories);
   const { products, loading } = useSelector(state => state.products);
@@ -26,6 +27,10 @@ const ProductCatalog = () => {
     maxPrice: '',
     sortBy: 'name' // name, price-asc, price-desc, newest
   });
+
+    const handleLoginRedirect = () => {
+    navigate('/login');
+  };
 
   useEffect(() => {
     dispatch(getCategories());
@@ -304,8 +309,8 @@ const ProductCatalog = () => {
                     <p className="text-xs text-blue-700 mb-2">
                       Accede a precios especiales y descarga el catálogo completo
                     </p>
-                    <button 
-                      onClick={() => window.location.href = '/login'}
+                     <button 
+                      onClick={handleLoginRedirect} // ✅ USAR LA FUNCIÓN navigate
                       className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
                     >
                       Iniciar Sesión
