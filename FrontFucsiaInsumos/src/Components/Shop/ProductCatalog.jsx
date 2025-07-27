@@ -170,7 +170,7 @@ const ProductCatalog = () => {
               )}
             </p>
             <p className="text-sm text-blue-600 mt-1">
-              📍 Retiro gratuito en nuestro local - No realizamos envíos
+              📍 Retiro gratuito en nuestro local - Hacemos envíos Nacionales
             </p>
           </div>
           {/* ✅ NUEVA SECCIÓN: Botones de acción */}
