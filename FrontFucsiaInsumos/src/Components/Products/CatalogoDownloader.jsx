@@ -165,13 +165,20 @@ const CatalogDownloader = ({
     };
   };
 
-  // Formatear precio
+
+  // Formatear precio para PDF (con $)
   const formatPrice = (price) => {
     if (!price) return '';
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP'
     }).format(price);
+  };
+
+  // Formatear precio como número puro para Excel
+  const formatPriceNumber = (price) => {
+    if (!price) return '';
+    return Number(price);
   };
 
 const formatAttributes = (attributes) => {
@@ -229,10 +236,9 @@ const formatTags = (tags) => {
 };
 
 
-  // Generar datos para Excel según el rol
+  // Generar datos para Excel según el rol (precios como número)
   const generateExcelData = (products, userRole) => {
-    const fieldsConfig = getVisibleFields(userRole); // ✅ USAR getVisibleFields EN LUGAR DE getPriceColumns
-    
+    const fieldsConfig = getVisibleFields(userRole);
     return products.map(product => {
       const baseData = {
         'SKU': product.sku || '',
@@ -248,120 +254,89 @@ const formatTags = (tags) => {
       if (fieldsConfig.showStock) {
         baseData['Stock Disponible'] = product.stock || 0;
       }
-      
       if (fieldsConfig.showMinStock) {
         baseData['Stock Mínimo'] = product.minStock || 0;
       }
-      
       if (fieldsConfig.showStatus) {
         baseData['Estado'] = product.isActive ? 'Activo' : 'Inactivo';
       }
 
-      // Agregar precios según el rol
+      // Agregar precios como número
       const priceData = {};
-      
       if (fieldsConfig.showRegularPrice) {
-        priceData['Precio Regular'] = formatPrice(product.price);
+        priceData['Precio Regular'] = formatPriceNumber(product.price);
       }
-      
       if (fieldsConfig.showPromotionPrice && product.isPromotion && product.promotionPrice) {
-        priceData['Precio Promoción'] = formatPrice(product.promotionPrice);
+        priceData['Precio Promoción'] = formatPriceNumber(product.promotionPrice);
       }
-      
       if (fieldsConfig.showDistributorPrice && product.distributorPrice) {
-        priceData['Precio Distribuidor'] = formatPrice(product.distributorPrice);
+        priceData['Precio Distribuidor'] = formatPriceNumber(product.distributorPrice);
       }
-      
       if (fieldsConfig.showPurchasePrice) {
-        priceData['Precio Compra'] = formatPrice(product.purchasePrice);
+        priceData['Precio Compra'] = formatPriceNumber(product.purchasePrice);
         // Calcular margen de ganancia para admin/owner
         const margin = product.price && product.purchasePrice 
           ? (((parseFloat(product.price) - parseFloat(product.purchasePrice)) / parseFloat(product.price)) * 100).toFixed(2) + '%'
           : '';
         priceData['Margen (%)'] = margin;
       }
-
       return { ...baseData, ...priceData };
     });
   };
 
-  // ✅ NUEVA FUNCIÓN - Generar datos según visibilidad de campos
+  // ✅ NUEVA FUNCIÓN - Generar datos según visibilidad de campos (Excel: precios como número)
 const generateDataForRole = (products, userRole) => {
   const fieldsConfig = getVisibleFields(userRole);
-  
   return products.map(product => {
     const baseData = {
       'SKU': product.sku || '',
       'Nombre': product.name || '',
     };
-
-    // Solo agregar descripción si está habilitada
     if (fieldsConfig.showDescription) {
       baseData['Descripción'] = product.description || '';
     }
-
-    // Solo agregar categoría si está habilitada
     if (fieldsConfig.showCategory) {
       baseData['Categoría'] = product.category?.parentCategory?.name || product.category?.name || 'Sin categoría';
     }
-
-    // ✅ CAMPOS SENSIBLES - SOLO PARA OWNER/ADMIN
     if (fieldsConfig.showStock) {
       baseData['Stock Disponible'] = product.stock || 0;
     }
-    
     if (fieldsConfig.showMinStock) {
       baseData['Stock Mínimo'] = product.minStock || 0;
     }
-    
     if (fieldsConfig.showStatus) {
       baseData['Estado'] = product.isActive ? 'Activo' : 'Inactivo';
     }
-
-    // Agregar indicador de promoción
     baseData['En Promoción'] = product.isPromotion ? 'Sí' : 'No';
-
-    // Agregar precios según el rol
     const priceData = {};
-    
     if (fieldsConfig.showRegularPrice) {
-      priceData['Precio Regular'] = formatPrice(product.price);
+      priceData['Precio Regular'] = formatPriceNumber(product.price);
     }
-    
     if (fieldsConfig.showPromotionPrice && product.isPromotion && product.promotionPrice) {
-      priceData['Precio Promoción'] = formatPrice(product.promotionPrice);
+      priceData['Precio Promoción'] = formatPriceNumber(product.promotionPrice);
     }
-    
     if (fieldsConfig.showDistributorPrice && product.distributorPrice) {
-      priceData['Precio Distribuidor'] = formatPrice(product.distributorPrice);
+      priceData['Precio Distribuidor'] = formatPriceNumber(product.distributorPrice);
     }
-    
     if (fieldsConfig.showPurchasePrice) {
-      priceData['Precio Compra'] = formatPrice(product.purchasePrice);
+      priceData['Precio Compra'] = formatPriceNumber(product.purchasePrice);
       const margin = product.price && product.purchasePrice 
         ? (((parseFloat(product.price) - parseFloat(product.purchasePrice)) / parseFloat(product.price)) * 100).toFixed(2) + '%'
         : '';
       priceData['Margen (%)'] = margin;
     }
-
-    // ✅ CORREGIDO: Solo agregar tags si está habilitado Y hay tags válidos
     if (fieldsConfig.showTags) {
       const formattedTags = formatTags(product.tags);
-      // ✅ SOLO agregar la columna si realmente hay contenido
       if (formattedTags) {
         baseData['Tags'] = formattedTags;
       }
     }
-
-    // ✅ CORREGIDO: Solo agregar atributos si está habilitado Y hay atributos válidos
     if (fieldsConfig.showAttributes) {
       const formattedAttributes = formatAttributes(product.specificAttributes);
-      // ✅ SOLO agregar la columna si realmente hay contenido
       if (formattedAttributes) {
         baseData['Atributos'] = formattedAttributes;
       }
     }
-
     return { ...baseData, ...priceData };
   });
 };
