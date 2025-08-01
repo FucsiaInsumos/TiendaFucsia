@@ -396,6 +396,20 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600">Gestiona proveedores</p>
               </Link>
 
+              {/* ✅ NUEVA TARJETA DE GASTOS */}
+              <Link
+                to="/gastos"
+                className="bg-white shadow-lg rounded-xl p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 border border-gray-100"
+              >
+                <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center mb-3">
+                  <svg className="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">Gastos</h2>
+                <p className="text-sm text-gray-600">Gestiona gastos empresariales</p>
+              </Link>
+
               {/* ✅ ESTADÍSTICAS - NUEVA FUNCIONALIDAD */}
               <div
                 className="bg-white shadow-lg rounded-xl p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 border border-gray-100 cursor-pointer"

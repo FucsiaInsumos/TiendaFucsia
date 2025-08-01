@@ -5,7 +5,7 @@ const { initializeSystemData } = require ('./src/utils/initializeSystemData.js')
 require('dotenv').config();
 
 // Syncing all the models at once.
-conn.sync({ alter : true }).then(async () => {
+conn.sync({ force: false }).then(async () => {
   await initializeSystemData();
   app.listen(PORT, () => {
     console.log(`🚀 listening on port: ${PORT} 🚀`);

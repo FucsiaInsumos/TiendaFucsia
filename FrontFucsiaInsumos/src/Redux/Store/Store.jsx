@@ -8,6 +8,7 @@ import distributorReducer from '../Reducer/distributorReducer';
 import cartReducer from '../Reducer/cartReducer';
 import purchaseReducer from '../Reducer/purchaseReducer'; // ✅ NUEVO REDUCER
 import dashboardReducer from '../Reducer/dashboardReducer'; // ✅ DASHBOARD REDUCER
+import expenseReducer from '../Reducer/expenseReducer'; // ✅ EXPENSE REDUCER
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -18,6 +19,7 @@ const rootReducer = combineReducers({
   cart: cartReducer,
   purchase: purchaseReducer, // ✅ AGREGAR PURCHASE REDUCER
   dashboard: dashboardReducer, // ✅ AGREGAR DASHBOARD REDUCER
+  expenses: expenseReducer, // ✅ AGREGAR EXPENSE REDUCER
   // Agrega otros reducers aquí
 });
 

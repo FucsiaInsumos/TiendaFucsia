@@ -55,7 +55,7 @@ sequelize.models = Object.fromEntries(capsEntries);
 const { 
   User, Product, Category, Distributor, DiscountRule, 
   Order, OrderItem, Payment, StockMovement,
-  Proveedor, PurchaseOrder, PurchaseOrderItem, CreditPaymentRecord
+  Proveedor, PurchaseOrder, PurchaseOrderItem, CreditPaymentRecord, Expense
 } = sequelize.models;
 
 // Relaciones existentes
@@ -157,6 +157,14 @@ User.hasMany(CreditPaymentRecord, {
   as: 'recordedPayments',
   constraints: false // ✅ DESACTIVAR CONSTRAINTS para permitir NULL
 });
+
+// ✅ NUEVAS RELACIONES PARA EXPENSES
+// Relaciones para Expense
+User.hasMany(Expense, { foreignKey: 'createdBy', sourceKey: 'n_document', as: 'createdExpenses' });
+Expense.belongsTo(User, { foreignKey: 'createdBy', targetKey: 'n_document', as: 'creator' });
+
+User.hasMany(Expense, { foreignKey: 'approvedBy', sourceKey: 'n_document', as: 'approvedExpenses' });
+Expense.belongsTo(User, { foreignKey: 'approvedBy', targetKey: 'n_document', as: 'approver' });
 
 //---------------------------------------------------------------------------------//
 // Exportar todos los modelos
