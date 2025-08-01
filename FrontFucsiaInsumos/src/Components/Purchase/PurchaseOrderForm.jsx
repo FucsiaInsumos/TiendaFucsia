@@ -48,8 +48,27 @@ const PurchaseOrderForm = ({ onClose, onSuccess }) => {
   const [showProductModal, setShowProductModal] = useState(false);
   const [currentItemIndex, setCurrentItemIndex] = useState(null);
 
+  // ✅ NUEVOS ESTADOS PARA BÚSQUEDA DE PRODUCTOS
+  const [productSearchTerms, setProductSearchTerms] = useState({});
+  const [showProductDropdowns, setShowProductDropdowns] = useState({});
+
   useEffect(() => {
     loadInitialData();
+  }, []);
+
+  // ✅ Efecto para cerrar dropdowns cuando se hace clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Cerrar todos los dropdowns si el clic es fuera de ellos
+      if (!event.target.closest('.product-search-container')) {
+        setShowProductDropdowns({});
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const loadInitialData = async () => {
@@ -343,6 +362,59 @@ const PurchaseOrderForm = ({ onClose, onSuccess }) => {
     return null;
   };
 
+  // ✅ NUEVAS FUNCIONES PARA BÚSQUEDA DE PRODUCTOS
+  const handleProductSearch = (index, searchTerm) => {
+    setProductSearchTerms(prev => ({
+      ...prev,
+      [index]: searchTerm
+    }));
+    
+    setShowProductDropdowns(prev => ({
+      ...prev,
+      [index]: searchTerm.length > 0
+    }));
+  };
+
+  const getFilteredProducts = (index) => {
+    const searchTerm = productSearchTerms[index] || '';
+    if (!searchTerm) return products;
+    
+    return products.filter(product => 
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  };
+
+  const selectProduct = (index, product) => {
+    // Llenar datos del producto seleccionado
+    handleItemChange(index, 'productId', product.id);
+    
+    // Actualizar el término de búsqueda con el nombre del producto
+    setProductSearchTerms(prev => ({
+      ...prev,
+      [index]: product.name
+    }));
+    
+    // Ocultar dropdown
+    setShowProductDropdowns(prev => ({
+      ...prev,
+      [index]: false
+    }));
+  };
+
+  const clearProductSearch = (index) => {
+    setProductSearchTerms(prev => ({
+      ...prev,
+      [index]: ''
+    }));
+    setShowProductDropdowns(prev => ({
+      ...prev,
+      [index]: false
+    }));
+    handleItemChange(index, 'productId', '');
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -498,22 +570,81 @@ const PurchaseOrderForm = ({ onClose, onSuccess }) => {
                         </div>
 
                         {!item.isNewProduct && (
-                          <div>
+                          <div className="relative product-search-container">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Producto Existente
+                              Buscar Producto Existente
                             </label>
-                            <select
-                              value={item.productId}
-                              onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                            >
-                              <option value="">Seleccionar producto</option>
-                              {products.map(product => (
-                                <option key={product.id} value={product.id}>
-                                  {product.name} ({product.sku})
-                                </option>
-                              ))}
-                            </select>
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={productSearchTerms[index] || ''}
+                                onChange={(e) => handleProductSearch(index, e.target.value)}
+                                onFocus={() => setShowProductDropdowns(prev => ({ ...prev, [index]: true }))}
+                                className={`w-full px-3 py-2 pr-20 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                                  item.productId ? 'border-green-300 bg-green-50' : 'border-gray-300'
+                                }`}
+                                placeholder="Buscar por nombre, SKU o descripción..."
+                              />
+                              {item.productId && (
+                                <div className="absolute right-8 top-1/2 transform -translate-y-1/2 text-green-600">
+                                  ✓
+                                </div>
+                              )}
+                              {productSearchTerms[index] && (
+                                <button
+                                  type="button"
+                                  onClick={() => clearProductSearch(index)}
+                                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                            
+                            {/* Dropdown de resultados */}
+                            {showProductDropdowns[index] && getFilteredProducts(index).length > 0 && (
+                              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                {getFilteredProducts(index).slice(0, 10).map(product => (
+                                  <div
+                                    key={product.id}
+                                    onClick={() => selectProduct(index, product)}
+                                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                  >
+                                    <div className="flex justify-between items-start">
+                                      <div className="flex-1">
+                                        <p className="font-medium text-gray-900">{product.name}</p>
+                                        <p className="text-sm text-gray-600">SKU: {product.sku}</p>
+                                        {product.description && (
+                                          <p className="text-xs text-gray-500 mt-1 truncate">
+                                            {product.description.substring(0, 80)}...
+                                          </p>
+                                        )}
+                                      </div>
+                                      <div className="text-right ml-4">
+                                        <p className="text-sm font-medium text-indigo-600">
+                                          ${product.price?.toLocaleString('es-CO')}
+                                        </p>
+                                        <p className="text-xs text-gray-500">Stock: {product.stock || 0}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                                {getFilteredProducts(index).length > 10 && (
+                                  <div className="px-4 py-2 text-center text-sm text-gray-500 bg-gray-50">
+                                    Mostrando 10 de {getFilteredProducts(index).length} resultados. Refina tu búsqueda.
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
+                            {/* Mensaje cuando no hay resultados */}
+                            {showProductDropdowns[index] && getFilteredProducts(index).length === 0 && productSearchTerms[index] && (
+                              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                                <div className="px-4 py-3 text-center text-gray-500">
+                                  No se encontraron productos que coincidan con "{productSearchTerms[index]}"
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
 

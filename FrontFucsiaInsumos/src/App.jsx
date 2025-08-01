@@ -33,6 +33,7 @@ import MyOrders from './Components/Customer/MyOrders';
 import BillingOrdersManagement from './Components/Sales/BillingOrdersManagement';
 import PurchaseManagement from './Components/Purchase/PurchaseManagement'; // ✅ NUEVO COMPONENTE
 import CreditManagement from './Components/Sales/CreditManagement';
+import ExpenseManager from './Components/Expenses/ExpenseManager'; // ✅ COMPONENTE DE GASTOS
 
 
 function App() {
@@ -247,6 +248,16 @@ function App() {
             element={
               <PrivateRoute allowedRoles={['Owner']}>
                 <PurchaseManagement />
+              </PrivateRoute>
+            }
+          />
+
+          {/* ✅ NUEVA RUTA PARA GASTOS */}
+          <Route
+            path="/gastos"
+            element={
+              <PrivateRoute allowedRoles={['Owner', 'Cashier']}>
+                <ExpenseManager />
               </PrivateRoute>
             }
           />
