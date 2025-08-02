@@ -20,13 +20,20 @@ const createExpense = async (req, res) => {
       recurringFrequency
     } = req.body;
 
-    const { n_document: createdBy } = req.user;
+    const { id: createdBy } = req.user;
 
     // Validaciones básicas
     if (!categoryType || !description || !amount) {
       return res.status(400).json({
         error: true,
         message: 'Categoría, descripción y monto son requeridos'
+      });
+    }
+
+    if (!createdBy) {
+      return res.status(400).json({
+        error: true,
+        message: 'Usuario no autenticado correctamente'
       });
     }
 
@@ -47,9 +54,17 @@ const createExpense = async (req, res) => {
       try {
         const uploadResult = await uploadBufferToCloudinary(req.file.buffer, {
           folder: 'expenses',
-          resource_type: 'auto' // Permite subir imágenes y PDFs
+          mimetype: req.file.mimetype, // ¡IMPORTANTE! Pasar el mimetype
+          originalName: req.file.originalname,
+          public_id: `expense_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
         });
         receiptUrl = uploadResult.secure_url;
+        console.log('Archivo subido exitosamente:', {
+          originalName: req.file.originalname,
+          mimetype: req.file.mimetype,
+          url: receiptUrl,
+          resource_type: uploadResult.resource_type
+        });
       } catch (uploadError) {
         console.error('Error al subir comprobante:', uploadError);
         return res.status(500).json({
@@ -290,7 +305,7 @@ const updateExpense = async (req, res) => {
     }
 
     // Solo el creador o un Owner puede editar
-    const { n_document: userId, role } = req.user;
+    const { id: userId, role } = req.user;
     if (expense.createdBy !== userId && role !== 'Owner') {
       return res.status(403).json({
         error: true,
@@ -304,9 +319,17 @@ const updateExpense = async (req, res) => {
       try {
         const uploadResult = await uploadBufferToCloudinary(req.file.buffer, {
           folder: 'expenses',
-          resource_type: 'auto' // Permite subir imágenes y PDFs
+          mimetype: req.file.mimetype, // ¡IMPORTANTE! Pasar el mimetype
+          originalName: req.file.originalname,
+          public_id: `expense_update_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
         });
         receiptUrl = uploadResult.secure_url;
+        console.log('Archivo actualizado exitosamente:', {
+          originalName: req.file.originalname,
+          mimetype: req.file.mimetype,
+          url: receiptUrl,
+          resource_type: uploadResult.resource_type
+        });
       } catch (uploadError) {
         console.error('Error al subir comprobante:', uploadError);
         return res.status(500).json({
@@ -362,7 +385,7 @@ const updateExpense = async (req, res) => {
 const approveExpense = async (req, res) => {
   try {
     const { id } = req.params;
-    const { n_document: approvedBy, role } = req.user;
+    const { id: approvedBy, role } = req.user;
 
     if (role !== 'Owner' && role !== 'Cashier') {
       return res.status(403).json({

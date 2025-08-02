@@ -18,9 +18,9 @@ const ExpenseFilters = ({ filters, onFilterChange, onClearFilters }) => {
 
   const statusOptions = [
     { value: '', label: 'Todos los estados' },
-    { value: 'pending', label: 'Pendiente' },
-    { value: 'approved', label: 'Aprobado' },
-    { value: 'rejected', label: 'Rechazado' }
+    { value: 'pendiente', label: 'Pendiente' },
+    { value: 'pagado', label: 'Aprobado' },
+    { value: 'cancelado', label: 'Rechazado' }
   ];
 
   const paymentMethodOptions = [
