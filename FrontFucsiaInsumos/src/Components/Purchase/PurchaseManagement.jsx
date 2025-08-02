@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ProveedorManager from './ProveedorManager';
 import PurchaseOrderManager from './PurchaseOrderManager';
+import ExpenseManager from '../Expenses/ExpenseManager';
 
 const PurchaseManagement = () => {
   const [activeTab, setActiveTab] = useState('proveedores'); // 'proveedores', 'orders'
@@ -17,6 +18,12 @@ const PurchaseManagement = () => {
       label: 'Órdenes de Compra', 
       icon: '📦',
       description: 'Gestiona compras y recepción de mercancía'
+    },
+       { 
+      id: 'gastos', 
+      label: 'Gastos', 
+      icon: '💰',
+      description: 'Gestiona gastos diarios y mensuales'
     }
   ];
 
@@ -27,10 +34,10 @@ const PurchaseManagement = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Sistema de Compras
+            Sistema de Compras y Gastos
           </h1>
           <p className="text-gray-600">
-            Gestiona proveedores, órdenes de compra y recepción de mercancía
+            Gestiona proveedores, órdenes de compra, recepción de mercancía y gastos empresariales
           </p>
         </div>
 
@@ -65,6 +72,7 @@ const PurchaseManagement = () => {
         <div className="bg-white rounded-lg shadow-lg">
           {activeTab === 'proveedores' && <ProveedorManager />}
           {activeTab === 'orders' && <PurchaseOrderManager />}
+          {activeTab === 'gastos' && <ExpenseManager />}
         </div>
       </div>
     </div>
