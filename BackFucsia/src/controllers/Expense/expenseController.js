@@ -204,6 +204,38 @@ const getExpenses = async (req, res) => {
       group: ['categoryType']
     });
 
+    // Calcular estadísticas por estado
+    const expensesByStatus = await Expense.findAll({
+      where,
+      attributes: [
+        'status',
+        [Expense.sequelize.fn('COUNT', Expense.sequelize.col('id')), 'count'],
+        [Expense.sequelize.fn('SUM', Expense.sequelize.col('amount')), 'total']
+      ],
+      group: ['status']
+    });
+
+    // Convertir estadísticas por estado a un formato más fácil de usar
+    const statusSummary = {
+      pendingCount: 0,
+      approvedCount: 0,
+      rejectedCount: 0,
+      totalCount: expenses.count
+    };
+
+    expensesByStatus.forEach(item => {
+      const status = item.status;
+      const count = parseInt(item.dataValues.count || 0);
+      
+      if (status === 'pendiente' || status === 'pending') {
+        statusSummary.pendingCount += count;
+      } else if (status === 'pagado' || status === 'approved') {
+        statusSummary.approvedCount += count;
+      } else if (status === 'cancelado' || status === 'rejected') {
+        statusSummary.rejectedCount += count;
+      }
+    });
+
     res.status(200).json({
       error: false,
       data: {
@@ -212,10 +244,12 @@ const getExpenses = async (req, res) => {
           currentPage: parseInt(page),
           totalPages: Math.ceil(expenses.count / parseInt(limit)),
           totalItems: expenses.count,
-          itemsPerPage: parseInt(limit)
+          itemsPerPage: parseInt(limit),
+          total: expenses.count // Agregar total para compatibilidad
         },
         summary: {
           totalAmount: totalAmount || 0,
+          ...statusSummary,
           expensesByCategory: expensesByCategory.map(item => ({
             category: item.categoryType,
             total: parseFloat(item.dataValues.total || 0),
@@ -570,17 +604,41 @@ const getExpenseStats = async (req, res) => {
       order: [['dueDate', 'ASC']]
     });
 
+    // Calcular estadísticas del mes anterior para comparación
+    const previousStartDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const previousEndDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const previousMonthExpenses = await Expense.sum('amount', {
+      where: {
+        expenseDate: {
+          [Op.between]: [previousStartDate, previousEndDate]
+        }
+      }
+    });
+
+    const currentMonthTotal = totalExpenses || 0;
+    const previousMonthTotal = previousMonthExpenses || 0;
+
     res.status(200).json({
       error: false,
       data: {
         period,
         dateRange: { startDate, endDate },
         summary: {
-          totalExpenses: totalExpenses || 0,
+          totalExpenses: currentMonthTotal,
           totalCount: await Expense.count({ where })
         },
-        expensesByCategory: expensesByCategory.map(item => ({
-          category: item.categoryType,
+        currentMonth: {
+          total: currentMonthTotal,
+          count: await Expense.count({ where })
+        },
+        monthlyComparison: {
+          currentMonth: currentMonthTotal,
+          previousMonth: previousMonthTotal,
+          difference: currentMonthTotal - previousMonthTotal
+        },
+        byCategory: expensesByCategory.map(item => ({
+          categoryType: item.categoryType,
           total: parseFloat(item.dataValues.total || 0),
           count: parseInt(item.dataValues.count || 0)
         })),

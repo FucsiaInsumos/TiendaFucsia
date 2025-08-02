@@ -86,6 +86,18 @@ const ExpenseList = ({
     return categories[categoryType] || categoryType;
   };
 
+  const getPaymentMethodLabel = (paymentMethod) => {
+    const methods = {
+      efectivo: 'Efectivo',
+      transferencia: 'Transferencia',
+      tarjeta_credito: 'T. Crédito',
+      tarjeta_debito: 'T. Débito',
+      cheque: 'Cheque',
+      otro: 'Otro'
+    };
+    return methods[paymentMethod] || paymentMethod || 'No especificado';
+  };
+
   const handleSort = (field) => {
     if (sortBy === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -207,6 +219,9 @@ const ExpenseList = ({
                 </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Método de Pago
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Estado
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -241,6 +256,11 @@ const ExpenseList = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {formatCurrency(expense.amount)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    {getPaymentMethodLabel(expense.paymentMethod)}
+                  </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {getStatusBadge(expense.status)}
@@ -441,6 +461,17 @@ const ExpenseList = ({
                   <div>
                     <label className="text-sm font-medium text-gray-500">Estado</label>
                     <div>{getStatusBadge(selectedExpense.status)}</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Método de Pago</label>
+                    <p className="text-sm text-gray-900">{getPaymentMethodLabel(selectedExpense.paymentMethod)}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Creado por</label>
+                    <p className="text-sm text-gray-900">{selectedExpense.creator?.email || 'Usuario desconocido'}</p>
                   </div>
                 </div>
                 
