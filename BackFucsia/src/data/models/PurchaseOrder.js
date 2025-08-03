@@ -52,6 +52,16 @@ module.exports = (sequelize) => {
       type: DataTypes.ENUM('pendiente', 'recibida', 'parcial', 'completada', 'cancelada'),
       defaultValue: 'pendiente'
     },
+    // ✅ NUEVOS CAMPOS PARA ESTADO DE PAGO
+    paymentStatus: {
+      type: DataTypes.ENUM('pendiente', 'parcial', 'pagada'),
+      defaultValue: 'pendiente'
+    },
+    totalPaid: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0
+    },
     metodoPago: {
       type: DataTypes.STRING,
       allowNull: true

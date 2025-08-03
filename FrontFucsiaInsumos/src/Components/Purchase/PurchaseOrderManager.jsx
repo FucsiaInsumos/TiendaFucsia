@@ -5,16 +5,23 @@ import {
   getProveedores 
 } from '../../Redux/Actions/purchaseActions';
 import PurchaseOrderForm from './PurchaseOrderForm';
-import ReceiveMerchandiseModal from './ReceiveMerchandiseModal'; // ✅ NUEVO COMPONENTE
+import ReceiveMerchandiseModal from './ReceiveMerchandiseModal';
+import EditPurchaseOrderModal from './EditPurchaseOrderModal';
+import PaymentModal from './PaymentModal';
+import axios from '../../utils/axios';
 
 const PurchaseOrderManager = () => {
   const dispatch = useDispatch();
   const [orders, setOrders] = useState([]);
   const [proveedores, setProveedores] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false); // ✅ NUEVO ESTADO
-  const [showReceiveModal, setShowReceiveModal] = useState(false); // ✅ NUEVO ESTADO
-  const [selectedOrderForReceiving, setSelectedOrderForReceiving] = useState(null); // ✅ NUEVO ESTADO
+  const [showForm, setShowForm] = useState(false);
+  const [showReceiveModal, setShowReceiveModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedOrderForReceiving, setSelectedOrderForReceiving] = useState(null);
+  const [selectedOrderForEditing, setSelectedOrderForEditing] = useState(null);
+  const [selectedOrderForPayment, setSelectedOrderForPayment] = useState(null);
   const [filters, setFilters] = useState({
     status: '',
     proveedorId: '',
@@ -77,6 +84,31 @@ const PurchaseOrderManager = () => {
     );
   };
 
+  // ✅ NUEVA FUNCIÓN: Badge para estado de pago
+  const getPaymentStatusBadge = (paymentStatus, totalPaid, total) => {
+    const statusConfig = {
+      'pendiente': { bg: 'bg-gray-100', text: 'text-gray-800', label: '💳 Pendiente', icon: '⏳' },
+      'parcial': { bg: 'bg-orange-100', text: 'text-orange-800', label: '💳 Parcial', icon: '🔄' },
+      'pagada': { bg: 'bg-green-100', text: 'text-green-800', label: '💳 Pagada', icon: '✅' }
+    };
+
+    const config = statusConfig[paymentStatus] || statusConfig['pendiente'];
+    const percentage = total > 0 ? (totalPaid / total * 100).toFixed(0) : 0;
+    
+    return (
+      <div className="flex flex-col items-start">
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+          {config.icon} {config.label}
+        </span>
+        {paymentStatus === 'parcial' && (
+          <span className="text-xs text-gray-500 mt-1">
+            {percentage}% pagado
+          </span>
+        )}
+      </div>
+    );
+  };
+
   const handleCreateOrder = () => {
     setShowForm(true);
   };
@@ -107,6 +139,74 @@ const PurchaseOrderManager = () => {
     setShowReceiveModal(false);
     setSelectedOrderForReceiving(null);
     loadOrders(); // Recargar órdenes para ver cambios de estado
+  };
+
+  // ✅ FUNCIONES PARA EDICIÓN
+  const handleEditOrder = (order) => {
+    setSelectedOrderForEditing(order);
+    setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setSelectedOrderForEditing(null);
+    setShowEditModal(false);
+  };
+
+  const handleEditSuccess = () => {
+    handleCloseEditModal();
+    loadOrders(); // Recargar órdenes después del éxito
+  };
+
+  // ✅ FUNCIONES PARA PAGOS
+  const handleRegisterPayment = (order) => {
+    setSelectedOrderForPayment(order);
+    setShowPaymentModal(true);
+  };
+
+  const handleClosePaymentModal = () => {
+    setSelectedOrderForPayment(null);
+    setShowPaymentModal(false);
+  };
+
+  const handlePaymentSuccess = () => {
+    handleClosePaymentModal();
+    loadOrders(); // Recargar órdenes después del éxito
+  };
+
+  // ✅ FUNCIÓN PARA CANCELAR ORDEN CON CONFIRMACIÓN INTELIGENTE
+  const handleCancelOrder = async (order) => {
+    // Determinar si la orden tiene mercancía recibida
+    const hasReceivedItems = order.status === 'recibida' || order.status === 'parcial' || order.status === 'completada';
+    
+    let confirmMessage = `¿Estás seguro de cancelar la orden ${order.orderNumber}?`;
+    if (hasReceivedItems) {
+      confirmMessage += '\n\n⚠️ ADVERTENCIA: Esta orden ya recibió mercancía.\nAl cancelarla se REVERTIRÁ el stock y se ELIMINARÁN los gastos automáticos.\n\n¿Continuar con la cancelación?';
+    }
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const response = await axios.patch(`/purchase/orders/${order.id}/status`, {
+        status: 'cancelada',
+        reason: 'Cancelada por usuario'
+      });
+
+      if (response.data.error === false) {
+        let successMessage = 'Orden cancelada exitosamente';
+        if (response.data.data?.stockReverted) {
+          successMessage += '\n\n✅ Stock revertido correctamente\n✅ Gastos automáticos eliminados';
+        }
+        alert(successMessage);
+        loadOrders();
+      } else {
+        alert(response.data.message || 'Error al cancelar orden');
+      }
+    } catch (error) {
+      console.error('Error al cancelar orden:', error);
+      alert('Error al cancelar la orden');
+    }
   };
 
   return (
@@ -245,6 +345,9 @@ const PurchaseOrderManager = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Estado
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pago
+                  </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
                   </th>
@@ -287,36 +390,85 @@ const PurchaseOrderManager = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(order.status)}
+                      <div className="flex items-center space-x-4">
+                        <div>
+                          {getStatusBadge(order.status)}
+                        </div>
+                        {/* ✅ MOSTRAR PROGRESO DE RECEPCIÓN */}
+                        {(order.status === 'parcial' || order.status === 'completada') && order.items && (
+                          <div className="text-xs text-gray-500">
+                            {order.items.reduce((received, item) => received + (item.cantidadRecibida || 0), 0)} / {order.items.reduce((total, item) => total + item.cantidad, 0)} recibidos
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getPaymentStatusBadge(
+                        order.paymentStatus || 'pendiente', 
+                        order.totalPaid || 0, 
+                        order.total
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    
-                      
-                      {/* ✅ LÓGICA MEJORADA PARA BOTÓN DE RECEPCIÓN */}
-                      {(order.status === 'pendiente' || order.status === 'parcial') && (
-                        <button 
-                          onClick={() => handleReceiveMerchandise(order)}
-                          className="text-green-600 hover:text-green-900 font-medium mr-3"
-                          title="Recibir mercancía pendiente"
-                        >
-                          📦 Recibir Mercancía
-                        </button>
-                      )}
-                      
-                      {order.status === 'completada' && (
-                        <span className="text-green-600 text-sm font-medium mr-3" title="Orden completamente recibida">
-                          ✅ Recibida
-                        </span>
-                      )}
-                      
-                      {order.status === 'cancelada' && (
-                        <span className="text-red-500 text-sm mr-3">
-                          ❌ Cancelada
-                        </span>
-                      )}
-                      
-                   
-                
+                      <div className="flex justify-end items-center space-x-2">
+                        
+                        {/* ✅ BOTÓN DE EDICIÓN - Solo para órdenes no completadas */}
+                        {order.status !== 'completada' && order.status !== 'cancelada' && (
+                          <button 
+                            onClick={() => handleEditOrder(order)}
+                            className="text-blue-600 hover:text-blue-900 font-medium"
+                            title="Editar orden"
+                          >
+                            ✏️ Editar
+                          </button>
+                        )}
+                        
+                        {/* ✅ BOTÓN DE RECEPCIÓN */}
+                        {(order.status === 'pendiente' || order.status === 'parcial') && (
+                          <button 
+                            onClick={() => handleReceiveMerchandise(order)}
+                            className="text-green-600 hover:text-green-900 font-medium"
+                            title="Recibir mercancía pendiente"
+                          >
+                            📦 Recibir
+                          </button>
+                        )}
+                        
+                        {/* ✅ BOTÓN DE PAGO */}
+                        {order.status !== 'cancelada' && (
+                          <button 
+                            onClick={() => handleRegisterPayment(order)}
+                            className="text-purple-600 hover:text-purple-900 font-medium"
+                            title="Registrar pago"
+                          >
+                            💳 Pago
+                          </button>
+                        )}
+                        
+                        {/* ✅ BOTÓN DE CANCELAR - Solo para órdenes pendientes/parciales */}
+                        {(order.status === 'pendiente' || order.status === 'parcial') && (
+                          <button 
+                            onClick={() => handleCancelOrder(order)}
+                            className="text-red-600 hover:text-red-900 font-medium"
+                            title="Cancelar orden"
+                          >
+                            ❌ Cancelar
+                          </button>
+                        )}
+                        
+                        {/* ✅ ESTADOS VISUALES */}
+                        {order.status === 'completada' && (
+                          <span className="text-green-600 text-sm font-medium" title="Orden completamente recibida">
+                            ✅ Completada
+                          </span>
+                        )}
+                        
+                        {order.status === 'cancelada' && (
+                          <span className="text-red-500 text-sm">
+                            ❌ Cancelada
+                          </span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -340,6 +492,24 @@ const PurchaseOrderManager = () => {
           order={selectedOrderForReceiving}
           onClose={handleCloseReceiveModal}
           onSuccess={handleReceiveSuccess}
+        />
+      )}
+
+      {/* ✅ MODAL DE EDICIÓN DE ORDEN */}
+      {showEditModal && selectedOrderForEditing && (
+        <EditPurchaseOrderModal
+          order={selectedOrderForEditing}
+          onClose={handleCloseEditModal}
+          onSuccess={handleEditSuccess}
+        />
+      )}
+
+      {/* ✅ MODAL DE REGISTRO DE PAGO */}
+      {showPaymentModal && selectedOrderForPayment && (
+        <PaymentModal
+          order={selectedOrderForPayment}
+          onClose={handleClosePaymentModal}
+          onSuccess={handlePaymentSuccess}
         />
       )}
     </div>

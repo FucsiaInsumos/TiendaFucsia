@@ -138,6 +138,80 @@ export const receivePurchaseOrder = (orderId, receivedItems) => async (dispatch)
   }
 };
 
+// Actualizar orden de compra
+export const updatePurchaseOrder = (orderId, orderData) => async (dispatch) => {
+  try {
+    // Si hay archivo de comprobante, usar FormData
+    if (orderData.comprobante) {
+      const formData = new FormData();
+      
+      // Agregar todos los campos excepto el archivo
+      Object.keys(orderData).forEach(key => {
+        if (key !== 'comprobante') {
+          if (key === 'items') {
+            formData.append(key, JSON.stringify(orderData[key]));
+          } else {
+            formData.append(key, orderData[key]);
+          }
+        }
+      });
+      
+      // Agregar archivo
+      formData.append('comprobante', orderData.comprobante);
+      
+      const response = await api.put(`/purchase/orders/${orderId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data;
+    } else {
+      const response = await api.put(`/purchase/orders/${orderId}`, orderData);
+      return response.data;
+    }
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Error al actualizar orden de compra';
+    console.error('Update purchase order error:', errorMessage);
+    throw error;
+  }
+};
+
+// Registrar pago
+export const registerPayment = (orderId, paymentData) => async (dispatch) => {
+  try {
+    const response = await api.post(`/purchase/orders/${orderId}/payment`, paymentData);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Error al registrar pago';
+    console.error('Register payment error:', errorMessage);
+    throw error;
+  }
+};
+
+// Actualizar estado de orden
+export const updateOrderStatus = (orderId, statusData) => async (dispatch) => {
+  try {
+    const response = await api.patch(`/purchase/orders/${orderId}/status`, statusData);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Error al actualizar estado';
+    console.error('Update order status error:', errorMessage);
+    throw error;
+  }
+};
+
+// Obtener productos (para selección en formularios)
+export const getProducts = (params = {}) => async (dispatch) => {
+  try {
+    const response = await api.get('/products', { params });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Error al obtener productos';
+    console.error('Get products error:', errorMessage);
+    throw error;
+  }
+};
+
 // =============================================================================
 // TESTING ACTION
 // =============================================================================

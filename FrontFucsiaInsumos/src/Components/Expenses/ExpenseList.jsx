@@ -240,12 +240,24 @@ const ExpenseList = ({
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">
                   <div>
-                    <div className="font-medium">{expense.description}</div>
+                    <div className="font-medium flex items-center">
+                      {expense.description}
+                      {expense.isFromPurchaseOrder && (
+                        <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800" title="Gasto generado desde orden de compra">
+                          📦 Orden de Compra
+                        </span>
+                      )}
+                    </div>
                     {expense.vendor && (
                       <div className="text-gray-500">Proveedor: {expense.vendor}</div>
                     )}
                     {expense.invoiceNumber && (
                       <div className="text-gray-500">Factura: {expense.invoiceNumber}</div>
+                    )}
+                    {expense.isFromPurchaseOrder && expense.purchaseOrderId && (
+                      <div className="text-purple-600 text-xs">
+                        🔗 Vinculado a orden de compra
+                      </div>
                     )}
                   </div>
                 </td>

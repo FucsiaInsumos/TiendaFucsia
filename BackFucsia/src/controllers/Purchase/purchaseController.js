@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { PurchaseOrder, PurchaseOrderItem, Product, Proveedor, Category, StockMovement, User, conn } = require('../../data');
+const { PurchaseOrder, PurchaseOrderItem, PurchasePayment, Product, Proveedor, Category, StockMovement, User, Expense, conn } = require('../../data');
 const { uploadToCloudinary } = require('../../utils/cloudinaryUploader');
 
 // Generar número de orden de compra
@@ -442,35 +442,88 @@ const receiveOrder = async (req, res) => {
       }
 
       // ✅ ACTUALIZAR CANTIDAD RECIBIDA EN EL ITEM
-      const newCantidadRecibida = (orderItem.cantidadRecibida || 0) + receivedItem.cantidadRecibida;
+      const previousCantidadRecibida = orderItem.cantidadRecibida || 0;
+      const newCantidadRecibida = previousCantidadRecibida + receivedItem.cantidadRecibida;
+      
+      console.log(`📝 [ReceiveOrder] Actualizando cantidad recibida para ${orderItem.productName}:`);
+      console.log(`   - Cantidad ordenada: ${orderItem.cantidad}`);
+      console.log(`   - Cantidad previamente recibida: ${previousCantidadRecibida}`);
+      console.log(`   - Cantidad recibiendo ahora: ${receivedItem.cantidadRecibida}`);
+      console.log(`   - Nueva cantidad total recibida: ${newCantidadRecibida}`);
+      
       await orderItem.update({
         cantidadRecibida: newCantidadRecibida
       }, { transaction });
 
-      console.log(`📝 [ReceiveOrder] Item actualizado - Cantidad recibida: ${orderItem.cantidadRecibida || 0} → ${newCantidadRecibida}`);
+      console.log(`✅ [ReceiveOrder] Item actualizado exitosamente: ${orderItem.productName} (${newCantidadRecibida}/${orderItem.cantidad})`);
     }
 
     // ✅ ACTUALIZAR ESTADO DE LA ORDEN CON VALIDACIÓN MEJORADA
-    const allItems = await PurchaseOrderItem.findAll({
-      where: { purchaseOrderId: purchaseOrder.id }
+    // NO volver a consultar - usar los objetos actualizados en memoria
+    console.log('🔍 [ReceiveOrder] Verificando estado de items usando objetos en memoria:');
+    
+    const allReceived = purchaseOrder.items.every(item => {
+      const received = item.cantidadRecibida || 0;
+      const ordered = item.cantidad;
+      const isComplete = received >= ordered;
+      console.log(`   📊 ${item.productName}: ${received}/${ordered} = ${isComplete ? 'COMPLETO' : 'PENDIENTE'}`);
+      return isComplete;
     });
+    
+    const partialReceived = purchaseOrder.items.some(item => (item.cantidadRecibida || 0) > 0);
 
-    const allReceived = allItems.every(item => (item.cantidadRecibida || 0) >= item.cantidad);
-    const partialReceived = allItems.some(item => (item.cantidadRecibida || 0) > 0);
+    console.log(`🎯 [ReceiveOrder] Análisis de estado: allReceived=${allReceived}, partialReceived=${partialReceived}`);
 
     let newStatus = 'pendiente';
     if (allReceived) {
       newStatus = 'completada';
-      console.log('🎉 [ReceiveOrder] Orden completamente recibida');
+      console.log('🎉 [ReceiveOrder] ¡ORDEN COMPLETAMENTE RECIBIDA! Cambiando estado a completada');
+      
+      // ✅ CREAR EXPENSE AUTOMÁTICO CUANDO SE COMPLETA LA ORDEN
+      try {
+        // Generar número de expense único
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const time = String(today.getHours()).padStart(2, '0') + String(today.getMinutes()).padStart(2, '0');
+        const expenseNumber = `EXP${year}${month}${day}${time}`;
+
+        await Expense.create({
+          expenseNumber,
+          categoryType: 'otros', // Categoría que existe en el ENUM
+          description: `Compra de Mercancía - ${purchaseOrder.orderNumber}`,
+          amount: purchaseOrder.total,
+          expenseDate: new Date(),
+          paymentMethod: purchaseOrder.metodoPago === 'efectivo' ? 'efectivo' : 
+                        purchaseOrder.metodoPago === 'transferencia' ? 'transferencia' :
+                        purchaseOrder.metodoPago === 'tarjeta' ? 'tarjeta' : 'credito',
+          vendor: purchaseOrder.proveedor?.name || 'Proveedor',
+          invoiceNumber: purchaseOrder.numeroFactura || null,
+          receiptUrl: purchaseOrder.archivoComprobante || null,
+          notes: `Gasto generado automáticamente desde orden de compra completada. Factura: ${purchaseOrder.numeroFactura || 'N/A'}. Items recibidos: ${receivedItems.length}`,
+          status: 'pagado', // Asumimos que si se completó la orden, ya se pagó
+          isFromPurchaseOrder: true,
+          purchaseOrderId: purchaseOrder.id,
+          createdBy: req.user?.n_document || req.user?.id || null // ✅ USAR EL USUARIO AUTENTICADO
+        }, { transaction });
+
+        console.log(`💰 [ReceiveOrder] Expense automático creado (${expenseNumber}) para orden ${purchaseOrder.orderNumber} por $${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(purchaseOrder.total)}`);
+      } catch (expenseError) {
+        console.error('⚠️ [ReceiveOrder] Error creando expense automático:', expenseError);
+        // No fallar la transacción por esto, solo registrar el error
+      }
     } else if (partialReceived) {
       newStatus = 'parcial';
       console.log('📦 [ReceiveOrder] Recepción parcial');
+    } else {
+      console.log('⏳ [ReceiveOrder] Orden sigue pendiente');
     }
 
     // ✅ AGREGAR NOTAS DETALLADAS DE RECEPCIÓN
-    const currentNotes = purchaseOrder.notes || '';
+    const currentNotes = purchaseOrder.notas || '';
     const itemsSummary = receivedItems.map(ri => {
-      const orderItem = allItems.find(item => item.id === ri.itemId);
+      const orderItem = purchaseOrder.items.find(item => item.id === ri.itemId);
       return `${orderItem.productName}: +${ri.cantidadRecibida}`;
     }).join(', ');
     
@@ -478,7 +531,7 @@ const receiveOrder = async (req, res) => {
     
     await purchaseOrder.update({
       status: newStatus,
-      notes: currentNotes + receptionNote
+      notas: currentNotes + receptionNote
     }, { transaction });
 
     await transaction.commit();
@@ -508,7 +561,7 @@ const receiveOrder = async (req, res) => {
           stockMovements,
           totalItemsReceived: receivedItems.length,
           itemsReceived: receivedItems.map(ri => {
-            const orderItem = allItems.find(item => item.id === ri.itemId);
+            const orderItem = purchaseOrder.items.find(item => item.id === ri.itemId);
             return {
               productName: orderItem.productName,
               quantityReceived: ri.cantidadRecibida,
@@ -562,6 +615,12 @@ const getPurchaseOrders = async (req, res) => {
           model: User,
           as: 'creator',
           attributes: ['n_document', 'first_name', 'last_name']
+        },
+        // ✅ INCLUIR INFORMACIÓN DE PAGOS
+        {
+          model: PurchasePayment,
+          as: 'payments',
+          required: false
         }
       ],
       limit: parseInt(limit),
@@ -644,9 +703,421 @@ const getPurchaseOrderById = async (req, res) => {
   }
 };
 
+// Actualizar orden de compra
+const updatePurchaseOrder = async (req, res) => {
+  const transaction = await conn.transaction();
+  
+  try {
+    const { id } = req.params;
+    const {
+      proveedorId,
+      fechaCompra,
+      numeroFactura,
+      metodoPago,
+      fechaVencimiento,
+      notas,
+      impuestos = 0,
+      descuentos = 0,
+      items = []
+    } = req.body;
+
+    console.log('📝 [UpdatePurchaseOrder] Actualizando orden:', { id, itemsCount: items.length });
+
+    const existingOrder = await PurchaseOrder.findByPk(id, {
+      include: [
+        { 
+          model: PurchaseOrderItem, 
+          as: 'items',
+          include: [{ model: Product, as: 'product' }]
+        }
+      ]
+    });
+
+    if (!existingOrder) {
+      await transaction.rollback();
+      return res.status(404).json({
+        error: true,
+        message: 'Orden de compra no encontrada'
+      });
+    }
+
+    // No permitir edición de órdenes completadas
+    if (existingOrder.status === 'completada') {
+      await transaction.rollback();
+      return res.status(400).json({
+        error: true,
+        message: 'No se puede editar una orden completada'
+      });
+    }
+
+    // Calcular totales
+    let subtotal = 0;
+    for (const item of items) {
+      subtotal += parseFloat(item.cantidad) * parseFloat(item.precioUnitario);
+    }
+
+    const total = subtotal + parseFloat(impuestos) - parseFloat(descuentos);
+
+    // Actualizar orden principal
+    await existingOrder.update({
+      proveedorId,
+      fechaCompra,
+      numeroFactura,
+      metodoPago,
+      fechaVencimiento,
+      notas,
+      subtotal,
+      impuestos,
+      descuentos,
+      total
+    }, { transaction });
+
+    // Eliminar items existentes
+    await PurchaseOrderItem.destroy({
+      where: { purchaseOrderId: id },
+      transaction
+    });
+
+    // Crear nuevos items
+    const newItems = [];
+    for (const item of items) {
+      const newItem = await PurchaseOrderItem.create({
+        purchaseOrderId: id,
+        productId: item.productId,
+        productName: item.productName,
+        productCode: item.productCode,
+        cantidad: item.cantidad,
+        precioUnitario: item.precioUnitario,
+        precioVentaSugerido: item.precioVentaSugerido,
+        precioDistribuidorSugerido: item.precioDistribuidorSugerido,
+        cantidadRecibida: 0 // Reset al editar
+      }, { transaction });
+      
+      newItems.push(newItem);
+    }
+
+    await transaction.commit();
+
+    // Obtener orden actualizada
+    const updatedOrder = await PurchaseOrder.findByPk(id, {
+      include: [
+        { 
+          model: PurchaseOrderItem, 
+          as: 'items',
+          include: [{ model: Product, as: 'product' }]
+        },
+        { model: Proveedor, as: 'proveedor' }
+      ]
+    });
+
+    console.log('✅ [UpdatePurchaseOrder] Orden actualizada exitosamente');
+
+    res.json({
+      error: false,
+      message: 'Orden de compra actualizada exitosamente',
+      data: updatedOrder
+    });
+
+  } catch (error) {
+    await transaction.rollback();
+    console.error('❌ [UpdatePurchaseOrder] Error:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Error al actualizar orden de compra'
+    });
+  }
+};
+
+// Registrar pago de orden de compra
+const registerPayment = async (req, res) => {
+  const transaction = await conn.transaction();
+  
+  try {
+    const { id } = req.params;
+    const {
+      amount,
+      paymentMethod,
+      paymentDate = new Date(),
+      reference,
+      notes
+    } = req.body;
+
+    console.log('💰 [RegisterPayment] Registrando pago:', { orderId: id, amount, paymentMethod });
+
+    // ✅ BUSCAR ORDEN CON INCLUDE PARA PAGOS Y PROVEEDOR
+    const purchaseOrder = await PurchaseOrder.findByPk(id, {
+      include: [
+        { model: PurchasePayment, as: 'payments' },
+        { model: Proveedor, as: 'proveedor' }
+      ],
+      transaction
+    });
+
+    if (!purchaseOrder) {
+      await transaction.rollback();
+      return res.status(404).json({
+        error: true,
+        message: 'Orden de compra no encontrada'
+      });
+    }
+
+    if (purchaseOrder.status === 'cancelada') {
+      await transaction.rollback();
+      return res.status(400).json({
+        error: true,
+        message: 'No se puede registrar pagos en órdenes canceladas'
+      });
+    }
+
+    // ✅ CREAR REGISTRO DE PAGO EN LA NUEVA TABLA
+    await PurchasePayment.create({
+      purchaseOrderId: id,
+      amount: parseFloat(amount),
+      paymentMethod,
+      paymentDate,
+      reference,
+      notes,
+      createdBy: req.user?.n_document || req.user?.id || null // ✅ USAR EL USUARIO AUTENTICADO
+    }, { transaction });
+
+    // ✅ CALCULAR TOTALES DE PAGO
+    const previousTotalPaid = parseFloat(purchaseOrder.totalPaid) || 0;
+    const newTotalPaid = previousTotalPaid + parseFloat(amount);
+    const orderTotal = parseFloat(purchaseOrder.total);
+    
+    // ✅ DETERMINAR NUEVO ESTADO DE PAGO
+    let newPaymentStatus = 'pendiente';
+    if (newTotalPaid >= orderTotal) {
+      newPaymentStatus = 'pagada';
+    } else if (newTotalPaid > 0) {
+      newPaymentStatus = 'parcial';
+    }
+
+    // ✅ ACTUALIZAR ORDEN CON NUEVA INFORMACIÓN DE PAGO
+    const currentNotes = purchaseOrder.notas || '';
+    const paymentNote = `\n[PAGO ${new Date().toLocaleString('es-CO')}] ${paymentMethod}: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(amount)}${reference ? ` | Ref: ${reference}` : ''}${notes ? ` | ${notes}` : ''}`;
+    
+    await purchaseOrder.update({
+      totalPaid: newTotalPaid,
+      paymentStatus: newPaymentStatus,
+      notas: currentNotes + paymentNote
+    }, { transaction });
+
+    // ✅ CREAR EXPENSE AUTOMÁTICO CUANDO SE COMPLETA EL PAGO (SI LA ORDEN YA ESTÁ COMPLETADA)
+    if (newPaymentStatus === 'pagada' && purchaseOrder.status === 'completada') {
+      try {
+        // Verificar si ya existe un expense para esta orden
+        const existingExpense = await Expense.findOne({
+          where: {
+            purchaseOrderId: purchaseOrder.id,
+            isFromPurchaseOrder: true
+          },
+          transaction
+        });
+
+        if (!existingExpense) {
+          // Generar número de expense único
+          const today = new Date();
+          const year = today.getFullYear();
+          const month = String(today.getMonth() + 1).padStart(2, '0');
+          const day = String(today.getDate()).padStart(2, '0');
+          const time = String(today.getHours()).padStart(2, '0') + String(today.getMinutes()).padStart(2, '0');
+          const expenseNumber = `EXP${year}${month}${day}${time}`;
+
+          await Expense.create({
+            expenseNumber,
+            categoryType: 'otros',
+            description: `Compra de Mercancía - ${purchaseOrder.orderNumber}`,
+            amount: purchaseOrder.total,
+            expenseDate: new Date(),
+            paymentMethod: paymentMethod === 'efectivo' ? 'efectivo' : 
+                          paymentMethod === 'transferencia' ? 'transferencia' :
+                          paymentMethod === 'pse' ? 'transferencia' :
+                          paymentMethod === 'tarjeta_credito' || paymentMethod === 'tarjeta_debito' ? 'tarjeta' : 
+                          paymentMethod === 'cheque' ? 'cheque' : 'credito',
+            vendor: purchaseOrder.proveedor?.nombre || 'Proveedor',
+            invoiceNumber: purchaseOrder.numeroFactura || null,
+            receiptUrl: purchaseOrder.archivoComprobante || null,
+            notes: `Gasto generado automáticamente desde orden de compra pagada completamente. Factura: ${purchaseOrder.numeroFactura || 'N/A'}`,
+            status: 'pagado',
+            isFromPurchaseOrder: true,
+            purchaseOrderId: purchaseOrder.id,
+            createdBy: req.user?.n_document || req.user?.id || null
+          }, { transaction });
+
+          console.log(`💰 [RegisterPayment] Expense automático creado (${expenseNumber}) para orden ${purchaseOrder.orderNumber} por $${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(purchaseOrder.total)}`);
+        } else {
+          console.log(`💰 [RegisterPayment] Expense ya existe para la orden ${purchaseOrder.orderNumber}`);
+        }
+      } catch (expenseError) {
+        console.error('⚠️ [RegisterPayment] Error creando expense automático:', expenseError);
+        // No fallar la transacción por esto, solo registrar el error
+      }
+    }
+
+    await transaction.commit();
+
+    console.log(`✅ [RegisterPayment] Pago registrado exitosamente. Total pagado: $${newTotalPaid}/${orderTotal} - Estado: ${newPaymentStatus}`);
+
+    res.json({
+      error: false,
+      message: 'Pago registrado exitosamente',
+      data: {
+        orderId: id,
+        paymentAmount: amount,
+        paymentMethod,
+        paymentDate,
+        totalPaid: newTotalPaid,
+        orderTotal,
+        paymentStatus: newPaymentStatus,
+        remainingAmount: Math.max(0, orderTotal - newTotalPaid)
+      }
+    });
+
+  } catch (error) {
+    await transaction.rollback();
+    console.error('❌ [RegisterPayment] Error:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Error al registrar pago'
+    });
+  }
+};
+
+// Cambiar estado manualmente con lógica de reversión
+const updateOrderStatus = async (req, res) => {
+  const transaction = await conn.transaction();
+  
+  try {
+    const { id } = req.params;
+    const { status, reason } = req.body;
+
+    console.log('🔄 [UpdateOrderStatus] Cambiando estado:', { orderId: id, newStatus: status });
+
+    const validStatuses = ['pendiente', 'recibida', 'parcial', 'completada', 'cancelada'];
+    
+    if (!validStatuses.includes(status)) {
+      await transaction.rollback();
+      return res.status(400).json({
+        error: true,
+        message: `Estado inválido. Estados válidos: ${validStatuses.join(', ')}`
+      });
+    }
+
+    const purchaseOrder = await PurchaseOrder.findByPk(id, {
+      include: [
+        {
+          model: PurchaseOrderItem,
+          as: 'items',
+          include: [{ model: Product, as: 'product' }]
+        }
+      ],
+      transaction
+    });
+
+    if (!purchaseOrder) {
+      await transaction.rollback();
+      return res.status(404).json({
+        error: true,
+        message: 'Orden de compra no encontrada'
+      });
+    }
+
+    const previousStatus = purchaseOrder.status;
+    
+    // ✅ LÓGICA ESPECIAL PARA CANCELACIÓN
+    if (status === 'cancelada' && (previousStatus === 'recibida' || previousStatus === 'parcial' || previousStatus === 'completada')) {
+      console.log('⚠️ [UpdateOrderStatus] Cancelando orden que ya recibió mercancía - REVIRTIENDO STOCK');
+      
+      // Revertir stock para todos los items que se recibieron
+      for (const item of purchaseOrder.items) {
+        if (item.cantidadRecibida > 0) {
+          const product = item.product;
+          const stockToRevert = item.cantidadRecibida;
+          
+          console.log(`🔄 [UpdateOrderStatus] Revirtiendo stock: ${product.name} - Cantidad: ${stockToRevert}`);
+          
+          // Reducir stock del producto
+          await product.update({
+            stock: product.stock - stockToRevert
+          }, { transaction });
+          
+          // Crear movimiento de stock negativo (reversión)
+          await StockMovement.create({
+            productId: product.id,
+            type: 'salida',
+            quantity: stockToRevert,
+            reason: 'Cancelación de orden de compra',
+            description: `Reversión por cancelación de orden ${purchaseOrder.orderNumber}`,
+            userId: req.user?.n_document || req.user?.id || null, // ✅ USAR EL USUARIO AUTENTICADO
+            purchaseOrderId: purchaseOrder.id
+          }, { transaction });
+          
+          // Resetear cantidad recibida del item
+          await item.update({
+            cantidadRecibida: 0
+          }, { transaction });
+        }
+      }
+      
+      // ✅ ELIMINAR GASTO AUTOMÁTICO SI EXISTE
+      const deletedExpenses = await Expense.destroy({
+        where: {
+          purchaseOrderId: purchaseOrder.id,
+          isFromPurchaseOrder: true
+        },
+        transaction
+      });
+      
+      if (deletedExpenses > 0) {
+        console.log(`💰 [UpdateOrderStatus] ✅ Eliminados ${deletedExpenses} gastos automáticos asociados a la orden ${purchaseOrder.orderNumber}`);
+      } else {
+        console.log(`💰 [UpdateOrderStatus] ℹ️ No se encontraron gastos automáticos para eliminar de la orden ${purchaseOrder.orderNumber}`);
+      }
+    }
+
+    // Actualizar estado y notas
+    const currentNotes = purchaseOrder.notas || '';
+    const statusNote = `\n[CAMBIO ESTADO ${new Date().toLocaleString('es-CO')}] ${previousStatus} → ${status}${reason ? ` | Motivo: ${reason}` : ''}`;
+    
+    await purchaseOrder.update({
+      status,
+      notas: currentNotes + statusNote
+    }, { transaction });
+
+    await transaction.commit();
+    
+    console.log('✅ [UpdateOrderStatus] Estado actualizado exitosamente');
+
+    res.json({
+      error: false,
+      message: status === 'cancelada' && (previousStatus === 'recibida' || previousStatus === 'parcial' || previousStatus === 'completada') 
+        ? 'Orden cancelada y stock revertido exitosamente'
+        : 'Estado de orden actualizado exitosamente',
+      data: {
+        orderId: id,
+        previousStatus: previousStatus,
+        newStatus: status,
+        stockReverted: status === 'cancelada' && (previousStatus === 'recibida' || previousStatus === 'parcial' || previousStatus === 'completada')
+      }
+    });
+
+  } catch (error) {
+    await transaction.rollback();
+    console.error('❌ [UpdateOrderStatus] Error:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Error al actualizar estado de orden'
+    });
+  }
+};
+
 module.exports = {
   createPurchaseOrder,
   getPurchaseOrders,
   getPurchaseOrderById,
-  receiveOrder
+  receiveOrder,
+  updatePurchaseOrder,
+  registerPayment,
+  updateOrderStatus
 };
