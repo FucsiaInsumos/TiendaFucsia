@@ -25,10 +25,138 @@ const OrderManagement = () => {
     totalPages: 0,
     currentPage: 1
   });
+  const [statisticsFilter, setStatisticsFilter] = useState('week'); // 'day', 'week', 'month'
+  const [statistics, setStatistics] = useState({
+    totalSales: 0,
+    totalOrders: 0,
+    byPaymentMethod: {},
+    averageOrderValue: 0
+  });
 
   useEffect(() => {
     loadOrders();
   }, [filters]);
+
+  useEffect(() => {
+    calculateStatistics();
+  }, [orders, statisticsFilter]);
+
+  // ✅ FUNCIÓN PARA CALCULAR ESTADÍSTICAS POR MÉTODO DE PAGO
+  const calculateStatistics = () => {
+    if (!orders || orders.length === 0) {
+      setStatistics({
+        totalSales: 0,
+        totalOrders: 0,
+        byPaymentMethod: {},
+        averageOrderValue: 0
+      });
+      return;
+    }
+
+    // Obtener fechas según el filtro
+    const now = new Date();
+    let startDate;
+
+    switch (statisticsFilter) {
+      case 'day':
+        startDate = new Date(now);
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case 'week':
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 7);
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      default:
+        startDate = new Date(0); // Desde el inicio
+    }
+
+    // Filtrar órdenes por fecha
+    const filteredOrders = orders.filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return orderDate >= startDate && order.status !== 'cancelled';
+    });
+
+    console.log(`📊 [Statistics] Calculando para ${statisticsFilter}:`, {
+      totalOrders: orders.length,
+      filteredOrders: filteredOrders.length,
+      startDate: startDate.toISOString(),
+      dateRange: `${startDate.toLocaleDateString()} - ${now.toLocaleDateString()}`
+    });
+
+    // Calcular totales
+    const totalSales = filteredOrders.reduce((sum, order) => sum + parseFloat(order.total || 0), 0);
+    const totalOrders = filteredOrders.length;
+    const averageOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
+
+    // Calcular por método de pago
+    const byPaymentMethod = {
+      wompi: { total: 0, orders: 0, percentage: 0 },
+      nequi: { total: 0, orders: 0, percentage: 0 },
+      bancolombia: { total: 0, orders: 0, percentage: 0 },
+      efectivo: { total: 0, orders: 0, percentage: 0 },
+      tarjeta: { total: 0, orders: 0, percentage: 0 },
+      credito: { total: 0, orders: 0, percentage: 0 },
+      daviplata: { total: 0, orders: 0, percentage: 0 }
+    };
+
+    filteredOrders.forEach(order => {
+      if (order.payments && order.payments.length > 0) {
+        // Procesar cada pago individualmente
+        order.payments.forEach(payment => {
+          const paymentMethod = payment.method;
+          const paymentAmount = parseFloat(payment.amount || 0);
+          
+          if (byPaymentMethod[paymentMethod]) {
+            byPaymentMethod[paymentMethod].total += paymentAmount;
+            // Solo contar como una orden si es el primer pago de este método para esta orden
+            const isFirstPaymentOfThisMethod = order.payments
+              .filter(p => p.method === paymentMethod)
+              .indexOf(payment) === 0;
+            
+            if (isFirstPaymentOfThisMethod) {
+              byPaymentMethod[paymentMethod].orders += 1;
+            }
+          }
+        });
+      }
+    });
+
+    // Calcular porcentajes
+    Object.keys(byPaymentMethod).forEach(method => {
+      if (totalSales > 0) {
+        byPaymentMethod[method].percentage = (byPaymentMethod[method].total / totalSales) * 100;
+      }
+    });
+
+    setStatistics({
+      totalSales,
+      totalOrders,
+      byPaymentMethod,
+      averageOrderValue
+    });
+
+    console.log('📊 [Statistics] Estadísticas calculadas:', {
+      totalSales,
+      totalOrders,
+      averageOrderValue,
+      byPaymentMethod,
+      detailedBreakdown: {
+        ordersWithMultipleMethods: filteredOrders.filter(o => 
+          o.payments && new Set(o.payments.map(p => p.method)).size > 1
+        ).length,
+        totalPayments: filteredOrders.reduce((sum, o) => 
+          sum + (o.payments ? o.payments.length : 0), 0
+        ),
+        methodsUsed: Object.keys(byPaymentMethod).filter(method => 
+          byPaymentMethod[method].total > 0
+        )
+      }
+    });
+  };
 
   const loadOrders = async () => {
     try {
@@ -543,6 +671,181 @@ LEYENDA:
               >
                 🐛 Debug
               </button>
+            </div>
+          </div>
+
+          {/* Panel de Estadísticas por Método de Pago */}
+          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            {/* Filtros de período */}
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">📊 Estadísticas de Ventas</h3>
+              <div className="flex space-x-2">
+                <button
+                  onClick={calculateStatistics}
+                  className="px-3 py-1 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700 transition duration-200"
+                  title="Actualizar estadísticas"
+                >
+                  🔄 Actualizar
+                </button>
+                {['day', 'week', 'month'].map((period) => (
+                  <button
+                    key={period}
+                    onClick={() => setStatisticsFilter(period)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition duration-200 ${
+                      statisticsFilter === period
+                        ? 'bg-indigo-600 text-white shadow-lg'
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {period === 'day' && '📅 Hoy'}
+                    {period === 'week' && '📅 7 días'}
+                    {period === 'month' && '📅 Este mes'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Resumen general */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <div className="text-sm font-medium text-gray-600">Total Ventas</div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(statistics.totalSales)}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {statisticsFilter === 'day' && 'Hoy'}
+                  {statisticsFilter === 'week' && 'Últimos 7 días'}
+                  {statisticsFilter === 'month' && 'Este mes'}
+                  {statistics.totalOrders > 0 && (
+                    <div className="text-xs mt-1 text-gray-400">
+                      {(() => {
+                        const now = new Date();
+                        let startDate;
+                        switch (statisticsFilter) {
+                          case 'day':
+                            startDate = new Date(now);
+                            startDate.setHours(0, 0, 0, 0);
+                            return `${startDate.toLocaleDateString('es-CO')}`;
+                          case 'week':
+                            startDate = new Date(now);
+                            startDate.setDate(now.getDate() - 7);
+                            return `${startDate.toLocaleDateString('es-CO')} - ${now.toLocaleDateString('es-CO')}`;
+                          case 'month':
+                            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                            return `${startDate.toLocaleDateString('es-CO')} - ${now.toLocaleDateString('es-CO')}`;
+                          default:
+                            return '';
+                        }
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <div className="text-sm font-medium text-gray-600">Total Órdenes</div>
+                <div className="text-2xl font-bold text-blue-600">{statistics.totalOrders}</div>
+                <div className="text-sm text-gray-500">Órdenes completadas</div>
+              </div>
+              
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <div className="text-sm font-medium text-gray-600">Promedio por Orden</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(statistics.averageOrderValue)}
+                </div>
+                <div className="text-sm text-gray-500">Valor promedio</div>
+              </div>
+
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <div className="text-sm font-medium text-gray-600">Método Principal</div>
+                <div className="text-lg font-bold text-purple-600">
+                  {Object.entries(statistics.byPaymentMethod)
+                    .sort(([,a], [,b]) => b.total - a.total)
+                    .filter(([, data]) => data.total > 0)[0]?.[0]?.toUpperCase() || 'N/A'}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {Object.entries(statistics.byPaymentMethod)
+                    .sort(([,a], [,b]) => b.total - a.total)
+                    .filter(([, data]) => data.total > 0)[0]?.[1]?.percentage?.toFixed(1) || 0}% del total
+                </div>
+              </div>
+            </div>
+
+            {/* Estadísticas por método de pago */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+              <h4 className="text-md font-semibold text-gray-900 mb-4">💳 Ventas por Método de Pago</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+                {Object.entries(statistics.byPaymentMethod)
+                  .filter(([, data]) => data.total > 0)
+                  .sort(([,a], [,b]) => b.total - a.total)
+                  .map(([method, data]) => {
+                    const methodIcons = {
+                      wompi: '💳',
+                      nequi: '📱',
+                      bancolombia: '🏛️',
+                      efectivo: '💵',
+                      tarjeta: '💳',
+                      credito: '📋',
+                      daviplata: '📲'
+                    };
+
+                    const methodColors = {
+                      wompi: 'bg-purple-50 border-purple-200 text-purple-700',
+                      nequi: 'bg-orange-50 border-orange-200 text-orange-700',
+                      bancolombia: 'bg-yellow-50 border-yellow-200 text-yellow-700',
+                      efectivo: 'bg-green-50 border-green-200 text-green-700',
+                      tarjeta: 'bg-blue-50 border-blue-200 text-blue-700',
+                      credito: 'bg-red-50 border-red-200 text-red-700',
+                      daviplata: 'bg-pink-50 border-pink-200 text-pink-700'
+                    };
+
+                    return (
+                      <div
+                        key={method}
+                        className={`p-3 rounded-lg border-2 ${methodColors[method] || 'bg-gray-50 border-gray-200 text-gray-700'}`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-lg">{methodIcons[method] || '💳'}</span>
+                          <span className="text-xs font-medium">{data.percentage.toFixed(1)}%</span>
+                        </div>
+                        <div className="text-xs font-medium uppercase tracking-wide mb-1">
+                          {method}
+                        </div>
+                        <div className="text-sm font-bold">
+                          {new Intl.NumberFormat('es-CO', { 
+                            style: 'currency', 
+                            currency: 'COP',
+                            minimumFractionDigits: 0
+                          }).format(data.total)}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {data.orders} orden{data.orders !== 1 ? 'es' : ''}
+                        </div>
+                        
+                        {/* Barra de progreso */}
+                        <div className="mt-2 bg-gray-200 rounded-full h-1">
+                          <div
+                            className="bg-current rounded-full h-1"
+                            style={{ width: `${data.percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {/* Mostrar mensaje si no hay datos */}
+              {Object.values(statistics.byPaymentMethod).every(data => data.total === 0) && (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="text-4xl mb-2">📊</div>
+                  <div className="text-lg font-medium">No hay ventas en este período</div>
+                  <div className="text-sm">
+                    {statisticsFilter === 'day' && 'No se registraron ventas hoy'}
+                    {statisticsFilter === 'week' && 'No se registraron ventas en los últimos 7 días'}
+                    {statisticsFilter === 'month' && 'No se registraron ventas este mes'}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
