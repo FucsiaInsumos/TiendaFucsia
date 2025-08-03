@@ -16,7 +16,9 @@ const PurchaseExpensesSummary = () => {
       thisMonth: 0,
       lastMonth: 0,
       growth: 0
-    }
+    },
+    allTimeExpenses: 0, // ✅ AGREGAR TOTAL DE TODOS LOS GASTOS
+    allTimeFromOrders: 0 // ✅ AGREGAR TOTAL DE ÓRDENES DE TODOS LOS TIEMPOS
   });
 
   useEffect(() => {
@@ -69,6 +71,14 @@ const PurchaseExpensesSummary = () => {
         const growth = totalLastMonth > 0 ? 
           ((totalThisMonth - totalLastMonth) / totalLastMonth) * 100 : 0;
 
+        // ✅ CALCULAR TOTALES DE TODOS LOS TIEMPOS (SIN FILTRO DE FECHA)
+        const allTimeFromOrders = expenses
+          .filter(exp => exp.isFromPurchaseOrder)
+          .reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+        
+        const allTimeTotal = expenses
+          .reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+
         // Gastos recientes de órdenes de compra
         const recentPurchaseExpenses = thisMonthExpenses
           .filter(exp => exp.isFromPurchaseOrder)
@@ -85,7 +95,9 @@ const PurchaseExpensesSummary = () => {
             thisMonth: totalThisMonth,
             lastMonth: totalLastMonth,
             growth: growth
-          }
+          },
+          allTimeExpenses: allTimeTotal, // ✅ TOTAL DE TODOS LOS GASTOS
+          allTimeFromOrders: allTimeFromOrders // ✅ TOTAL DE ÓRDENES DE TODOS LOS TIEMPOS
         });
       }
     } catch (error) {
@@ -130,14 +142,48 @@ const PurchaseExpensesSummary = () => {
         Resumen de Gastos - {new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}
       </h3>
 
-      {/* Estadísticas principales */}
+      {/* ✅ SECCIÓN COMPARATIVA CON GESTIÓN DE GASTOS */}
+      <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <h4 className="text-sm font-medium text-yellow-800 mb-2">
+          📊 Comparación con Gestión de Gastos
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <div className="text-sm text-yellow-700">Total Histórico (Todos los tiempos)</div>
+            <div className="text-xl font-bold text-yellow-900">{formatCurrency(summary.allTimeExpenses)}</div>
+            <div className="text-xs text-yellow-600">
+              Debe coincidir con "Gestión de Gastos"
+            </div>
+          </div>
+          <div>
+            <div className="text-sm text-yellow-700">De Órdenes de Compra (Histórico)</div>
+            <div className="text-xl font-bold text-yellow-900">{formatCurrency(summary.allTimeFromOrders)}</div>
+            <div className="text-xs text-yellow-600">
+              {summary.allTimeExpenses > 0 ? ((summary.allTimeFromOrders / summary.allTimeExpenses) * 100).toFixed(1) : 0}% del total histórico
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Estadísticas del mes actual */}
+      <div className="mb-4">
+        <h4 className="text-md font-medium text-gray-900 mb-3">
+          📅 Estadísticas del Mes Actual
+        </h4>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-blue-50 p-4 rounded-lg">
           <div className="text-sm font-medium text-blue-600">Total Gastos</div>
           <div className="text-2xl font-bold text-blue-900">{formatCurrency(summary.totalExpenses)}</div>
           <div className="text-sm text-blue-600">
-            {summary.monthlyTotals.growth > 0 ? '↗️' : summary.monthlyTotals.growth < 0 ? '↘️' : '➡️'} 
-            {Math.abs(summary.monthlyTotals.growth).toFixed(1)}% vs mes anterior
+            {summary.monthlyTotals.lastMonth === 0 ? (
+              '🆕 Primer mes con gastos registrados'
+            ) : (
+              <>
+                {summary.monthlyTotals.growth > 0 ? '↗️' : summary.monthlyTotals.growth < 0 ? '↘️' : '➡️'} 
+                {Math.abs(summary.monthlyTotals.growth).toFixed(1)}% vs mes anterior
+              </>
+            )}
           </div>
         </div>
 
@@ -161,7 +207,37 @@ const PurchaseExpensesSummary = () => {
           <div className="text-sm font-medium text-gray-600">Mes Anterior</div>
           <div className="text-2xl font-bold text-gray-900">{formatCurrency(summary.monthlyTotals.lastMonth)}</div>
           <div className="text-sm text-gray-600">
-            Comparativo
+            {summary.monthlyTotals.lastMonth === 0 ? 'Sin registros previos' : 'Comparativo'}
+          </div>
+        </div>
+      </div>
+
+      {/* Separador visual */}
+      <div className="border-t border-gray-200 my-6"></div>
+
+      {/* Estadísticas históricas (comparación con Gestión de Gastos) */}
+      <div className="mb-4">
+        <h4 className="text-md font-medium text-gray-900 mb-3">
+          📊 Total Histórico (Todos los tiempos)
+        </h4>
+        <p className="text-sm text-gray-600 mb-3">
+          Estos totales deben coincidir con "Gestión de Gastos"
+        </p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+          <div className="text-sm font-medium text-yellow-700">Total Histórico</div>
+          <div className="text-2xl font-bold text-yellow-900">{formatCurrency(summary.allTimeExpenses)}</div>
+          <div className="text-sm text-yellow-700">
+            Todos los gastos registrados
+          </div>
+        </div>
+
+        <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+          <div className="text-sm font-medium text-orange-700">De Órdenes de Compra (Histórico)</div>
+          <div className="text-2xl font-bold text-orange-900">{formatCurrency(summary.allTimeFromOrders)}</div>
+          <div className="text-sm text-orange-700">
+            {summary.allTimeExpenses > 0 ? ((summary.allTimeFromOrders / summary.allTimeExpenses) * 100).toFixed(1) : 0}% del total histórico
           </div>
         </div>
       </div>

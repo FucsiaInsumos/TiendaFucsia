@@ -118,8 +118,34 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
       // ✅ USAR LA ACCIÓN CORRECTA CON LOS DATOS ESTRUCTURADOS
       const response = await dispatch(receivePurchaseOrder(order.id, receiveData.receivedItems));
       
+      console.log('📦 Respuesta completa del servidor:', response);
+      console.log('📦 Summary data:', response.data?.summary);
+      
       if (response.error === false) {
-        alert(`Mercancía recibida exitosamente. Stock y precios actualizados.\n\nResumen:\n- Productos actualizados: ${response.data?.updatedProducts || 0}\n- Productos creados: ${response.data?.createdProducts || 0}\n- Movimientos de stock: ${response.data?.stockMovements || 0}\n- Estado de la orden: ${response.data?.newStatus || 'actualizado'}`);
+        const summary = response.data?.summary || {};
+        const itemsReceived = summary.itemsReceived || [];
+        
+        // ✅ CREAR MENSAJE DETALLADO CON LOS DATOS CORRECTOS
+        let detailMessage = `Mercancía recibida exitosamente. Stock y precios actualizados.\n\n📊 RESUMEN:\n`;
+        detailMessage += `• Productos actualizados: ${summary.updatedProducts || 0}\n`;
+        detailMessage += `• Productos creados: ${summary.createdProducts || 0}\n`;
+        detailMessage += `• Movimientos de stock: ${summary.stockMovements || 0}\n`;
+        detailMessage += `• Items recibidos: ${summary.totalItemsReceived || 0}\n`;
+        detailMessage += `• Estado de la orden: ${response.data?.newStatus || 'actualizado'}\n`;
+        
+        if (itemsReceived.length > 0) {
+          detailMessage += `\n📦 DETALLE DE ITEMS RECIBIDOS:\n`;
+          itemsReceived.forEach(item => {
+            detailMessage += `• ${item.productName}: +${item.quantityReceived} unidades\n`;
+          });
+        }
+        
+        if (response.data?.isCompleted) {
+          detailMessage += `\n🎉 ¡ORDEN COMPLETAMENTE RECIBIDA!\n`;
+          detailMessage += `Se ha generado automáticamente un expense en el módulo de gastos.`;
+        }
+        
+        alert(detailMessage);
         onSuccess && onSuccess();
       } else {
         alert('Error al recibir mercancía: ' + (response.message || 'Error desconocido'));

@@ -489,7 +489,7 @@ const receiveOrder = async (req, res) => {
         const time = String(today.getHours()).padStart(2, '0') + String(today.getMinutes()).padStart(2, '0');
         const expenseNumber = `EXP${year}${month}${day}${time}`;
 
-        await Expense.create({
+        const expenseData = {
           expenseNumber,
           categoryType: 'otros', // Categoría que existe en el ENUM
           description: `Compra de Mercancía - ${purchaseOrder.orderNumber}`,
@@ -498,7 +498,7 @@ const receiveOrder = async (req, res) => {
           paymentMethod: purchaseOrder.metodoPago === 'efectivo' ? 'efectivo' : 
                         purchaseOrder.metodoPago === 'transferencia' ? 'transferencia' :
                         purchaseOrder.metodoPago === 'tarjeta' ? 'tarjeta' : 'credito',
-          vendor: purchaseOrder.proveedor?.name || 'Proveedor',
+          vendor: purchaseOrder.proveedor?.nombre || 'Proveedor',
           invoiceNumber: purchaseOrder.numeroFactura || null,
           receiptUrl: purchaseOrder.archivoComprobante || null,
           notes: `Gasto generado automáticamente desde orden de compra completada. Factura: ${purchaseOrder.numeroFactura || 'N/A'}. Items recibidos: ${receivedItems.length}`,
@@ -506,9 +506,13 @@ const receiveOrder = async (req, res) => {
           isFromPurchaseOrder: true,
           purchaseOrderId: purchaseOrder.id,
           createdBy: req.user?.n_document || req.user?.id || null // ✅ USAR EL USUARIO AUTENTICADO
-        }, { transaction });
+        };
 
-        console.log(`💰 [ReceiveOrder] Expense automático creado (${expenseNumber}) para orden ${purchaseOrder.orderNumber} por $${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(purchaseOrder.total)}`);
+        console.log('💰 [ReceiveOrder] Creando expense con datos:', expenseData);
+
+        const createdExpense = await Expense.create(expenseData, { transaction });
+
+        console.log(`💰 [ReceiveOrder] Expense creado exitosamente (${expenseNumber}) para orden ${purchaseOrder.orderNumber} por $${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(purchaseOrder.total)}`, createdExpense.id);
       } catch (expenseError) {
         console.error('⚠️ [ReceiveOrder] Error creando expense automático:', expenseError);
         // No fallar la transacción por esto, solo registrar el error
@@ -785,12 +789,17 @@ const updatePurchaseOrder = async (req, res) => {
         purchaseOrderId: id,
         productId: item.productId,
         productName: item.productName,
-        productCode: item.productCode,
+        productSku: item.productSku,
+        productDescription: item.productDescription,
+        categoryId: item.categoryId,
         cantidad: item.cantidad,
         precioUnitario: item.precioUnitario,
+        subtotal: parseInt(item.cantidad) * parseFloat(item.precioUnitario),
         precioVentaSugerido: item.precioVentaSugerido,
         precioDistribuidorSugerido: item.precioDistribuidorSugerido,
-        cantidadRecibida: 0 // Reset al editar
+        stockMinimo: item.stockMinimo || 5,
+        isNewProduct: item.isNewProduct,
+        cantidadRecibida: item.cantidadRecibida || 0
       }, { transaction });
       
       newItems.push(newItem);

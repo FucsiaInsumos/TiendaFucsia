@@ -20,7 +20,7 @@ const PurchaseOrderForm = ({ onClose, onSuccess }) => {
     proveedorId: '',
     fechaCompra: new Date().toISOString().split('T')[0],
     numeroFactura: '',
-    metodoPago: 'Contado',
+    metodoPago: 'efectivo',
     fechaVencimiento: '',
     notas: '',
     impuestos: 0,
