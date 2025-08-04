@@ -1,0 +1,182 @@
+name: 🚀 Pre-Deploy Backup
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_description:
+        description: 'Descripción del deploy'
+        required: true
+        default: 'Deploy de nuevas funcionalidades'
+      environment:
+        description: 'Ambiente de deploy'
+        required: false
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+          - development
+
+jobs:
+  pre-deploy-backup:
+    name: 📦 Backup Pre-Deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: BackFucsia/package-lock.json
+        
+    - name: 🐘 Install PostgreSQL client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client-15
+        
+    - name: 📁 Create backup directories
+      run: |
+        mkdir -p BackFucsia/backups/pre-deploy
+        
+    - name: 📦 Install dependencies
+      working-directory: ./BackFucsia
+      run: |
+        npm ci --only=production
+        
+    - name: 🛡️ Create pre-deploy backup
+      working-directory: ./BackFucsia
+      env:
+        DB_DEPLOY: ${{ secrets.DB_DEPLOY }}
+        RETENTION_DAYS: 90
+      run: |
+        DEPLOY_DATE=$(date +%Y%m%d_%H%M%S)
+        REASON="pre_deploy_${DEPLOY_DATE}"
+        
+        echo "🚀 Creando backup pre-deploy..."
+        echo "📝 Descripción: ${{ github.event.inputs.deploy_description }}"
+        echo "🌍 Ambiente: ${{ github.event.inputs.environment }}"
+        echo "📅 Fecha: $DEPLOY_DATE"
+        echo "🔗 Commit: ${{ github.sha }}"
+        
+        # Ejecutar backup pre-deploy
+        node scripts/railway-backup.js pre-deploy "$REASON"
+        
+        # Crear archivo con información del deploy
+        echo "🚀 DEPLOY INFORMATION" > "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
+        echo "==============================================" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
+        echo "📅 Date: $(date)" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
+        echo "📝 Description: ${{ github.event.inputs.deploy_description }}" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
+        echo "🌍 Environment: ${{ github.event.inputs.environment }}" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
+        echo "🔗 Commit SHA: ${{ github.sha }}" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
+        echo "🌿 Branch: ${{ github.ref_name }}" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
+        echo "👤 Actor: ${{ github.actor }}" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
+        echo "📦 Run Number: ${{ github.run_number }}" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
+        echo "🔐 Run ID: ${{ github.run_id }}" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
+        echo "" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
+        echo "🔍 BACKUP DETAILS:" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
+        echo "==============================================" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
+        ls -la "backups/pre-deploy/" | grep "$REASON" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
+        
+    - name: 📊 Verify backup creation
+      working-directory: ./BackFucsia
+      run: |
+        echo "📋 Backups pre-deploy creados:"
+        find backups/pre-deploy -name "*.dump" -exec ls -lh {} \; | tail -3
+        echo ""
+        echo "📄 Archivos de información:"
+        find backups/pre-deploy -name "deploy_info_*.txt" -exec ls -lh {} \; | tail -1
+        echo ""
+        echo "📊 Espacio total usado:"
+        du -sh backups/pre-deploy/* 2>/dev/null || echo "No hay backups aún"
+        
+    - name: 🚀 Upload pre-deploy backup
+      uses: actions/upload-artifact@v4
+      with:
+        name: pre-deploy-backup-${{ github.run_number }}
+        path: BackFucsia/backups/pre-deploy/
+        retention-days: 90
+        compression-level: 9
+        if-no-files-found: error
+        
+    - name: ✅ Backup completion summary
+      if: success()
+      run: |
+        echo "🎉 ¡Backup pre-deploy completado exitosamente!"
+        echo ""
+        echo "📊 RESUMEN DEL BACKUP:"
+        echo "======================"
+        echo "📝 Descripción: ${{ github.event.inputs.deploy_description }}"
+        echo "🌍 Ambiente: ${{ github.event.inputs.environment }}"
+        echo "📅 Fecha: $(date)"
+        echo "🔗 Commit: ${{ github.sha }}"
+        echo "👤 Ejecutado por: ${{ github.actor }}"
+        echo ""
+        echo "✅ PRÓXIMOS PASOS:"
+        echo "=================="
+        echo "1. 📦 Descarga el backup desde la pestaña 'Actions'"
+        echo "2. 🚀 Procede con el deploy de forma segura"
+        echo "3. 🔄 Si hay problemas, usa este backup para restaurar"
+        echo ""
+        echo "🔗 Link directo al artifact:"
+        echo "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        
+    - name: ❌ Backup failure notification
+      if: failure()
+      run: |
+        echo "💥 Error en la creación del backup pre-deploy"
+        echo ""
+        echo "🔍 POSIBLES CAUSAS:"
+        echo "==================="
+        echo "❌ DB_DEPLOY no configurado correctamente"
+        echo "❌ Problemas de conectividad con la base de datos"
+        echo "❌ Falta el script railway-backup.js"
+        echo "❌ Dependencias no instaladas correctamente"
+        echo ""
+        echo "🛠️ SOLUCIONES:"
+        echo "==============="
+        echo "1. Verifica que DB_DEPLOY esté en GitHub Secrets"
+        echo "2. Revisa los logs anteriores para detalles del error"
+        echo "3. Prueba el backup manualmente en local"
+        echo ""
+        echo "⚠️ NO HAGAS DEPLOY SIN UN BACKUP EXITOSO"
+
+  rollback-plan:
+    name: 📋 Plan de Rollback
+    runs-on: ubuntu-latest
+    needs: pre-deploy-backup
+    if: success()
+    
+    steps:
+    - name: 📝 Generate rollback instructions
+      run: |
+        echo "📋 PLAN DE ROLLBACK GENERADO"
+        echo "============================="
+        echo ""
+        echo "🔄 En caso de problemas con el deploy:"
+        echo ""
+        echo "1️⃣ DESCARGAR BACKUP:"
+        echo "   • Ve a: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        echo "   • Descarga: pre-deploy-backup-${{ github.run_number }}.zip"
+        echo ""
+        echo "2️⃣ RESTAURAR BASE DE DATOS:"
+        echo "   • Extrae el archivo .dump del zip descargado"
+        echo "   • Ejecuta: pg_restore -U usuario -h host -d database --clean backup_file.dump"
+        echo ""
+        echo "3️⃣ REVERTIR CÓDIGO:"
+        echo "   • Commit actual: ${{ github.sha }}"
+        echo "   • Branch: ${{ github.ref_name }}"
+        echo "   • Ejecuta: git checkout [commit_anterior_estable]"
+        echo ""
+        echo "4️⃣ VERIFICAR FUNCIONAMIENTO:"
+        echo "   • Prueba todas las funcionalidades críticas"
+        echo "   • Verifica que los datos estén íntegros"
+        echo ""
+        echo "⚠️ CONTACTOS DE EMERGENCIA:"
+        echo "   • Deploy ejecutado por: ${{ github.actor }}"
+        echo "   • Fecha del backup: $(date)"
+        echo ""
+        echo "✅ Este plan estará disponible por 90 días"
