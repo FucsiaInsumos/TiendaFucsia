@@ -6,7 +6,12 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon -L index.js",
-    "build": "node index.js"
+    "build": "node index.js",
+     "backup:manual": "node scripts/railway-backup.js manual",
+    "backup:daily": "node scripts/railway-backup.js daily",
+    "backup:pre-deploy": "node scripts/railway-backup.js pre-deploy",
+    "backup:list": "node scripts/railway-backup.js list",
+      "backup:status": "node scripts/backup-status.js"
   },
   "keywords": [],
   "author": "",

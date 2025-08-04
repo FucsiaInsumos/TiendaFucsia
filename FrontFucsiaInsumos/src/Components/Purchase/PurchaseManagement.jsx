@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import ProveedorManager from './ProveedorManager';
 import PurchaseOrderManager from './PurchaseOrderManager';
+import ExpenseManager from '../Expenses/ExpenseManager';
+import PurchaseExpensesSummary from './PurchaseExpensesSummary';
 
 const PurchaseManagement = () => {
   const [activeTab, setActiveTab] = useState('proveedores'); // 'proveedores', 'orders'
@@ -17,6 +19,18 @@ const PurchaseManagement = () => {
       label: 'Órdenes de Compra', 
       icon: '📦',
       description: 'Gestiona compras y recepción de mercancía'
+    },
+       { 
+      id: 'gastos', 
+      label: 'Gastos', 
+      icon: '💰',
+      description: 'Gestiona gastos diarios y mensuales'
+    },
+    { 
+      id: 'resumen', 
+      label: 'Resumen de Gastos', 
+      icon: '📊',
+      description: 'Integración de gastos manuales y de compras'
     }
   ];
 
@@ -27,11 +41,19 @@ const PurchaseManagement = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Sistema de Compras
+            Sistema de Compras y Gastos Integrado
           </h1>
           <p className="text-gray-600">
-            Gestiona proveedores, órdenes de compra y recepción de mercancía
+            Gestiona proveedores, órdenes de compra, recepción de mercancía y gastos empresariales. Los gastos de compras se integran automáticamente.
           </p>
+          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="flex items-center">
+              <span className="text-blue-500 mr-2">🔄</span>
+              <span className="text-sm text-blue-700">
+                <strong>Integración Automática:</strong> Cuando completas una orden de compra, se crea automáticamente un gasto en la sección de Expenses.
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Tabs Navigation */}
@@ -65,6 +87,8 @@ const PurchaseManagement = () => {
         <div className="bg-white rounded-lg shadow-lg">
           {activeTab === 'proveedores' && <ProveedorManager />}
           {activeTab === 'orders' && <PurchaseOrderManager />}
+          {activeTab === 'gastos' && <ExpenseManager />}
+          {activeTab === 'resumen' && <PurchaseExpensesSummary />}
         </div>
       </div>
     </div>

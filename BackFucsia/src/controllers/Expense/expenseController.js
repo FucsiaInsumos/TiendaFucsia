@@ -20,13 +20,20 @@ const createExpense = async (req, res) => {
       recurringFrequency
     } = req.body;
 
-    const { n_document: createdBy } = req.user;
+    const { id: createdBy } = req.user;
 
     // Validaciones básicas
     if (!categoryType || !description || !amount) {
       return res.status(400).json({
         error: true,
         message: 'Categoría, descripción y monto son requeridos'
+      });
+    }
+
+    if (!createdBy) {
+      return res.status(400).json({
+        error: true,
+        message: 'Usuario no autenticado correctamente'
       });
     }
 
@@ -47,9 +54,17 @@ const createExpense = async (req, res) => {
       try {
         const uploadResult = await uploadBufferToCloudinary(req.file.buffer, {
           folder: 'expenses',
-          resource_type: 'auto' // Permite subir imágenes y PDFs
+          mimetype: req.file.mimetype, // ¡IMPORTANTE! Pasar el mimetype
+          originalName: req.file.originalname,
+          public_id: `expense_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
         });
         receiptUrl = uploadResult.secure_url;
+        console.log('Archivo subido exitosamente:', {
+          originalName: req.file.originalname,
+          mimetype: req.file.mimetype,
+          url: receiptUrl,
+          resource_type: uploadResult.resource_type
+        });
       } catch (uploadError) {
         console.error('Error al subir comprobante:', uploadError);
         return res.status(500).json({
@@ -189,6 +204,38 @@ const getExpenses = async (req, res) => {
       group: ['categoryType']
     });
 
+    // Calcular estadísticas por estado
+    const expensesByStatus = await Expense.findAll({
+      where,
+      attributes: [
+        'status',
+        [Expense.sequelize.fn('COUNT', Expense.sequelize.col('id')), 'count'],
+        [Expense.sequelize.fn('SUM', Expense.sequelize.col('amount')), 'total']
+      ],
+      group: ['status']
+    });
+
+    // Convertir estadísticas por estado a un formato más fácil de usar
+    const statusSummary = {
+      pendingCount: 0,
+      approvedCount: 0,
+      rejectedCount: 0,
+      totalCount: expenses.count
+    };
+
+    expensesByStatus.forEach(item => {
+      const status = item.status;
+      const count = parseInt(item.dataValues.count || 0);
+      
+      if (status === 'pendiente' || status === 'pending') {
+        statusSummary.pendingCount += count;
+      } else if (status === 'pagado' || status === 'approved') {
+        statusSummary.approvedCount += count;
+      } else if (status === 'cancelado' || status === 'rejected') {
+        statusSummary.rejectedCount += count;
+      }
+    });
+
     res.status(200).json({
       error: false,
       data: {
@@ -197,10 +244,12 @@ const getExpenses = async (req, res) => {
           currentPage: parseInt(page),
           totalPages: Math.ceil(expenses.count / parseInt(limit)),
           totalItems: expenses.count,
-          itemsPerPage: parseInt(limit)
+          itemsPerPage: parseInt(limit),
+          total: expenses.count // Agregar total para compatibilidad
         },
         summary: {
           totalAmount: totalAmount || 0,
+          ...statusSummary,
           expensesByCategory: expensesByCategory.map(item => ({
             category: item.categoryType,
             total: parseFloat(item.dataValues.total || 0),
@@ -290,7 +339,7 @@ const updateExpense = async (req, res) => {
     }
 
     // Solo el creador o un Owner puede editar
-    const { n_document: userId, role } = req.user;
+    const { id: userId, role } = req.user;
     if (expense.createdBy !== userId && role !== 'Owner') {
       return res.status(403).json({
         error: true,
@@ -304,9 +353,17 @@ const updateExpense = async (req, res) => {
       try {
         const uploadResult = await uploadBufferToCloudinary(req.file.buffer, {
           folder: 'expenses',
-          resource_type: 'auto' // Permite subir imágenes y PDFs
+          mimetype: req.file.mimetype, // ¡IMPORTANTE! Pasar el mimetype
+          originalName: req.file.originalname,
+          public_id: `expense_update_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
         });
         receiptUrl = uploadResult.secure_url;
+        console.log('Archivo actualizado exitosamente:', {
+          originalName: req.file.originalname,
+          mimetype: req.file.mimetype,
+          url: receiptUrl,
+          resource_type: uploadResult.resource_type
+        });
       } catch (uploadError) {
         console.error('Error al subir comprobante:', uploadError);
         return res.status(500).json({
@@ -362,7 +419,7 @@ const updateExpense = async (req, res) => {
 const approveExpense = async (req, res) => {
   try {
     const { id } = req.params;
-    const { n_document: approvedBy, role } = req.user;
+    const { id: approvedBy, role } = req.user;
 
     if (role !== 'Owner' && role !== 'Cashier') {
       return res.status(403).json({
@@ -547,17 +604,41 @@ const getExpenseStats = async (req, res) => {
       order: [['dueDate', 'ASC']]
     });
 
+    // Calcular estadísticas del mes anterior para comparación
+    const previousStartDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const previousEndDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const previousMonthExpenses = await Expense.sum('amount', {
+      where: {
+        expenseDate: {
+          [Op.between]: [previousStartDate, previousEndDate]
+        }
+      }
+    });
+
+    const currentMonthTotal = totalExpenses || 0;
+    const previousMonthTotal = previousMonthExpenses || 0;
+
     res.status(200).json({
       error: false,
       data: {
         period,
         dateRange: { startDate, endDate },
         summary: {
-          totalExpenses: totalExpenses || 0,
+          totalExpenses: currentMonthTotal,
           totalCount: await Expense.count({ where })
         },
-        expensesByCategory: expensesByCategory.map(item => ({
-          category: item.categoryType,
+        currentMonth: {
+          total: currentMonthTotal,
+          count: await Expense.count({ where })
+        },
+        monthlyComparison: {
+          currentMonth: currentMonthTotal,
+          previousMonth: previousMonthTotal,
+          difference: currentMonthTotal - previousMonthTotal
+        },
+        byCategory: expensesByCategory.map(item => ({
+          categoryType: item.categoryType,
           total: parseFloat(item.dataValues.total || 0),
           count: parseInt(item.dataValues.count || 0)
         })),

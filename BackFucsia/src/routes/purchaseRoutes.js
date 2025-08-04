@@ -8,7 +8,10 @@ const {
   createPurchaseOrder,
   getPurchaseOrders,
   getPurchaseOrderById,
-  receiveOrder
+  receiveOrder,
+  updatePurchaseOrder,
+  registerPayment,
+  updateOrderStatus
 } = require('../controllers/Purchase/purchaseController');
 
 const {
@@ -45,7 +48,10 @@ router.delete('/proveedores/:id', deleteProveedor);
 router.post('/orders', upload.single('comprobante'), createPurchaseOrder);
 router.get('/orders', getPurchaseOrders);
 router.get('/orders/:id', getPurchaseOrderById);
+router.put('/orders/:id', upload.single('comprobante'), updatePurchaseOrder);
 router.post('/orders/:id/receive', receiveOrder);
+router.post('/orders/:id/payment', registerPayment);
+router.patch('/orders/:id/status', updateOrderStatus);
 
 module.exports = router;
 // router.put('/orders/:id/cancel', cancelPurchaseOrder);

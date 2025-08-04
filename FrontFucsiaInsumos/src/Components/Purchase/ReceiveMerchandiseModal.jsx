@@ -118,8 +118,34 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
       // ✅ USAR LA ACCIÓN CORRECTA CON LOS DATOS ESTRUCTURADOS
       const response = await dispatch(receivePurchaseOrder(order.id, receiveData.receivedItems));
       
+      console.log('📦 Respuesta completa del servidor:', response);
+      console.log('📦 Summary data:', response.data?.summary);
+      
       if (response.error === false) {
-        alert('Mercancía recibida exitosamente. Stock y precios actualizados.');
+        const summary = response.data?.summary || {};
+        const itemsReceived = summary.itemsReceived || [];
+        
+        // ✅ CREAR MENSAJE DETALLADO CON LOS DATOS CORRECTOS
+        let detailMessage = `Mercancía recibida exitosamente. Stock y precios actualizados.\n\n📊 RESUMEN:\n`;
+        detailMessage += `• Productos actualizados: ${summary.updatedProducts || 0}\n`;
+        detailMessage += `• Productos creados: ${summary.createdProducts || 0}\n`;
+        detailMessage += `• Movimientos de stock: ${summary.stockMovements || 0}\n`;
+        detailMessage += `• Items recibidos: ${summary.totalItemsReceived || 0}\n`;
+        detailMessage += `• Estado de la orden: ${response.data?.newStatus || 'actualizado'}\n`;
+        
+        if (itemsReceived.length > 0) {
+          detailMessage += `\n📦 DETALLE DE ITEMS RECIBIDOS:\n`;
+          itemsReceived.forEach(item => {
+            detailMessage += `• ${item.productName}: +${item.quantityReceived} unidades\n`;
+          });
+        }
+        
+        if (response.data?.isCompleted) {
+          detailMessage += `\n🎉 ¡ORDEN COMPLETAMENTE RECIBIDA!\n`;
+          detailMessage += `Se ha generado automáticamente un expense en el módulo de gastos.`;
+        }
+        
+        alert(detailMessage);
         onSuccess && onSuccess();
       } else {
         alert('Error al recibir mercancía: ' + (response.message || 'Error desconocido'));
@@ -440,32 +466,41 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
             </div>
 
             {/* Botones */}
-            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-              <button
-                type="submit"
-                disabled={loading || receivedItems.filter(item => item.cantidadRecibir > 0).length === 0}
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <div className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Recibiendo...
-                  </div>
-                ) : (
-                  '📦 Recibir Mercancía y Actualizar Stock'
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={loading}
-                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
-              >
-                Cancelar
-              </button>
+            <div className="bg-gray-50 px-4 py-3 sm:px-6">
+              {/* ✅ INFORMACIÓN ADICIONAL */}
+              <div className="text-xs text-gray-500 mb-3">
+                💡 <strong>Nota:</strong> Al recibir mercancía se actualizará automáticamente el stock, 
+                se crearán movimientos de inventario y, si la orden se completa y está pagada, 
+                se generará un gasto automático en el módulo de expenses.
+              </div>
+              
+              <div className="sm:flex sm:flex-row-reverse">
+                <button
+                  type="submit"
+                  disabled={loading || receivedItems.filter(item => item.cantidadRecibir > 0).length === 0}
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <div className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Recibiendo...
+                    </div>
+                  ) : (
+                    '📦 Recibir Mercancía y Actualizar Stock'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={loading}
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           </form>
         </div>

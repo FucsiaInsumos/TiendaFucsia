@@ -1,0 +1,105 @@
+name: 🛡️ Daily Database Backup
+
+on:
+  schedule:
+    # Ejecutar todos los días a las 2:00 AM UTC (10:00 PM Colombia)
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Permitir ejecución manual
+    inputs:
+      backup_type:
+        description: 'Tipo de backup'
+        required: false
+        default: 'daily'
+        type: choice
+        options:
+          - daily
+          - manual
+          - pre-deploy
+      reason:
+        description: 'Razón del backup'
+        required: false
+        default: 'manual_github'
+
+jobs:
+  backup:
+    name: 📦 Crear Backup de Base de Datos
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: BackFucsia/package-lock.json
+        
+    - name: 🐘 Install PostgreSQL client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client-15
+        
+    - name: 📁 Create backup directories
+      run: |
+        mkdir -p BackFucsia/backups/daily
+        mkdir -p BackFucsia/backups/manual
+        mkdir -p BackFucsia/backups/weekly
+        mkdir -p BackFucsia/backups/pre-deploy
+        
+    - name: 📦 Install dependencies
+      working-directory: ./BackFucsia
+      run: |
+        npm ci --only=production
+        
+    - name: 🛡️ Create database backup
+      working-directory: ./BackFucsia
+      env:
+        DB_DEPLOY: ${{ secrets.DB_DEPLOY }}
+        RETENTION_DAYS: 30
+      run: |
+        # Determinar tipo de backup y razón
+        BACKUP_TYPE="${{ github.event.inputs.backup_type || 'daily' }}"
+        REASON="${{ github.event.inputs.reason || 'github_action' }}"
+        
+        echo "🔄 Iniciando backup tipo: $BACKUP_TYPE"
+        echo "📝 Razón: $REASON"
+        
+        # Ejecutar script de backup
+        node scripts/railway-backup.js "$BACKUP_TYPE" "$REASON"
+        
+    - name: 📊 List created backups
+      working-directory: ./BackFucsia
+      run: |
+        echo "📋 Backups creados:"
+        find backups -name "*.dump" -exec ls -lh {} \; | tail -5
+        echo ""
+        echo "📊 Espacio total usado por backups:"
+        du -sh backups/*
+        
+    - name: 🚀 Upload backup artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: database-backup-${{ github.run_number }}
+        path: |
+          BackFucsia/backups/daily/
+          BackFucsia/backups/manual/
+          BackFucsia/backups/pre-deploy/
+        retention-days: 30
+        compression-level: 9
+        
+    - name: 📧 Notify backup status
+      if: always()
+      run: |
+        if [ ${{ job.status }} == 'success' ]; then
+          echo "✅ Backup completado exitosamente"
+          echo "📊 Información del backup:"
+          echo "- Tiempo: $(date)"
+          echo "- Tipo: ${{ github.event.inputs.backup_type || 'daily' }}"
+          echo "- Razón: ${{ github.event.inputs.reason || 'github_action' }}"
+          echo "- Run ID: ${{ github.run_number }}"
+        else
+          echo "❌ Error en backup"
+          echo "🔍 Revisa los logs para más detalles"
+        fi

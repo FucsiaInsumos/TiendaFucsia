@@ -55,7 +55,7 @@ sequelize.models = Object.fromEntries(capsEntries);
 const { 
   User, Product, Category, Distributor, DiscountRule, 
   Order, OrderItem, Payment, StockMovement,
-  Proveedor, PurchaseOrder, PurchaseOrderItem, CreditPaymentRecord, Expense
+  Proveedor, PurchaseOrder, PurchaseOrderItem, PurchasePayment, CreditPaymentRecord, Expense
 } = sequelize.models;
 
 // Relaciones existentes
@@ -119,6 +119,11 @@ Proveedor.hasMany(PurchaseOrder, { foreignKey: 'proveedorId', as: 'purchaseOrder
 PurchaseOrder.belongsTo(Proveedor, { foreignKey: 'proveedorId', as: 'proveedor' });
 PurchaseOrder.belongsTo(User, { foreignKey: 'createdBy', targetKey: 'n_document', as: 'creator' });
 PurchaseOrder.hasMany(PurchaseOrderItem, { foreignKey: 'purchaseOrderId', as: 'items' });
+PurchaseOrder.hasMany(PurchasePayment, { foreignKey: 'purchaseOrderId', as: 'payments' });
+
+// Relaciones para PurchasePayment
+PurchasePayment.belongsTo(PurchaseOrder, { foreignKey: 'purchaseOrderId', as: 'purchaseOrder' });
+PurchasePayment.belongsTo(User, { foreignKey: 'createdBy', targetKey: 'n_document', as: 'creator' });
 
 // Relaciones para PurchaseOrderItem
 PurchaseOrderItem.belongsTo(PurchaseOrder, { foreignKey: 'purchaseOrderId', as: 'purchaseOrder' });

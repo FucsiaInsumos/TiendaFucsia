@@ -9,6 +9,7 @@ import {
   getProductStats,
   getTopCustomers
 } from '../../Redux/Actions/dashboardActions';
+import { getExpenseStats } from '../../Redux/Actions/expenseActions';
 
 import StatCard from './StatCard';
 import SalesChart from './SalesChart';
@@ -29,6 +30,18 @@ const DashboardStats = () => {
     topCustomers
   } = useSelector(state => state.dashboard);
 
+  // Estado para estadísticas de gastos
+  const [expenseStats, setExpenseStats] = useState({
+    summary: { totalExpenses: 0, totalCount: 0 },
+    currentMonth: { total: 0, count: 0 },
+    monthlyComparison: { currentMonth: 0, previousMonth: 0, difference: 0 },
+    byCategory: [],
+    expensesByPaymentMethod: [],
+    expensesByStatus: [],
+    upcomingDueExpenses: []
+  });
+  const [expenseLoading, setExpenseLoading] = useState(false);
+
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedChartType, setSelectedChartType] = useState('line');
@@ -40,6 +53,9 @@ const DashboardStats = () => {
     dispatch(getProductStats('month'));
     dispatch(getTopCustomers('month'));
     dispatch(getSalesChart('month', selectedYear));
+    
+    // Cargar estadísticas de gastos
+    loadExpenseStats();
   }, [dispatch, selectedYear]);
 
   useEffect(() => {
@@ -51,6 +67,9 @@ const DashboardStats = () => {
     } else {
       dispatch(getSalesChart(selectedPeriod, selectedYear));
     }
+    
+    // Recargar estadísticas de gastos cuando cambie el período
+    loadExpenseStats();
   }, [dispatch, selectedPeriod, selectedYear]);
 
   const formatCurrency = (amount) => {
@@ -63,6 +82,28 @@ const DashboardStats = () => {
 
   const handlePeriodChange = (period) => {
     setSelectedPeriod(period);
+  };
+
+  const loadExpenseStats = async () => {
+    try {
+      setExpenseLoading(true);
+      console.log('🔍 Cargando estadísticas de gastos para período:', selectedPeriod);
+      const response = await dispatch(getExpenseStats(selectedPeriod));
+      console.log('📊 Respuesta de estadísticas de gastos:', response);
+      
+      if (response && response.data) {
+        console.log('✅ Datos de gastos recibidos:', response.data);
+        setExpenseStats(response.data);
+      } else {
+        console.log('⚠️ No se recibieron datos de gastos o estructura incorrecta');
+        console.log('Respuesta completa:', response);
+      }
+    } catch (error) {
+      console.error('❌ Error loading expense stats:', error);
+      console.error('Error details:', error.response?.data);
+    } finally {
+      setExpenseLoading(false);
+    }
   };
 
   const getChartData = () => {
@@ -186,12 +227,36 @@ const DashboardStats = () => {
         />
         
         <StatCard
+          title="Gastos del Período"
+          value={expenseLoading ? "Cargando..." : formatCurrency(expenseStats.summary?.totalExpenses || 0)}
+          subValue={expenseLoading ? "..." : `${expenseStats.summary?.totalCount || 0} gastos`}
+          icon="💸"
+          color="red"
+        />
+        
+        <StatCard
+          title="Gastos del Mes"
+          value={expenseLoading ? "Cargando..." : formatCurrency(expenseStats.currentMonth?.total || 0)}
+          subValue={expenseLoading ? "..." : `${expenseStats.currentMonth?.count || 0} gastos`}
+          icon="📉"
+          color="orange"
+        />
+        
+        <StatCard
           title="Ganancia"
           value={formatCurrency(revenueStats.current?.profit || 0)}
           subValue={`Margen: ${revenueStats.current?.profitMargin?.toFixed(1) || 0}%`}
           icon="💵"
           color="purple"
           trend={revenueStats.growth?.profit}
+        />
+        
+        <StatCard
+          title="Ganancia Neta"
+          value={formatCurrency((revenueStats.current?.profit || 0) - (expenseStats.currentMonth?.total || 0))}
+          subValue="Ganancia - Gastos"
+          icon="💎"
+          color="emerald"
         />
         
         <StatCard
@@ -233,6 +298,31 @@ const DashboardStats = () => {
           icon="💸"
           color="green"
           trend={revenueStats.growth?.revenue}
+        />
+        
+        <StatCard
+          title="Ratio Gastos/Ingresos"
+          value={`${revenueStats.current?.revenue > 0 ? 
+            ((expenseStats.currentMonth?.total || 0) / revenueStats.current.revenue * 100).toFixed(1) : 0}%`}
+          subValue="Control de gastos"
+          icon="⚖️"
+          color="slate"
+        />
+        
+        <StatCard
+          title="Variación Mensual"
+          value={formatCurrency(expenseStats.monthlyComparison?.difference || 0)}
+          subValue="vs mes anterior"
+          icon="📊"
+          color={expenseStats.monthlyComparison?.difference > 0 ? "red" : "green"}
+        />
+        
+        <StatCard
+          title="Gastos Pendientes"
+          value={expenseStats.upcomingDueExpenses?.length || 0}
+          subValue="Por vencer (7 días)"
+          icon="⏰"
+          color="yellow"
         />
       </div>
 

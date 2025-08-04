@@ -64,7 +64,7 @@ module.exports = (sequelize) => {
     },
     createdBy: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true, // ✅ PERMITIR NULL para gastos automáticos del sistema
       references: {
         model: 'Users',
         key: 'n_document'
@@ -89,6 +89,19 @@ module.exports = (sequelize) => {
     recurringFrequency: {
       type: DataTypes.ENUM('mensual', 'trimestral', 'semestral', 'anual'),
       allowNull: true
+    },
+    // Campos para integración con órdenes de compra
+    isFromPurchaseOrder: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    purchaseOrderId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: 'PurchaseOrders',
+        key: 'id'
+      }
     }
   });
 };

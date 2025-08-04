@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import DocumentViewer from '../Common/DocumentViewer';
 import { 
   Edit, 
   Trash2, 
@@ -8,7 +9,9 @@ import {
   ChevronLeft, 
   ChevronRight,
   ArrowUpDown,
-  ExternalLink
+  ExternalLink,
+  Download,
+  Image
 } from 'lucide-react';
 
 const ExpenseList = ({
@@ -26,6 +29,12 @@ const ExpenseList = ({
   const [sortBy, setSortBy] = useState('expenseDate');
   const [sortOrder, setSortOrder] = useState('desc');
   const [selectedExpense, setSelectedExpense] = useState(null);
+  const [documentViewer, setDocumentViewer] = useState({
+    isOpen: false,
+    url: '',
+    title: '',
+    fileType: null
+  });
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('es-CO', {
@@ -45,12 +54,16 @@ const ExpenseList = ({
 
   const getStatusBadge = (status) => {
     const statusConfig = {
+      pendiente: { label: 'Pendiente', className: 'bg-yellow-100 text-yellow-800' },
+      pagado: { label: 'Aprobado', className: 'bg-green-100 text-green-800' },
+      cancelado: { label: 'Rechazado', className: 'bg-red-100 text-red-800' },
+      // Mantener compatibilidad con valores en inglés por si acaso
       pending: { label: 'Pendiente', className: 'bg-yellow-100 text-yellow-800' },
       approved: { label: 'Aprobado', className: 'bg-green-100 text-green-800' },
       rejected: { label: 'Rechazado', className: 'bg-red-100 text-red-800' }
     };
 
-    const config = statusConfig[status] || statusConfig.pending;
+    const config = statusConfig[status] || statusConfig.pendiente;
     
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.className}`}>
@@ -71,6 +84,18 @@ const ExpenseList = ({
       otros: 'Otros'
     };
     return categories[categoryType] || categoryType;
+  };
+
+  const getPaymentMethodLabel = (paymentMethod) => {
+    const methods = {
+      efectivo: 'Efectivo',
+      transferencia: 'Transferencia',
+      tarjeta_credito: 'T. Crédito',
+      tarjeta_debito: 'T. Débito',
+      cheque: 'Cheque',
+      otro: 'Otro'
+    };
+    return methods[paymentMethod] || paymentMethod || 'No especificado';
   };
 
   const handleSort = (field) => {
@@ -95,9 +120,34 @@ const ExpenseList = ({
     });
   };
 
-  const viewReceipt = (receiptUrl) => {
+  const viewReceipt = (receiptUrl, expenseTitle = 'Comprobante de Gasto', expense = null) => {
     if (receiptUrl) {
-      window.open(receiptUrl, '_blank');
+      console.log('=== DEBUGGING RECEIPT ===');
+      console.log('URL recibida:', receiptUrl);
+      console.log('Es PDF?:', receiptUrl.includes('.pdf') || receiptUrl.toLowerCase().includes('pdf'));
+      console.log('Título:', expenseTitle);
+      console.log('Expense object:', expense);
+      console.log('==========================');
+      
+      // Detectar tipo de archivo desde múltiples fuentes
+      let fileType = null;
+      if (expense?.receiptMimetype) {
+        fileType = expense.receiptMimetype.includes('pdf') ? 'pdf' : 'image';
+      } else if (expense?.receiptResourceType) {
+        fileType = expense.receiptResourceType === 'raw' ? 'pdf' : 'image';
+      } else {
+        // Fallback basado en URL
+        fileType = (receiptUrl.includes('.pdf') || receiptUrl.includes('/raw/upload/')) ? 'pdf' : 'image';
+      }
+      
+      console.log('Tipo de archivo detectado:', fileType);
+      
+      setDocumentViewer({
+        isOpen: true,
+        url: receiptUrl,
+        title: expenseTitle,
+        fileType: fileType
+      });
     }
   };
 
@@ -169,6 +219,9 @@ const ExpenseList = ({
                 </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Método de Pago
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Estado
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -187,12 +240,24 @@ const ExpenseList = ({
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">
                   <div>
-                    <div className="font-medium">{expense.description}</div>
+                    <div className="font-medium flex items-center">
+                      {expense.description}
+                      {expense.isFromPurchaseOrder && (
+                        <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800" title="Gasto generado desde orden de compra">
+                          📦 Orden de Compra
+                        </span>
+                      )}
+                    </div>
                     {expense.vendor && (
                       <div className="text-gray-500">Proveedor: {expense.vendor}</div>
                     )}
                     {expense.invoiceNumber && (
                       <div className="text-gray-500">Factura: {expense.invoiceNumber}</div>
+                    )}
+                    {expense.isFromPurchaseOrder && expense.purchaseOrderId && (
+                      <div className="text-purple-600 text-xs">
+                        🔗 Vinculado a orden de compra
+                      </div>
                     )}
                   </div>
                 </td>
@@ -204,6 +269,11 @@ const ExpenseList = ({
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {formatCurrency(expense.amount)}
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    {getPaymentMethodLabel(expense.paymentMethod)}
+                  </span>
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {getStatusBadge(expense.status)}
                 </td>
@@ -212,14 +282,35 @@ const ExpenseList = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end space-x-2">
-                    {expense.receiptUrl && (
-                      <button
-                        onClick={() => viewReceipt(expense.receiptUrl)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Ver comprobante"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </button>
+                    {expense.receiptUrl ? (
+                      <div className="flex items-center space-x-1">
+                        <button
+                          onClick={() => {
+                            console.log('Opening receipt URL:', expense.receiptUrl);
+                            viewReceipt(expense.receiptUrl, `${expense.description} - ${formatDate(expense.expenseDate)}`, expense);
+                          }}
+                          className="text-blue-600 hover:text-blue-900"
+                          title={`Ver comprobante ${expense.receiptUrl.includes('.pdf') ? '(PDF)' : '(Imagen)'}`}
+                        >
+                          {expense.receiptUrl.includes('.pdf') ? (
+                            <FileText className="h-4 w-4" />
+                          ) : (
+                            <Image className="h-4 w-4" />
+                          )}
+                        </button>
+                        {expense.receiptUrl.includes('.pdf') && (
+                          <a
+                            href={expense.receiptUrl}
+                            download
+                            className="text-green-600 hover:text-green-900"
+                            title="Descargar PDF"
+                          >
+                            <Download className="h-4 w-4" />
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-xs">Sin comprobante</span>
                     )}
                     
                     <button
@@ -238,7 +329,7 @@ const ExpenseList = ({
                       <Edit className="h-4 w-4" />
                     </button>
                     
-                    {canApprove && expense.status === 'pending' && (
+                    {canApprove && (expense.status === 'pendiente' || expense.status === 'pending') && (
                       <button
                         onClick={() => onApprove(expense)}
                         className="text-green-600 hover:text-green-900"
@@ -384,6 +475,17 @@ const ExpenseList = ({
                     <div>{getStatusBadge(selectedExpense.status)}</div>
                   </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Método de Pago</label>
+                    <p className="text-sm text-gray-900">{getPaymentMethodLabel(selectedExpense.paymentMethod)}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Creado por</label>
+                    <p className="text-sm text-gray-900">{selectedExpense.creator?.email || 'Usuario desconocido'}</p>
+                  </div>
+                </div>
                 
                 {selectedExpense.vendor && (
                   <div>
@@ -398,11 +500,61 @@ const ExpenseList = ({
                     <p className="text-sm text-gray-900">{selectedExpense.notes}</p>
                   </div>
                 )}
+                
+                {selectedExpense.receiptUrl && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Comprobante</label>
+                    <div className="flex items-center space-x-3 mt-1">
+                      <button
+                        onClick={() => viewReceipt(selectedExpense.receiptUrl, `${selectedExpense.description} - ${formatDate(selectedExpense.expenseDate)}`, selectedExpense)}
+                        className="flex items-center text-sm text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1 rounded"
+                      >
+                        {selectedExpense.receiptUrl.includes('.pdf') ? (
+                          <>
+                            <FileText className="h-4 w-4 mr-1" />
+                            Ver PDF
+                          </>
+                        ) : (
+                          <>
+                            <Image className="h-4 w-4 mr-1" />
+                            Ver Imagen
+                          </>
+                        )}
+                      </button>
+                      <a
+                        href={selectedExpense.receiptUrl}
+                        download
+                        className="flex items-center text-sm text-green-600 hover:text-green-800 bg-green-50 px-3 py-1 rounded"
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        Descargar
+                      </a>
+                      <a
+                        href={selectedExpense.receiptUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center text-sm text-purple-600 hover:text-purple-800 bg-purple-50 px-3 py-1 rounded"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        Abrir en nueva pestaña
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Document Viewer Modal */}
+      <DocumentViewer
+        isOpen={documentViewer.isOpen}
+        onClose={() => setDocumentViewer({ isOpen: false, url: '', title: '', fileType: null })}
+        documentUrl={documentViewer.url}
+        title={documentViewer.title}
+        fileType={documentViewer.fileType}
+      />
     </div>
   );
 };
