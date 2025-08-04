@@ -36,7 +36,10 @@ jobs:
     - name: 🐘 Install PostgreSQL client
       run: |
         sudo apt-get update
-        sudo apt-get install -y postgresql-client-15
+        # Instalar el cliente PostgreSQL correcto para Ubuntu 24.04
+        sudo apt-get install -y postgresql-client
+        # Verificar instalación
+        pg_dump --version
         
     - name: 📁 Create backup directories
       run: |
@@ -62,6 +65,14 @@ jobs:
         echo "📅 Fecha: $DEPLOY_DATE"
         echo "🔗 Commit: ${{ github.sha }}"
         
+        # Verificar que DB_DEPLOY está configurado
+        if [ -z "$DB_DEPLOY" ]; then
+          echo "❌ Error: DB_DEPLOY no está configurado en secrets"
+          exit 1
+        fi
+        
+        echo "✅ Variable DB_DEPLOY configurada"
+        
         # Ejecutar backup pre-deploy
         node scripts/railway-backup.js pre-deploy "$REASON"
         
@@ -76,10 +87,6 @@ jobs:
         echo "👤 Actor: ${{ github.actor }}" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
         echo "📦 Run Number: ${{ github.run_number }}" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
         echo "🔐 Run ID: ${{ github.run_id }}" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
-        echo "" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
-        echo "🔍 BACKUP DETAILS:" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
-        echo "==============================================" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
-        ls -la "backups/pre-deploy/" | grep "$REASON" >> "backups/pre-deploy/deploy_info_${DEPLOY_DATE}.txt"
         
     - name: 📊 Verify backup creation
       working-directory: ./BackFucsia
@@ -91,7 +98,7 @@ jobs:
         find backups/pre-deploy -name "deploy_info_*.txt" -exec ls -lh {} \; | tail -1
         echo ""
         echo "📊 Espacio total usado:"
-        du -sh backups/pre-deploy/* 2>/dev/null || echo "No hay backups aún"
+        du -sh backups/pre-deploy/* 2>/dev/null || echo "Calculando tamaño..."
         
     - name: 🚀 Upload pre-deploy backup
       uses: actions/upload-artifact@v4
@@ -143,40 +150,3 @@ jobs:
         echo "3. Prueba el backup manualmente en local"
         echo ""
         echo "⚠️ NO HAGAS DEPLOY SIN UN BACKUP EXITOSO"
-
-  rollback-plan:
-    name: 📋 Plan de Rollback
-    runs-on: ubuntu-latest
-    needs: pre-deploy-backup
-    if: success()
-    
-    steps:
-    - name: 📝 Generate rollback instructions
-      run: |
-        echo "📋 PLAN DE ROLLBACK GENERADO"
-        echo "============================="
-        echo ""
-        echo "🔄 En caso de problemas con el deploy:"
-        echo ""
-        echo "1️⃣ DESCARGAR BACKUP:"
-        echo "   • Ve a: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        echo "   • Descarga: pre-deploy-backup-${{ github.run_number }}.zip"
-        echo ""
-        echo "2️⃣ RESTAURAR BASE DE DATOS:"
-        echo "   • Extrae el archivo .dump del zip descargado"
-        echo "   • Ejecuta: pg_restore -U usuario -h host -d database --clean backup_file.dump"
-        echo ""
-        echo "3️⃣ REVERTIR CÓDIGO:"
-        echo "   • Commit actual: ${{ github.sha }}"
-        echo "   • Branch: ${{ github.ref_name }}"
-        echo "   • Ejecuta: git checkout [commit_anterior_estable]"
-        echo ""
-        echo "4️⃣ VERIFICAR FUNCIONAMIENTO:"
-        echo "   • Prueba todas las funcionalidades críticas"
-        echo "   • Verifica que los datos estén íntegros"
-        echo ""
-        echo "⚠️ CONTACTOS DE EMERGENCIA:"
-        echo "   • Deploy ejecutado por: ${{ github.actor }}"
-        echo "   • Fecha del backup: $(date)"
-        echo ""
-        echo "✅ Este plan estará disponible por 90 días"

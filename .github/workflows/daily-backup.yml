@@ -39,7 +39,10 @@ jobs:
     - name: 🐘 Install PostgreSQL client
       run: |
         sudo apt-get update
-        sudo apt-get install -y postgresql-client-15
+        # Instalar el cliente PostgreSQL correcto para Ubuntu 24.04
+        sudo apt-get install -y postgresql-client
+        # Verificar instalación
+        pg_dump --version
         
     - name: 📁 Create backup directories
       run: |
@@ -66,6 +69,14 @@ jobs:
         echo "🔄 Iniciando backup tipo: $BACKUP_TYPE"
         echo "📝 Razón: $REASON"
         
+        # Verificar que DB_DEPLOY está configurado
+        if [ -z "$DB_DEPLOY" ]; then
+          echo "❌ Error: DB_DEPLOY no está configurado en secrets"
+          exit 1
+        fi
+        
+        echo "✅ Variable DB_DEPLOY configurada"
+        
         # Ejecutar script de backup
         node scripts/railway-backup.js "$BACKUP_TYPE" "$REASON"
         
@@ -76,7 +87,7 @@ jobs:
         find backups -name "*.dump" -exec ls -lh {} \; | tail -5
         echo ""
         echo "📊 Espacio total usado por backups:"
-        du -sh backups/*
+        du -sh backups/* 2>/dev/null || echo "No hay backups aún"
         
     - name: 🚀 Upload backup artifacts
       uses: actions/upload-artifact@v4
@@ -88,18 +99,40 @@ jobs:
           BackFucsia/backups/pre-deploy/
         retention-days: 30
         compression-level: 9
+        if-no-files-found: warn
         
     - name: 📧 Notify backup status
       if: always()
       run: |
-        if [ ${{ job.status }} == 'success' ]; then
+        if [ "${{ job.status }}" == "success" ]; then
           echo "✅ Backup completado exitosamente"
           echo "📊 Información del backup:"
           echo "- Tiempo: $(date)"
           echo "- Tipo: ${{ github.event.inputs.backup_type || 'daily' }}"
           echo "- Razón: ${{ github.event.inputs.reason || 'github_action' }}"
           echo "- Run ID: ${{ github.run_number }}"
+          echo "- Branch: ${{ github.ref_name }}"
+          echo "- Commit: ${{ github.sha }}"
         else
           echo "❌ Error en backup"
           echo "🔍 Revisa los logs para más detalles"
+          echo "💡 Verifica que DB_DEPLOY esté configurado en los secrets"
+        fi
+
+  notify-completion:
+    name: 📬 Notificación de Backup
+    runs-on: ubuntu-latest
+    needs: backup
+    if: always()
+    
+    steps:
+    - name: 📨 Send completion notification
+      run: |
+        if [ "${{ needs.backup.result }}" == "success" ]; then
+          echo "🎉 Backup diario completado exitosamente"
+          echo "📅 Fecha: $(date)"
+          echo "🔗 Puedes descargar el backup desde la pestaña Actions"
+        else
+          echo "⚠️ Hubo un problema con el backup diario"
+          echo "🔧 Se requiere atención manual"
         fi
