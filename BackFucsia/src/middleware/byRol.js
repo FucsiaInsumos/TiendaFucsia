@@ -4,7 +4,7 @@ const permisos = {
     permisos: [
       'verEstadisticas',
       'crearCategoria',
-      'editarCategoria', 
+      'editarCategoria',
       'eliminarCategoria',
       'crearProducto',
       'editarProducto',
@@ -20,7 +20,7 @@ const permisos = {
     permisos: [
       'crearCategoria',
       'editarCategoria',
-      'crearProducto', 
+      'crearProducto',
       'editarProducto',
       'verEstadisticas',
       'verProductos',
@@ -31,7 +31,9 @@ const permisos = {
     permisos: [
       'verProductos',
       'crearVenta',
-      'verEstadisticas'
+      'verEstadisticas',
+      'gestionarUsuarios',   
+      'editarProducto'
     ]
   },
   Customer: {
@@ -52,7 +54,7 @@ const byRol = (req, res, next) => {
     }
 
     const userRole = req.user.role;
-    
+
     if (!permisos[userRole]) {
       return res.status(403).json({
         error: true,
@@ -74,7 +76,7 @@ const byRol = (req, res, next) => {
   }
 };
 
-module.exports = { 
+module.exports = {
   byRol,
-  permisos 
+  permisos
 };

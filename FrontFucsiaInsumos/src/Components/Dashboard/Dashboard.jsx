@@ -37,7 +37,7 @@ const Dashboard = () => {
       const clickedElement = event.target;
       const isCardClick = clickedElement.closest('.dropdown-card');
       const isDropdownClick = clickedElement.closest('.dropdown-menu');
-      
+
       // Cerrar dropdowns si se hace clic fuera de tarjetas y menús
       if (!isCardClick && !isDropdownClick) {
         setIsVentasDropdownOpen(false);
@@ -279,10 +279,10 @@ const Dashboard = () => {
                       <p className="text-sm text-gray-600">Gestiona ventas y punto de venta</p>
                     </div>
                     <div className="md:hidden">
-                      <svg 
-                        className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isVentasDropdownOpen ? 'rotate-180' : ''}`} 
-                        fill="none" 
-                        stroke="currentColor" 
+                      <svg
+                        className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isVentasDropdownOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -293,9 +293,8 @@ const Dashboard = () => {
 
                 {isVentasDropdownOpen && (
                   <div
-                    className={`dropdown-menu absolute w-64 bg-white rounded-lg border border-gray-200 shadow-2xl z-50 ${
-                      shouldOpenUpward(0) ? 'bottom-full mb-2' : 'top-full mt-2'
-                    }`}
+                    className={`dropdown-menu absolute w-64 bg-white rounded-lg border border-gray-200 shadow-2xl z-50 ${shouldOpenUpward(0) ? 'bottom-full mb-2' : 'top-full mt-2'
+                      }`}
                     style={{
                       left: '0',
                       right: window.innerWidth < 768 ? '0' : 'auto',
@@ -359,10 +358,10 @@ const Dashboard = () => {
                       <p className="text-sm text-gray-600">Gestiona tu inventario</p>
                     </div>
                     <div className="md:hidden">
-                      <svg 
-                        className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isProductsDropdownOpen ? 'rotate-180' : ''}`} 
-                        fill="none" 
-                        stroke="currentColor" 
+                      <svg
+                        className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isProductsDropdownOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -373,9 +372,8 @@ const Dashboard = () => {
 
                 {isProductsDropdownOpen && (
                   <div
-                    className={`dropdown-menu absolute w-64 bg-white rounded-lg border border-gray-200 shadow-2xl z-50 ${
-                      shouldOpenUpward(1) ? 'bottom-full mb-2' : 'top-full mt-2'
-                    }`}
+                    className={`dropdown-menu absolute w-64 bg-white rounded-lg border border-gray-200 shadow-2xl z-50 ${shouldOpenUpward(1) ? 'bottom-full mb-2' : 'top-full mt-2'
+                      }`}
                     style={{
                       left: '0',
                       right: window.innerWidth < 768 ? '0' : 'auto',
@@ -430,10 +428,10 @@ const Dashboard = () => {
                       <p className="text-sm text-gray-600">Gestiona descuentos y precios especiales</p>
                     </div>
                     <div className="md:hidden">
-                      <svg 
-                        className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isDiscountsDropdownOpen ? 'rotate-180' : ''}`} 
-                        fill="none" 
-                        stroke="currentColor" 
+                      <svg
+                        className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isDiscountsDropdownOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -444,9 +442,8 @@ const Dashboard = () => {
 
                 {isDiscountsDropdownOpen && (
                   <div
-                    className={`dropdown-menu absolute w-64 bg-white rounded-lg border border-gray-200 shadow-2xl z-50 ${
-                      shouldOpenUpward(2) ? 'bottom-full mb-2' : 'top-full mt-2'
-                    }`}
+                    className={`dropdown-menu absolute w-64 bg-white rounded-lg border border-gray-200 shadow-2xl z-50 ${shouldOpenUpward(2) ? 'bottom-full mb-2' : 'top-full mt-2'
+                      }`}
                     style={{
                       left: '0',
                       right: window.innerWidth < 768 ? '0' : 'auto',
@@ -501,10 +498,10 @@ const Dashboard = () => {
                       <p className="text-sm text-gray-600">Administra usuarios del sistema</p>
                     </div>
                     <div className="md:hidden">
-                      <svg 
-                        className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isUsersDropdownOpen ? 'rotate-180' : ''}`} 
-                        fill="none" 
-                        stroke="currentColor" 
+                      <svg
+                        className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isUsersDropdownOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -515,9 +512,8 @@ const Dashboard = () => {
 
                 {isUsersDropdownOpen && (
                   <div
-                    className={`dropdown-menu absolute w-64 bg-white rounded-lg border border-gray-200 shadow-2xl z-50 ${
-                      shouldOpenUpward(3) ? 'bottom-full mb-2' : 'top-full mt-2'
-                    }`}
+                    className={`dropdown-menu absolute w-64 bg-white rounded-lg border border-gray-200 shadow-2xl z-50 ${shouldOpenUpward(3) ? 'bottom-full mb-2' : 'top-full mt-2'
+                      }`}
                     style={{
                       left: '0',
                       right: window.innerWidth < 768 ? '0' : 'auto',
@@ -580,10 +576,10 @@ const Dashboard = () => {
                       <p className="text-sm text-gray-600">Gestiona pagos y facturación</p>
                     </div>
                     <div className="md:hidden">
-                      <svg 
-                        className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isPagosDropdownOpen ? 'rotate-180' : ''}`} 
-                        fill="none" 
-                        stroke="currentColor" 
+                      <svg
+                        className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isPagosDropdownOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -594,9 +590,8 @@ const Dashboard = () => {
 
                 {isPagosDropdownOpen && (
                   <div
-                    className={`dropdown-menu absolute w-64 bg-white rounded-lg border border-gray-200 shadow-2xl z-50 ${
-                      shouldOpenUpward(4) ? 'bottom-full mb-2' : 'top-full mt-2'
-                    }`}
+                    className={`dropdown-menu absolute w-64 bg-white rounded-lg border border-gray-200 shadow-2xl z-50 ${shouldOpenUpward(4) ? 'bottom-full mb-2' : 'top-full mt-2'
+                      }`}
                     style={{
                       left: '0',
                       right: window.innerWidth < 768 ? '0' : 'auto',
@@ -729,10 +724,10 @@ const Dashboard = () => {
                       <p className="text-sm text-gray-600">Punto de venta y gestión de órdenes</p>
                     </div>
                     <div className="md:hidden">
-                      <svg 
-                        className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isCajaDropdownOpen ? 'rotate-180' : ''}`} 
-                        fill="none" 
-                        stroke="currentColor" 
+                      <svg
+                        className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isCajaDropdownOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -743,9 +738,8 @@ const Dashboard = () => {
 
                 {isCajaDropdownOpen && (
                   <div
-                    className={`dropdown-menu absolute w-64 bg-white rounded-lg border border-gray-200 shadow-2xl z-50 ${
-                      shouldOpenUpward(0, 3) ? 'bottom-full mb-2' : 'top-full mt-2'
-                    }`}
+                    className={`dropdown-menu absolute w-64 bg-white rounded-lg border border-gray-200 shadow-2xl z-50 ${shouldOpenUpward(0, 3) ? 'bottom-full mb-2' : 'top-full mt-2'
+                      }`}
                     style={{
                       left: '0',
                       right: window.innerWidth < 768 ? '0' : 'auto',
@@ -764,7 +758,7 @@ const Dashboard = () => {
                         <span className="mr-3">🏪</span>
                         Punto de Venta
                       </Link>
-                       <Link
+                      <Link
                         to="/calculadora-precios"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-200"
                         onClick={() => setIsCajaDropdownOpen(false)}
@@ -784,6 +778,33 @@ const Dashboard = () => {
                   </div>
                 )}
               </div>
+              <Link
+                to="/productos"
+                className="bg-white shadow-lg rounded-xl p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 border border-gray-100"
+              >
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-3">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">Editar Imágenes de Productos</h2>
+                <p className="text-sm text-gray-600">Actualiza imágenes de productos</p>
+              </Link>
+
+              {/* ✅ CARD CREAR USUARIO PARA CASHIER */}
+              <Link
+                to="/usuarios/crear"
+                className="bg-white shadow-lg rounded-xl p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 border border-gray-100"
+              >
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3">
+                  <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">Crear Usuario</h2>
+                <p className="text-sm text-gray-600">Registrar nuevo usuario</p>
+              </Link>
+
             </div>
           </div>
         );
@@ -834,7 +855,7 @@ const Dashboard = () => {
         <div className="py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-             
+
               <p className="text-xl text-gray-600">
                 Bienvenido, <span className="font-semibold text-blue-600">{user.email}</span>
               </p>

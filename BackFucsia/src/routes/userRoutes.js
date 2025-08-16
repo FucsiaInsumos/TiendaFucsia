@@ -11,11 +11,13 @@ const {
 } = require('../controllers/User/userController');
 
 // Middleware simple para verificar que sea Owner
-const requireOwner = (req, res, next) => {
-  if (!req.user || req.user.role !== 'Owner') {
+
+
+const allowOwnerOrCashier = (req, res, next) => {
+  if (!['Owner', 'Cashier'].includes(req.user.role)) {
     return res.status(403).json({
       error: true,
-      message: 'Solo el propietario puede gestionar usuarios'
+      message: 'Solo Owner o Cashier pueden crear usuarios'
     });
   }
   next();
@@ -24,11 +26,11 @@ const requireOwner = (req, res, next) => {
 // Middleware para verificar token en todas las rutas
 router.use(verifyToken);
 
-// Rutas para gestión de usuarios (solo Owner)
-router.get('/', requireOwner, getAllUsers);
-router.get('/:id', requireOwner, getUserById);
-router.post('/', requireOwner, createUserFromDashboard);
-router.put('/:id', requireOwner, updateUser);
-router.delete('/:id', requireOwner, deleteUser);
+
+router.get('/',  getAllUsers);
+router.get('/:id', getUserById);
+router.post('/', allowOwnerOrCashier, createUserFromDashboard);
+router.put('/:id', updateUser);
+router.delete('/:id', deleteUser);
 
 module.exports = router;

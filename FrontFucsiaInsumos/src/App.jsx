@@ -113,7 +113,7 @@ function App() {
           <Route
             path="/productos"
             element={
-              <PrivateRoute allowedRoles={['Owner', 'Distributor']}>
+              <PrivateRoute allowedRoles={['Owner', 'Distributor', 'Cashier']}>
                 <ProductManager />
               </PrivateRoute>
             }
@@ -140,7 +140,7 @@ function App() {
           <Route
             path="/usuarios/crear"
             element={
-              <PrivateRoute allowedRoles={['Owner']}>
+              <PrivateRoute allowedRoles={['Owner', 'Cashier']}>
                 <UserManagement />
               </PrivateRoute>
             }
