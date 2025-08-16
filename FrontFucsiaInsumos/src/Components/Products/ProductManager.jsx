@@ -247,6 +247,7 @@ const ProductManager = () => {
               categories={categories}
               onSubmit={editingProduct ? handleUpdateProduct : handleCreateProduct}
               onCancel={closeForm}
+              user={user} 
             />
           </div>
         </div>
