@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { getStockMovements, createStockMovement, getLowStockProducts } from '../../Redux/Actions/salesActions';
 import { getProducts } from '../../Redux/Actions/productActions';
 
 const StockManagement = () => {
   const dispatch = useDispatch();
+  const productInputRef = useRef(null);
+  const dropdownRef = useRef(null);
   const [activeTab, setActiveTab] = useState('movements');
   const [movements, setMovements] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [productSearchTerm, setProductSearchTerm] = useState('');
+  const [showProductDropdown, setShowProductDropdown] = useState(false);
   const [showAddMovement, setShowAddMovement] = useState(false);
   const [newMovement, setNewMovement] = useState({
     productId: '',
@@ -44,6 +48,22 @@ const StockManagement = () => {
     }
   };
 
+  useEffect(() => {
+    if (!showProductDropdown) return;
+    function handleClickOutside(event) {
+      if (
+        productInputRef.current &&
+        !productInputRef.current.contains(event.target) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setShowProductDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showProductDropdown]);
+
   const loadProducts = async () => {
     try {
       const response = await dispatch(getProducts());
@@ -57,6 +77,19 @@ const StockManagement = () => {
 
   const handleAddMovement = async (e) => {
     e.preventDefault();
+      if (
+    newMovement.type === 'salida' &&
+    newMovement.productId
+  ) {
+    const selectedProduct = products.find(p => p.id === newMovement.productId);
+    const qty = parseInt(newMovement.quantity, 10);
+    if (selectedProduct && qty > selectedProduct.stock) {
+      alert(
+        `No puedes retirar más unidades de las que hay en stock.\nStock actual: ${selectedProduct.stock}\nIntentaste retirar: ${qty}`
+      );
+      return;
+    }
+  }
     try {
       const response = await dispatch(createStockMovement(newMovement));
       if (response.error === false) {
@@ -74,6 +107,14 @@ const StockManagement = () => {
     } catch (error) {
       alert('Error al crear movimiento: ' + error.message);
     }
+  };
+
+  const getFilteredProducts = () => {
+    if (!productSearchTerm) return products;
+    return products.filter(product =>
+      product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+      product.sku.toLowerCase().includes(productSearchTerm.toLowerCase())
+    );
   };
 
   const getMovementTypeIcon = (type) => {
@@ -95,7 +136,7 @@ const StockManagement = () => {
     };
 
     const typeConfig = config[type] || config['entrada'];
-    
+
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${typeConfig.bg} ${typeConfig.text}`}>
         {getMovementTypeIcon(type)} {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -130,21 +171,19 @@ const StockManagement = () => {
             <nav className="-mb-px flex space-x-8 px-6">
               <button
                 onClick={() => setActiveTab('movements')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'movements'
-                    ? 'border-indigo-500 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'movements'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
               >
                 Movimientos de Stock
               </button>
               <button
                 onClick={() => setActiveTab('alerts')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'alerts'
-                    ? 'border-indigo-500 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'alerts'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
               >
                 Alertas de Stock Bajo
               </button>
@@ -207,9 +246,8 @@ const StockManagement = () => {
                               {getMovementTypeBadge(movement.type)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`text-sm font-medium ${
-                                movement.quantity > 0 ? 'text-green-600' : 'text-red-600'
-                              }`}>
+                              <span className={`text-sm font-medium ${movement.quantity > 0 ? 'text-green-600' : 'text-red-600'
+                                }`}>
                                 {movement.quantity > 0 ? '+' : ''}{movement.quantity}
                               </span>
                             </td>
@@ -304,19 +342,66 @@ const StockManagement = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Producto
                       </label>
-                      <select
-                        value={newMovement.productId}
-                        onChange={(e) => setNewMovement(prev => ({...prev, productId: e.target.value}))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        required
-                      >
-                        <option value="">Seleccionar producto</option>
-                        {products.map(product => (
-                          <option key={product.id} value={product.id}>
-                            {product.name} (SKU: {product.sku}) - Stock: {product.stock}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <input
+                          ref={productInputRef}
+                          type="text"
+                          value={
+                            newMovement.productId
+                              ? products.find(p => p.id === newMovement.productId)?.name || productSearchTerm
+                              : productSearchTerm
+                          }
+                          onChange={e => {
+                            setProductSearchTerm(e.target.value);
+                            setShowProductDropdown(true);
+                            setNewMovement(prev => ({ ...prev, productId: '' }));
+                          }}
+                          onFocus={() => setShowProductDropdown(true)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="Buscar por nombre o SKU..."
+                          required
+                          autoComplete="off"
+                        />
+                        {showProductDropdown && (
+                          <div
+                            ref={dropdownRef}
+                            className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                          >
+                            {getFilteredProducts().length > 0 ? (
+                              getFilteredProducts().map(product => (
+                                <div
+                                  key={product.id}
+                                  onClick={() => {
+                                    setNewMovement(prev => ({ ...prev, productId: product.id }));
+                                    setProductSearchTerm(product.name);
+                                    setShowProductDropdown(false);
+                                  }}
+                                  className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                >
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <p className="font-medium text-gray-900">{product.name}</p>
+                                      <p className="text-sm text-gray-600">SKU: {product.sku}</p>
+                                    </div>
+                                    <div className="text-right ml-4">
+                                      <p className="text-xs text-gray-500">Stock: {product.stock || 0}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="px-4 py-3 text-center text-gray-500">
+                                No se encontraron productos que coincidan con "{productSearchTerm}"
+                              </div>
+                            )}
+                            {getFilteredProducts().length > 10 && (
+                              <div className="px-4 py-2 text-center text-sm text-gray-500 bg-gray-50">
+                                Mostrando 10 de {getFilteredProducts().length} resultados. Refina tu búsqueda.
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div>
@@ -325,7 +410,7 @@ const StockManagement = () => {
                       </label>
                       <select
                         value={newMovement.type}
-                        onChange={(e) => setNewMovement(prev => ({...prev, type: e.target.value}))}
+                        onChange={(e) => setNewMovement(prev => ({ ...prev, type: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       >
                         <option value="entrada">Entrada</option>
@@ -342,7 +427,7 @@ const StockManagement = () => {
                       <input
                         type="number"
                         value={newMovement.quantity}
-                        onChange={(e) => setNewMovement(prev => ({...prev, quantity: e.target.value}))}
+                        onChange={(e) => setNewMovement(prev => ({ ...prev, quantity: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         required
                         min="1"
@@ -356,7 +441,7 @@ const StockManagement = () => {
                       <input
                         type="text"
                         value={newMovement.reason}
-                        onChange={(e) => setNewMovement(prev => ({...prev, reason: e.target.value}))}
+                        onChange={(e) => setNewMovement(prev => ({ ...prev, reason: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="Razón del movimiento"
                         required
@@ -369,7 +454,7 @@ const StockManagement = () => {
                       </label>
                       <textarea
                         value={newMovement.notes}
-                        onChange={(e) => setNewMovement(prev => ({...prev, notes: e.target.value}))}
+                        onChange={(e) => setNewMovement(prev => ({ ...prev, notes: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         rows="3"
                         placeholder="Notas adicionales"
