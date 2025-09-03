@@ -281,3 +281,24 @@ export const getCreditPaymentHistory = (paymentId) => async (dispatch) => {
     throw error;
   }
 };
+
+// =============================================================================
+// ORDER STATISTICS ACTIONS
+// =============================================================================
+
+// ✅ NUEVA ACCIÓN: Obtener estadísticas de órdenes
+export const getOrderStatistics = (period = 'week') => async (dispatch) => {
+  try {
+    console.log('📊 [Action] Obteniendo estadísticas para período:', period);
+    
+    const response = await api.get(`/orders/statistics?period=${period}`);
+    
+    console.log('✅ [Action] Estadísticas obtenidas:', response.data);
+    
+    return response.data;
+  } catch (error) {
+    console.error('❌ [Action] Error obteniendo estadísticas:', error);
+    const errorMessage = error.response?.data?.message || 'Error al obtener estadísticas';
+    throw error;
+  }
+};

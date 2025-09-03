@@ -707,6 +707,7 @@ const getOrders = async (req, res) => {
       });
     }
 
+    // ✅ VERIFICAR que los parámetros se lean correctamente
     const { 
       page = 1, 
       limit = 10, 
@@ -717,6 +718,18 @@ const getOrders = async (req, res) => {
       endDate,
       userId 
     } = req.query;
+
+    console.log('📋 [getOrders] Parámetros recibidos:', {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      offset: (parseInt(page) - 1) * parseInt(limit),
+      status,
+      orderType,
+      paymentStatus,
+      startDate,
+      endDate,
+      userId
+    });
 
     const whereClause = {};
     if (status) whereClause.status = status;
@@ -729,6 +742,8 @@ const getOrders = async (req, res) => {
       if (startDate) whereClause.createdAt[Op.gte] = new Date(startDate);
       if (endDate) whereClause.createdAt[Op.lte] = new Date(endDate);
     }
+
+    console.log('🔍 [getOrders] WHERE clause:', whereClause);
 
     const orders = await Order.findAndCountAll({
       where: whereClause,
@@ -755,7 +770,15 @@ const getOrders = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: (parseInt(page) - 1) * parseInt(limit),
-      order: [['createdAt', 'DESC']]
+      order: [['createdAt', 'DESC']],
+      distinct: true // ✅ IMPORTANTE para COUNT correcto
+    });
+
+    console.log('✅ [getOrders] Resultados:', {
+      totalFound: orders.count,
+      returnedInThisPage: orders.rows.length,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(orders.count / parseInt(limit))
     });
 
     // ✅ DEBUG: Log para verificar estructura de datos
@@ -779,13 +802,14 @@ const getOrders = async (req, res) => {
       data: {
         orders: orders.rows,
         totalOrders: orders.count,
+        totalOrders: orders.count,
         totalPages: Math.ceil(orders.count / parseInt(limit)),
         currentPage: parseInt(page)
       }
     });
 
   } catch (error) {
-    console.error('Error al obtener órdenes:', error);
+    console.error('❌ [getOrders] Error:', error);
     res.status(500).json({
       error: true,
       message: 'Error interno del servidor'
@@ -1475,6 +1499,141 @@ const fixPaymentStatusInconsistencies = async (req, res) => {
   }
 };
 
+// ✅ NUEVA FUNCIÓN PARA OBTENER ESTADÍSTICAS DE ÓRDENES
+const getOrderStatistics = async (req, res) => {
+  try {
+    const { period = 'week' } = req.query; // 'day', 'week', 'month'
+    
+    // Calcular fechas según el período
+    const now = new Date();
+    let startDate;
+
+    switch (period) {
+      case 'day':
+        // Desde las 00:00:00 de hoy hasta ahora
+        startDate = new Date(now);
+        startDate.setHours(0, 0, 0, 0);
+        console.log(`📅 [Statistics] Calculando para HOY: ${startDate.toISOString()} - ${now.toISOString()}`);
+        break;
+      case 'week':
+        // Últimos 7 días completos (incluyendo hoy)
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 6); // -6 para incluir hoy como día 7
+        startDate.setHours(0, 0, 0, 0);
+        console.log(`📅 [Statistics] Calculando para 7 DÍAS: ${startDate.toISOString()} - ${now.toISOString()}`);
+        break;
+      case 'month':
+        // Desde el primer día del mes actual a las 00:00:00 hasta ahora
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        startDate.setHours(0, 0, 0, 0);
+        console.log(`📅 [Statistics] Calculando para MES: ${startDate.toISOString()} - ${now.toISOString()}`);
+        break;
+      default:
+        startDate = new Date(0); // Desde el inicio
+    }
+
+    // ✅ CONSULTA CORRECTA: Obtener TODAS las órdenes del período (no paginadas)
+    const orders = await Order.findAll({
+      where: {
+        createdAt: {
+          [Op.gte]: startDate,
+          [Op.lte]: now
+        },
+        status: {
+          [Op.ne]: 'cancelled' // Excluir órdenes canceladas
+        }
+      },
+      include: [
+        {
+          model: Payment,
+          as: 'payments'
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    console.log(`📊 [Statistics] Órdenes encontradas para ${period}: ${orders.length}`);
+
+    // Calcular estadísticas
+    const totalSales = orders.reduce((sum, order) => sum + parseFloat(order.total || 0), 0);
+    const totalOrders = orders.length;
+    const averageOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
+
+    // ✅ CALCULAR POR MÉTODO DE PAGO CORRECTAMENTE
+    const byPaymentMethod = {
+      wompi: { total: 0, orders: 0, percentage: 0 },
+      nequi: { total: 0, orders: 0, percentage: 0 },
+      bancolombia: { total: 0, orders: 0, percentage: 0 },
+      efectivo: { total: 0, orders: 0, percentage: 0 },
+      tarjeta: { total: 0, orders: 0, percentage: 0 },
+      credito: { total: 0, orders: 0, percentage: 0 },
+      daviplata: { total: 0, orders: 0, percentage: 0 },
+      combinado: { total: 0, orders: 0, percentage: 0 }
+    };
+
+    // ✅ PROCESAR CADA ORDEN
+    orders.forEach(order => {
+      if (order.payments && order.payments.length > 0) {
+        // Si tiene múltiples pagos, es combinado
+        if (order.payments.length > 1) {
+          byPaymentMethod.combinado.total += parseFloat(order.total || 0);
+          byPaymentMethod.combinado.orders += 1;
+        } else {
+          // Pago único
+          const payment = order.payments[0];
+          const paymentMethod = payment.method;
+          
+          if (byPaymentMethod[paymentMethod]) {
+            byPaymentMethod[paymentMethod].total += parseFloat(order.total || 0);
+            byPaymentMethod[paymentMethod].orders += 1;
+          }
+        }
+      }
+    });
+
+    // Calcular porcentajes
+    Object.keys(byPaymentMethod).forEach(method => {
+      if (totalSales > 0) {
+        byPaymentMethod[method].percentage = (byPaymentMethod[method].total / totalSales) * 100;
+      }
+    });
+
+    console.log(`💰 [Statistics] Estadísticas calculadas:`, {
+      period,
+      totalSales,
+      totalOrders,
+      averageOrderValue,
+      byPaymentMethod: Object.entries(byPaymentMethod)
+        .filter(([, data]) => data.total > 0)
+        .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {})
+    });
+
+    res.json({
+      error: false,
+      message: 'Estadísticas calculadas exitosamente',
+      data: {
+        period,
+        dateRange: {
+          from: startDate.toISOString(),
+          to: now.toISOString()
+        },
+        totalSales,
+        totalOrders,
+        averageOrderValue,
+        byPaymentMethod
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ [Statistics] Error:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Error interno del servidor',
+      details: error.message
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrders,
@@ -1485,5 +1644,6 @@ module.exports = {
   calculatePrice,
   getOrdersRequiringBilling,
   markOrderAsBilled,
-  fixPaymentStatusInconsistencies // ✅ FUNCIÓN TEMPORAL
+  fixPaymentStatusInconsistencies,
+  getOrderStatistics // ✅ FUNCIÓN DE ESTADÍSTICAS
 };

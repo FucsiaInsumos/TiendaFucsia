@@ -10,7 +10,8 @@ const {
   cancelOrder,
   calculatePrice,
   getOrdersRequiringBilling,
-  markOrderAsBilled
+  markOrderAsBilled,
+  getOrderStatistics
 } = require('../controllers/Order/orderController');
 
 // Middleware para verificar token en todas las rutas
@@ -19,6 +20,7 @@ router.use(verifyToken);
 // Rutas para órdenes
 router.post('/calculate-price', calculatePrice);
 router.get('/requiring-billing', getOrdersRequiringBilling);
+router.get('/statistics', getOrderStatistics); // ✅ Ruta para estadísticas
 
 router.get('/my-orders', getMyOrders); // Nueva ruta para órdenes del usuario actual
 router.post('/', createOrder);
