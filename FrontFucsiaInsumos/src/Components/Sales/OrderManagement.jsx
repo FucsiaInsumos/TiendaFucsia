@@ -59,16 +59,20 @@ const OrderManagement = () => {
 
     switch (statisticsFilter) {
       case 'day':
+        // Desde las 00:00:00 de hoy
         startDate = new Date(now);
         startDate.setHours(0, 0, 0, 0);
         break;
       case 'week':
+        // Últimos 7 días completos (incluyendo hoy)
         startDate = new Date(now);
-        startDate.setDate(now.getDate() - 7);
+        startDate.setDate(now.getDate() - 6); // -6 para incluir hoy como día 7
         startDate.setHours(0, 0, 0, 0);
         break;
       case 'month':
+        // Desde el primer día del mes actual a las 00:00:00
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        startDate.setHours(0, 0, 0, 0);
         break;
       default:
         startDate = new Date(0); // Desde el inicio
