@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { getOrders, updateOrderStatus, cancelOrder, getOrderById } from '../../Redux/Actions/salesActions';
+import { getOrders, updateOrderStatus, cancelOrder, getOrderById, getOrderStatistics } from '../../Redux/Actions/salesActions';
 import { getPaymentStatus, updateOrderPaymentStatus } from '../../Redux/Actions/wompiActions';
 import OrderDetailModal from './OrderDetailModal';
 
@@ -37,129 +37,32 @@ const OrderManagement = () => {
     loadOrders();
   }, [filters]);
 
+  // ✅ NUEVO useEffect para estadísticas
   useEffect(() => {
-    calculateStatistics();
-  }, [orders, statisticsFilter]);
+    loadStatistics();
+  }, [statisticsFilter]); // Solo cuando cambia el filtro de período
 
-  // ✅ FUNCIÓN PARA CALCULAR ESTADÍSTICAS POR MÉTODO DE PAGO
-  const calculateStatistics = () => {
-    if (!orders || orders.length === 0) {
+  // ✅ NUEVA FUNCIÓN para cargar estadísticas del backend
+  const loadStatistics = async () => {
+    try {
+      console.log('📊 [Frontend] Cargando estadísticas para período:', statisticsFilter);
+      
+      const response = await dispatch(getOrderStatistics(statisticsFilter));
+      
+      if (response.error === false) {
+        setStatistics(response.data);
+        console.log('✅ [Frontend] Estadísticas cargadas:', response.data);
+      }
+    } catch (error) {
+      console.error('❌ [Frontend] Error cargando estadísticas:', error);
+      // Mantener estadísticas vacías en caso de error
       setStatistics({
         totalSales: 0,
         totalOrders: 0,
         byPaymentMethod: {},
         averageOrderValue: 0
       });
-      return;
     }
-
-    // Obtener fechas según el filtro
-    const now = new Date();
-    let startDate;
-
-    switch (statisticsFilter) {
-      case 'day':
-        // Desde las 00:00:00 de hoy
-        startDate = new Date(now);
-        startDate.setHours(0, 0, 0, 0);
-        break;
-      case 'week':
-        // Últimos 7 días completos (incluyendo hoy)
-        startDate = new Date(now);
-        startDate.setDate(now.getDate() - 6); // -6 para incluir hoy como día 7
-        startDate.setHours(0, 0, 0, 0);
-        break;
-      case 'month':
-        // Desde el primer día del mes actual a las 00:00:00
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        startDate.setHours(0, 0, 0, 0);
-        break;
-      default:
-        startDate = new Date(0); // Desde el inicio
-    }
-
-    // Filtrar órdenes por fecha
-    const filteredOrders = orders.filter(order => {
-      const orderDate = new Date(order.createdAt);
-      return orderDate >= startDate && order.status !== 'cancelled';
-    });
-
-    console.log(`📊 [Statistics] Calculando para ${statisticsFilter}:`, {
-      totalOrders: orders.length,
-      filteredOrders: filteredOrders.length,
-      startDate: startDate.toISOString(),
-      dateRange: `${startDate.toLocaleDateString()} - ${now.toLocaleDateString()}`
-    });
-
-    // Calcular totales
-    const totalSales = filteredOrders.reduce((sum, order) => sum + parseFloat(order.total || 0), 0);
-    const totalOrders = filteredOrders.length;
-    const averageOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
-
-    // Calcular por método de pago
-    const byPaymentMethod = {
-      wompi: { total: 0, orders: 0, percentage: 0 },
-      nequi: { total: 0, orders: 0, percentage: 0 },
-      bancolombia: { total: 0, orders: 0, percentage: 0 },
-      efectivo: { total: 0, orders: 0, percentage: 0 },
-      tarjeta: { total: 0, orders: 0, percentage: 0 },
-      credito: { total: 0, orders: 0, percentage: 0 },
-      daviplata: { total: 0, orders: 0, percentage: 0 }
-    };
-
-    filteredOrders.forEach(order => {
-      if (order.payments && order.payments.length > 0) {
-        // Procesar cada pago individualmente
-        order.payments.forEach(payment => {
-          const paymentMethod = payment.method;
-          const paymentAmount = parseFloat(payment.amount || 0);
-          
-          if (byPaymentMethod[paymentMethod]) {
-            byPaymentMethod[paymentMethod].total += paymentAmount;
-            // Solo contar como una orden si es el primer pago de este método para esta orden
-            const isFirstPaymentOfThisMethod = order.payments
-              .filter(p => p.method === paymentMethod)
-              .indexOf(payment) === 0;
-            
-            if (isFirstPaymentOfThisMethod) {
-              byPaymentMethod[paymentMethod].orders += 1;
-            }
-          }
-        });
-      }
-    });
-
-    // Calcular porcentajes
-    Object.keys(byPaymentMethod).forEach(method => {
-      if (totalSales > 0) {
-        byPaymentMethod[method].percentage = (byPaymentMethod[method].total / totalSales) * 100;
-      }
-    });
-
-    setStatistics({
-      totalSales,
-      totalOrders,
-      byPaymentMethod,
-      averageOrderValue
-    });
-
-    console.log('📊 [Statistics] Estadísticas calculadas:', {
-      totalSales,
-      totalOrders,
-      averageOrderValue,
-      byPaymentMethod,
-      detailedBreakdown: {
-        ordersWithMultipleMethods: filteredOrders.filter(o => 
-          o.payments && new Set(o.payments.map(p => p.method)).size > 1
-        ).length,
-        totalPayments: filteredOrders.reduce((sum, o) => 
-          sum + (o.payments ? o.payments.length : 0), 0
-        ),
-        methodsUsed: Object.keys(byPaymentMethod).filter(method => 
-          byPaymentMethod[method].total > 0
-        )
-      }
-    });
   };
 
   const loadOrders = async () => {
@@ -685,7 +588,7 @@ LEYENDA:
               <h3 className="text-lg font-semibold text-gray-900">📊 Estadísticas de Ventas</h3>
               <div className="flex space-x-2">
                 <button
-                  onClick={calculateStatistics}
+                  onClick={loadStatistics}
                   className="px-3 py-1 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700 transition duration-200"
                   title="Actualizar estadísticas"
                 >
