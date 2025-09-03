@@ -802,7 +802,6 @@ const getOrders = async (req, res) => {
       data: {
         orders: orders.rows,
         totalOrders: orders.count,
-        totalOrders: orders.count,
         totalPages: Math.ceil(orders.count / parseInt(limit)),
         currentPage: parseInt(page)
       }

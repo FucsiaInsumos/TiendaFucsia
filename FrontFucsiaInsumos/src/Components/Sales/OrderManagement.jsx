@@ -69,10 +69,16 @@ const OrderManagement = () => {
     try {
       setLoading(true);
       console.log('📋 [OrderManagement] Cargando órdenes con filtros:', filters);
+      console.log('📋 [OrderManagement] URL que se enviará:', `/orders?${new URLSearchParams(filters).toString()}`);
 
       const response = await dispatch(getOrders(filters));
       if (response.error === false) {
-        console.log('✅ [OrderManagement] Órdenes cargadas:', response.data.orders.length);
+        console.log('✅ [OrderManagement] Órdenes cargadas:', {
+          ordersCount: response.data.orders.length,
+          totalOrders: response.data.totalOrders,
+          currentPage: response.data.currentPage,
+          totalPages: response.data.totalPages
+        });
         setOrders(response.data.orders);
         setPagination({
           totalOrders: response.data.totalOrders,
@@ -373,11 +379,17 @@ LEYENDA:
   };
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
-      ...prev,
+    console.log('🔄 [Pagination] Cambiando filtro:', { key, value });
+    console.log('🔄 [Pagination] Filtros anteriores:', filters);
+    
+    const newFilters = {
+      ...filters,
       [key]: value,
-      page: 1
-    }));
+      page: key === 'page' ? value : 1 // Solo resetear página si no es un cambio de página
+    };
+    
+    console.log('🔄 [Pagination] Nuevos filtros:', newFilters);
+    setFilters(newFilters);
   };
 
   const handleStatusUpdate = async (orderId, newStatus) => {
