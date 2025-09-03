@@ -7,11 +7,31 @@ import api from '../../utils/axios';
 // Crear orden
 export const createOrder = (orderData) => async (dispatch) => {
   try {
+    console.log('📤 [Redux Action] Enviando orden al backend:', orderData);
     const response = await api.post('/orders', orderData);
-    return response.data;
+    
+    console.log('✅ [Redux Action] Respuesta del servidor:', {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data
+    });
+    
+    // Verificar que la respuesta sea exitosa
+    if (response.status >= 200 && response.status < 300) {
+      console.log('✅ [Redux Action] Orden creada exitosamente');
+      return response.data;
+    } else {
+      console.error('❌ [Redux Action] Respuesta inesperada:', response.status);
+      throw new Error(`Respuesta inesperada del servidor: ${response.status}`);
+    }
   } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Error al crear orden';
-    console.error('Create order error:', errorMessage);
+    console.error('❌ [Redux Action] Error completo:', error);
+    console.error('❌ [Redux Action] Error response:', error.response);
+    console.error('❌ [Redux Action] Error status:', error.response?.status);
+    console.error('❌ [Redux Action] Error data:', error.response?.data);
+    
+    const errorMessage = error.response?.data?.message || error.message || 'Error al crear orden';
+    console.error('❌ [Redux Action] Create order error:', errorMessage);
     throw error;
   }
 };

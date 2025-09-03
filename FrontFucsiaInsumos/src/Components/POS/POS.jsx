@@ -506,7 +506,14 @@ const calculateTotals = () => {
 
       const response = await dispatch(createOrder(orderData));
       
-      if (response.error === false) {
+      console.log('🔍 [POS] Respuesta completa recibida:', response);
+      console.log('🔍 [POS] Tipo de respuesta:', typeof response);
+      console.log('🔍 [POS] Error field:', response?.error);
+      
+      // ✅ VERIFICAR MÚLTIPLES CONDICIONES DE ÉXITO
+      if (response && (response.error === false || !response.error)) {
+        console.log('✅ [POS] Orden creada exitosamente');
+        
         // ✅ MOSTRAR EL RECIBO EN LUGAR DEL ALERT
         setCompletedOrder(response.data);
         setShowReceiptModal(true);
@@ -514,7 +521,10 @@ const calculateTotals = () => {
         clearCart();
         setShowPaymentModal(false);
         
-        console.log('Orden creada:', response.data);
+        console.log('✅ [POS] Orden creada:', response.data);
+      } else {
+        console.error('❌ [POS] Respuesta indica error:', response);
+        throw new Error(response?.message || 'Error desconocido en la respuesta');
       }
     } catch (error) {
       console.error('Error creating order:', error);

@@ -1570,22 +1570,24 @@ const getOrderStatistics = async (req, res) => {
       combinado: { total: 0, orders: 0, percentage: 0 }
     };
 
-    // ✅ PROCESAR CADA ORDEN
+    // ✅ PROCESAR CADA ORDEN - SUMAR CADA PAGO A SU MÉTODO CORRESPONDIENTE
     orders.forEach(order => {
       if (order.payments && order.payments.length > 0) {
-        // Si tiene múltiples pagos, es combinado
-        if (order.payments.length > 1) {
-          byPaymentMethod.combinado.total += parseFloat(order.total || 0);
-          byPaymentMethod.combinado.orders += 1;
-        } else {
-          // Pago único
-          const payment = order.payments[0];
+        // ✅ Procesar cada pago individualmente por su método
+        order.payments.forEach(payment => {
           const paymentMethod = payment.method;
           
           if (byPaymentMethod[paymentMethod]) {
-            byPaymentMethod[paymentMethod].total += parseFloat(order.total || 0);
-            byPaymentMethod[paymentMethod].orders += 1;
+            byPaymentMethod[paymentMethod].total += parseFloat(payment.amount || 0);
           }
+        });
+        
+        // ✅ Contar la orden una sola vez para el método predominante (o el primero si hay empate)
+        const paymentMethodsInOrder = order.payments.map(p => p.method);
+        const mainMethod = paymentMethodsInOrder[0]; // Usar el primer método para contar la orden
+        
+        if (byPaymentMethod[mainMethod]) {
+          byPaymentMethod[mainMethod].orders += 1;
         }
       }
     });
