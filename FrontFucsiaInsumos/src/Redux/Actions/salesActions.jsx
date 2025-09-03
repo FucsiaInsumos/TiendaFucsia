@@ -19,11 +19,23 @@ export const createOrder = (orderData) => async (dispatch) => {
 // Obtener órdenes
 export const getOrders = (params = {}) => async (dispatch) => {
   try {
+    console.log('📡 [Redux Action] getOrders llamada con parámetros:', params);
+    console.log('📡 [Redux Action] URL construida:', `/orders?${new URLSearchParams(params).toString()}`);
+    
     const response = await api.get('/orders', { params });
+    
+    console.log('✅ [Redux Action] Respuesta del servidor:', {
+      error: response.data.error,
+      totalOrders: response.data.data?.totalOrders,
+      currentPage: response.data.data?.currentPage,
+      totalPages: response.data.data?.totalPages,
+      ordersReceived: response.data.data?.orders?.length
+    });
+    
     return response.data;
   } catch (error) {
     const errorMessage = error.response?.data?.message || 'Error al obtener órdenes';
-    console.error('Get orders error:', errorMessage);
+    console.error('❌ [Redux Action] Get orders error:', errorMessage);
     throw error;
   }
 };
