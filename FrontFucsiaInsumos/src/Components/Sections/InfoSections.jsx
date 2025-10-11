@@ -21,8 +21,8 @@ const sections = [
   },
   {
     id: "envio-gratis",
-    title: "ENVÍO GRATIS",
-    description: "Con compras mayores a $20000",
+    title: "ENVÍOS NACIONALES",
+    description: "Domicilios contra entrega a todo Villavicencio",
     icon: envioImg, // Reemplaza con la imagen importada
     route: "/envio-gratis",
   },
