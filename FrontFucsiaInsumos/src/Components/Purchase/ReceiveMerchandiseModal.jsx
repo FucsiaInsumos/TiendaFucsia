@@ -10,6 +10,13 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
 
   useEffect(() => {
     if (order && order.items) {
+      console.log('🔍 [Modal] Inicializando con estado de orden:', order.status);
+      console.log('🔍 [Modal] Items recibidos anteriormente:', order.items.map(i => ({ 
+        name: i.productName, 
+        cantidad: i.cantidad, 
+        recibida: i.cantidadRecibida || 0 
+      })));
+      
       // ✅ VALIDACIÓN INICIAL - NO PERMITIR RECEPCIONES EN ÓRDENES COMPLETADAS
       if (order.status === 'completada') {
         alert('Esta orden ya está completamente recibida. No se pueden hacer más recepciones.');
@@ -115,18 +122,18 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
       console.log('📦 Datos de recepción a enviar:', receiveData);
       console.log('📦 Items a recibir:', receiveData.receivedItems);
 
-      // ✅ USAR LA ACCIÓN CORRECTA CON LOS DATOS ESTRUCTURADOS
-      const response = await dispatch(receivePurchaseOrder(order.id, receiveData.receivedItems));
+      // ✅ USAR LA ACCIÓN CORRECTA CON LOS DATOS ESTRUCTURADOS Y LAS NOTAS
+      const response = await dispatch(receivePurchaseOrder(order.id, receiveData.receivedItems, receiveData.notes));
       
       console.log('📦 Respuesta completa del servidor:', response);
-      console.log('📦 Summary data:', response.data?.summary);
       
-      if (response.error === false) {
+      // ✅ LA RESPUESTA YA VIENE CON LA ESTRUCTURA CORRECTA DESDE EL BACKEND
+      if (response && !response.error) {
         const summary = response.data?.summary || {};
         const itemsReceived = summary.itemsReceived || [];
         
         // ✅ CREAR MENSAJE DETALLADO CON LOS DATOS CORRECTOS
-        let detailMessage = `Mercancía recibida exitosamente. Stock y precios actualizados.\n\n📊 RESUMEN:\n`;
+        let detailMessage = `✅ Mercancía recibida exitosamente. Stock y precios actualizados.\n\n📊 RESUMEN:\n`;
         detailMessage += `• Productos actualizados: ${summary.updatedProducts || 0}\n`;
         detailMessage += `• Productos creados: ${summary.createdProducts || 0}\n`;
         detailMessage += `• Movimientos de stock: ${summary.stockMovements || 0}\n`;
@@ -136,19 +143,28 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
         if (itemsReceived.length > 0) {
           detailMessage += `\n📦 DETALLE DE ITEMS RECIBIDOS:\n`;
           itemsReceived.forEach(item => {
-            detailMessage += `• ${item.productName}: +${item.quantityReceived} unidades\n`;
+            detailMessage += `• ${item.productName}: +${item.quantityReceived} unidades (${item.newTotalReceived}/${item.totalQuantity})\n`;
           });
         }
         
         if (response.data?.isCompleted) {
           detailMessage += `\n🎉 ¡ORDEN COMPLETAMENTE RECIBIDA!\n`;
           detailMessage += `Se ha generado automáticamente un expense en el módulo de gastos.`;
+        } else {
+          detailMessage += `\n📋 Estado: Recepción parcial - Quedan items pendientes por recibir`;
         }
         
         alert(detailMessage);
-        onSuccess && onSuccess();
+        
+        // ✅ CERRAR EL MODAL Y NOTIFICAR AL PADRE PARA QUE ACTUALICE LA LISTA
+        if (onSuccess) {
+          onSuccess();
+        }
+        if (onClose) {
+          onClose();
+        }
       } else {
-        alert('Error al recibir mercancía: ' + (response.message || 'Error desconocido'));
+        throw new Error(response?.message || 'Error desconocido al recibir mercancía');
       }
 
     } catch (error) {

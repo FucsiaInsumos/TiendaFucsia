@@ -458,9 +458,21 @@ const receiveOrder = async (req, res) => {
       console.log(`✅ [ReceiveOrder] Item actualizado exitosamente: ${orderItem.productName} (${newCantidadRecibida}/${orderItem.cantidad})`);
     }
 
-    // ✅ ACTUALIZAR ESTADO DE LA ORDEN CON VALIDACIÓN MEJORADA
-    // NO volver a consultar - usar los objetos actualizados en memoria
-    console.log('🔍 [ReceiveOrder] Verificando estado de items usando objetos en memoria:');
+    // ✅ ACTUALIZAR ESTADO DE LA ORDEN - RECALCULAR BASADO EN VALORES ACTUALIZADOS
+    // Recargar los items para obtener los valores más recientes de la BD
+    await purchaseOrder.reload({ 
+      include: [
+        { 
+          model: PurchaseOrderItem, 
+          as: 'items',
+          include: [{ model: Product, as: 'product' }]
+        },
+        { model: Proveedor, as: 'proveedor' }
+      ],
+      transaction 
+    });
+
+    console.log('🔍 [ReceiveOrder] Verificando estado de items con valores actualizados de BD:');
     
     const allReceived = purchaseOrder.items.every(item => {
       const received = item.cantidadRecibida || 0;
