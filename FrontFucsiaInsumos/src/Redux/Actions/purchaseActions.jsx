@@ -118,23 +118,35 @@ export const getPurchaseOrders = (params = {}) => async (dispatch) => {
   }
 };
 
-// ✅ CORREGIR LA ACCIÓN DE RECEPCIÓN DE MERCANCÍA
-export const receivePurchaseOrder = (orderId, receivedItems) => async (dispatch) => {
+// ✅ ACCIÓN DE RECEPCIÓN DE MERCANCÍA CORREGIDA
+export const receivePurchaseOrder = (orderId, receivedItems, notes = '') => async (dispatch) => {
   try {
-    console.log('🔄 [Action] Enviando datos de recepción:', { orderId, receivedItems });
+    console.log('🔄 [Action] Enviando datos de recepción:', { 
+      orderId, 
+      itemsCount: receivedItems?.length,
+      receivedItems 
+    });
     
     const response = await api.post(`/purchase/orders/${orderId}/receive`, { 
       receivedItems,
-      notes: '' // Agregar campo de notas si es necesario
+      notes
     });
     
     console.log('✅ [Action] Respuesta del servidor:', response.data);
+    
+    // ✅ RETORNAR LA RESPUESTA TAL CUAL VIENE DEL BACKEND
     return response.data;
+    
   } catch (error) {
     const errorMessage = error.response?.data?.message || 'Error al recibir mercancía';
+    const errorDetails = error.response?.data?.details || error.message;
+    
     console.error('❌ [Action] Error al recibir mercancía:', errorMessage);
+    console.error('❌ [Action] Detalles del error:', errorDetails);
     console.error('❌ [Action] Error completo:', error.response?.data);
-    throw error;
+    
+    // ✅ PROPAGAR EL ERROR CON INFORMACIÓN ÚTIL
+    throw new Error(errorMessage);
   }
 };
 
