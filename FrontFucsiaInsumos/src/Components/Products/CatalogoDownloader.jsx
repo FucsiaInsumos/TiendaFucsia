@@ -48,7 +48,7 @@ const CatalogDownloader = ({
     // ✅ NO MODIFICAR URLs de Cloudinary - ya son absolutas
     if (imageUrl && !imageUrl.startsWith('http')) {
       // Solo agregar base URL si la imagen no es de Cloudinary
-      imageUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+      imageUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
     }
 
     return {

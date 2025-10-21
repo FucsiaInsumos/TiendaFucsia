@@ -4,7 +4,7 @@ import { logout } from '../Redux/Reducer/authReducer';
 
 // Crear instancia de axios con la URL base
 const api = axios.create({
-  baseURL: 'http://localhost:3001/', // Ajusta esto a tu URL de backend
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/', // ✅ Usar variable de entorno
   timeout: 30000, // ✅ Aumentado a 30 segundos para operaciones complejas (recepciones, creación de expenses, etc.)
   headers: {
     'Content-Type': 'application/json'
