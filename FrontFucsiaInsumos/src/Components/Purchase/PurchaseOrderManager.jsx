@@ -8,6 +8,7 @@ import PurchaseOrderForm from './PurchaseOrderForm';
 import ReceiveMerchandiseModal from './ReceiveMerchandiseModal';
 import EditPurchaseOrderModal from './EditPurchaseOrderModal';
 import PaymentModal from './PaymentModal';
+import RevertOrderModal from './RevertOrderModal'; // ✅ NUEVO
 import axios from '../../utils/axios';
 
 const PurchaseOrderManager = () => {
@@ -19,9 +20,11 @@ const PurchaseOrderManager = () => {
   const [showReceiveModal, setShowReceiveModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showRevertModal, setShowRevertModal] = useState(false); // ✅ NUEVO
   const [selectedOrderForReceiving, setSelectedOrderForReceiving] = useState(null);
   const [selectedOrderForEditing, setSelectedOrderForEditing] = useState(null);
   const [selectedOrderForPayment, setSelectedOrderForPayment] = useState(null);
+  const [selectedOrderForRevert, setSelectedOrderForRevert] = useState(null); // ✅ NUEVO
   const [filters, setFilters] = useState({
     status: '',
     proveedorId: '',
@@ -207,6 +210,22 @@ const PurchaseOrderManager = () => {
       console.error('Error al cancelar orden:', error);
       alert('Error al cancelar la orden');
     }
+  };
+
+  // ✅ NUEVA FUNCIÓN: Revertir orden completada
+  const handleRevertOrder = (order) => {
+    setSelectedOrderForRevert(order);
+    setShowRevertModal(true);
+  };
+
+  const handleCloseRevertModal = () => {
+    setSelectedOrderForRevert(null);
+    setShowRevertModal(false);
+  };
+
+  const handleRevertSuccess = () => {
+    handleCloseRevertModal();
+    loadOrders();
   };
 
   return (
@@ -458,9 +477,19 @@ const PurchaseOrderManager = () => {
                         
                         {/* ✅ ESTADOS VISUALES */}
                         {order.status === 'completada' && (
-                          <span className="text-green-600 text-sm font-medium" title="Orden completamente recibida">
-                            ✅ Completada
-                          </span>
+                          <>
+                            <span className="text-green-600 text-sm font-medium" title="Orden completamente recibida">
+                              ✅ Completada
+                            </span>
+                            {/* ✅ BOTÓN DE REVERSIÓN PARA ÓRDENES COMPLETADAS */}
+                            <button 
+                              onClick={() => handleRevertOrder(order)}
+                              className="text-orange-600 hover:text-orange-900 font-medium text-sm"
+                              title="Revertir orden (deshacer recepción)"
+                            >
+                              🔄 Revertir
+                            </button>
+                          </>
                         )}
                         
                         {order.status === 'cancelada' && (
@@ -510,6 +539,15 @@ const PurchaseOrderManager = () => {
           order={selectedOrderForPayment}
           onClose={handleClosePaymentModal}
           onSuccess={handlePaymentSuccess}
+        />
+      )}
+
+      {/* ✅ MODAL DE REVERSIÓN DE ORDEN */}
+      {showRevertModal && selectedOrderForRevert && (
+        <RevertOrderModal
+          order={selectedOrderForRevert}
+          onClose={handleCloseRevertModal}
+          onSuccess={handleRevertSuccess}
         />
       )}
     </div>

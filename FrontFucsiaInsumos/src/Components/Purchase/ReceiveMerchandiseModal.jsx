@@ -58,7 +58,9 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
           nuevoPrecioVenta: item.precioVentaSugerido || 0,
           nuevoPrecioDistribuidor: item.precioDistribuidorSugerido || 0,
           actualizarPrecios: false, // Flag para decidir si actualizar precios
-          isNewProduct: item.isNewProduct || false
+          isNewProduct: item.isNewProduct || false,
+          // ✅ NUEVO: Flag para controlar si se recibe este item
+          recibirItem: false // Por defecto NO marcado, el usuario debe marcar qué recibir
         };
       }).filter(Boolean); // ✅ FILTRAR ITEMS NULOS
 
@@ -93,10 +95,11 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validar que se esté recibiendo al menos un item
-    const itemsToReceive = receivedItems.filter(item => item.cantidadRecibir > 0);
+    // ✅ VALIDACIÓN CRÍTICA: Solo enviar items que el usuario MARCÓ para recibir
+    const itemsToReceive = receivedItems.filter(item => item.recibirItem && item.cantidadRecibir > 0);
+    
     if (itemsToReceive.length === 0) {
-      alert('Debe especificar al menos una cantidad a recibir');
+      alert('⚠️ Debe seleccionar al menos un item para recibir (marcar el checkbox en la columna "RECIBIR")');
       return;
     }
 
@@ -120,7 +123,7 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
       };
 
       console.log('📦 Datos de recepción a enviar:', receiveData);
-      console.log('📦 Items a recibir:', receiveData.receivedItems);
+      console.log('📦 Items seleccionados para recibir:', receiveData.receivedItems);
 
       // ✅ USAR LA ACCIÓN CORRECTA CON LOS DATOS ESTRUCTURADOS Y LAS NOTAS
       const response = await dispatch(receivePurchaseOrder(order.id, receiveData.receivedItems, receiveData.notes));
@@ -254,6 +257,9 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                          ✅ Recibir
+                        </th>
                         <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                           Producto
                         </th>
@@ -270,13 +276,26 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
                           Nuevos Precios
                         </th>
                         <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Actualizar
+                          Actualizar Precios
                         </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {receivedItems.map((item, index) => (
-                        <tr key={item.itemId} className="hover:bg-gray-50">
+                        <tr 
+                          key={item.itemId} 
+                          className={`hover:bg-gray-50 ${item.recibirItem ? 'bg-green-50' : ''}`}
+                        >
+                          {/* ✅ CHECKBOX PARA SELECCIONAR QUÉ ITEMS RECIBIR */}
+                          <td className="px-3 py-4 text-center">
+                            <input
+                              type="checkbox"
+                              checked={item.recibirItem}
+                              onChange={(e) => handleItemChange(index, 'recibirItem', e.target.checked)}
+                              className="h-5 w-5 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                              title="Marcar para recibir este item completo"
+                            />
+                          </td>
                           {/* Información del Producto */}
                           <td className="px-3 py-4">
                             <div>
@@ -313,7 +332,11 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
                               max={item.cantidadPendiente}
                               value={item.cantidadRecibir}
                               onChange={(e) => handleItemChange(index, 'cantidadRecibir', parseInt(e.target.value) || 0)}
-                              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              disabled={!item.recibirItem}
+                              className={`w-20 px-2 py-1 border rounded text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                                !item.recibirItem ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'border-gray-300'
+                              }`}
+                              title={!item.recibirItem ? 'Marque el checkbox para recibir este item' : ''}
                             />
                           </td>
 
@@ -339,8 +362,10 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
                                   step="0.01"
                                   value={item.nuevoPrecioCompra}
                                   onChange={(e) => handleItemChange(index, 'nuevoPrecioCompra', parseFloat(e.target.value) || 0)}
-                                  disabled={!item.actualizarPrecios}
-                                  className="w-24 px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"
+                                  disabled={!item.actualizarPrecios || !item.recibirItem}
+                                  className={`w-24 px-2 py-1 border rounded text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                                    !item.actualizarPrecios || !item.recibirItem ? 'bg-gray-100 cursor-not-allowed' : 'border-gray-300'
+                                  }`}
                                 />
                               </div>
                               <div>
@@ -351,8 +376,10 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
                                   step="0.01"
                                   value={item.nuevoPrecioVenta}
                                   onChange={(e) => handleItemChange(index, 'nuevoPrecioVenta', parseFloat(e.target.value) || 0)}
-                                  disabled={!item.actualizarPrecios}
-                                  className="w-24 px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"
+                                  disabled={!item.actualizarPrecios || !item.recibirItem}
+                                  className={`w-24 px-2 py-1 border rounded text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                                    !item.actualizarPrecios || !item.recibirItem ? 'bg-gray-100 cursor-not-allowed' : 'border-gray-300'
+                                  }`}
                                 />
                               </div>
                               <div>
@@ -363,20 +390,26 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
                                   step="0.01"
                                   value={item.nuevoPrecioDistribuidor}
                                   onChange={(e) => handleItemChange(index, 'nuevoPrecioDistribuidor', parseFloat(e.target.value) || 0)}
-                                  disabled={!item.actualizarPrecios}
-                                  className="w-24 px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"
+                                  disabled={!item.actualizarPrecios || !item.recibirItem}
+                                  className={`w-24 px-2 py-1 border rounded text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                                    !item.actualizarPrecios || !item.recibirItem ? 'bg-gray-100 cursor-not-allowed' : 'border-gray-300'
+                                  }`}
                                 />
                               </div>
                             </div>
                           </td>
 
-                          {/* Checkbox para Actualizar */}
+                          {/* Checkbox para Actualizar Precios */}
                           <td className="px-3 py-4 text-center">
                             <input
                               type="checkbox"
                               checked={item.actualizarPrecios}
                               onChange={(e) => handleItemChange(index, 'actualizarPrecios', e.target.checked)}
-                              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                              disabled={!item.recibirItem}
+                              className={`h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded ${
+                                !item.recibirItem ? 'cursor-not-allowed opacity-50' : ''
+                              }`}
+                              title={!item.recibirItem ? 'Marque primero el item para recibir' : 'Actualizar precios de este producto'}
                             />
                             <div className="text-xs text-gray-500 mt-1">
                               {item.actualizarPrecios ? '✅ Sí' : '❌ No'}
@@ -439,7 +472,28 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
 
               {/* ✅ ALERTAS Y ADVERTENCIAS */}
               <div className="mb-6 space-y-3">
-                {receivedItems.some(item => item.actualizarPrecios) && (
+                {/* ✅ ADVERTENCIA SI NO HAY ITEMS SELECCIONADOS */}
+                {receivedItems.filter(item => item.recibirItem).length === 0 && (
+                  <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-orange-800">
+                          ⚠️ No hay items seleccionados para recibir
+                        </h3>
+                        <p className="text-sm text-orange-700 mt-1">
+                          Debes marcar al menos un checkbox en la columna "✅ RECIBIR" para indicar qué items deseas recibir.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {receivedItems.some(item => item.recibirItem && item.actualizarPrecios) && (
                   <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div className="flex">
                       <div className="flex-shrink-0">
@@ -459,7 +513,7 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
                   </div>
                 )}
 
-                {receivedItems.some(item => item.isNewProduct) && (
+                {receivedItems.some(item => item.recibirItem && item.isNewProduct) && (
                   <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                     <div className="flex">
                       <div className="flex-shrink-0">
@@ -493,7 +547,7 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
               <div className="sm:flex sm:flex-row-reverse">
                 <button
                   type="submit"
-                  disabled={loading || receivedItems.filter(item => item.cantidadRecibir > 0).length === 0}
+                  disabled={loading || receivedItems.filter(item => item.recibirItem && item.cantidadRecibir > 0).length === 0}
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
@@ -505,7 +559,7 @@ const ReceiveMerchandiseModal = ({ order, onClose, onSuccess }) => {
                       Recibiendo...
                     </div>
                   ) : (
-                    '📦 Recibir Mercancía y Actualizar Stock'
+                    '📦 Recibir Mercancía Seleccionada y Actualizar Stock'
                   )}
                 </button>
                 <button

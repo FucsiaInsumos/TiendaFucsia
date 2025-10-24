@@ -722,7 +722,7 @@ const getPurchaseOrderById = async (req, res) => {
   }
 };
 
-// Actualizar orden de compra
+// ✅ ACTUALIZAR ORDEN DE COMPRA CON REVERSIÓN SEGURA DE STOCK
 const updatePurchaseOrder = async (req, res) => {
   const transaction = await conn.transaction();
   
@@ -749,7 +749,8 @@ const updatePurchaseOrder = async (req, res) => {
           as: 'items',
           include: [{ model: Product, as: 'product' }]
         }
-      ]
+      ],
+      transaction
     });
 
     if (!existingOrder) {
@@ -760,13 +761,97 @@ const updatePurchaseOrder = async (req, res) => {
       });
     }
 
-    // No permitir edición de órdenes completadas
+    // ✅ VALIDAR SEGÚN ESTADO DE LA ORDEN
     if (existingOrder.status === 'completada') {
       await transaction.rollback();
       return res.status(400).json({
         error: true,
-        message: 'No se puede editar una orden completada'
+        message: 'No se puede editar una orden completada. Para revertirla, use el endpoint de reversión.',
+        hint: 'Use POST /api/purchases/orders/:id/revert para deshacer una orden completada'
       });
+    }
+
+    if (existingOrder.status === 'cancelada') {
+      await transaction.rollback();
+      return res.status(400).json({
+        error: true,
+        message: 'No se pueden editar órdenes canceladas'
+      });
+    }
+
+    // ✅ REVERTIR STOCK DE ITEMS QUE SE ESTÁN MODIFICANDO O ELIMINANDO
+    let stockReverted = 0;
+    let stockMovementsCreated = 0;
+
+    // Obtener los IDs de los items nuevos
+    const newItemIds = items.filter(item => item.id).map(item => item.id);
+
+    for (const oldItem of existingOrder.items) {
+      // Si el item fue recibido (parcial o completamente)
+      if (oldItem.cantidadRecibida > 0) {
+        // Verificar si el item se eliminó o si cambió su cantidadRecibida
+        const newItem = items.find(i => i.id === oldItem.id);
+        
+        if (!newItem) {
+          // ✅ ITEM ELIMINADO - REVERTIR TODO EL STOCK RECIBIDO
+          console.log(`🔄 [UpdatePurchaseOrder] Item eliminado: ${oldItem.productName} - Revirtiendo ${oldItem.cantidadRecibida} unidades`);
+          
+          if (oldItem.productId && oldItem.product) {
+            const product = oldItem.product;
+            const previousStock = product.stock;
+            const newStock = previousStock - oldItem.cantidadRecibida;
+            
+            await product.update({ stock: newStock }, { transaction });
+            
+            await StockMovement.create({
+              productId: product.id,
+              quantity: oldItem.cantidadRecibida,
+              type: 'salida',
+              reason: `Reversión por edición de orden ${existingOrder.orderNumber}`,
+              previousStock,
+              currentStock: newStock,
+              userId: req.user?.n_document || req.user?.id,
+              purchaseOrderId: existingOrder.id,
+              notes: `Item eliminado de la orden. Se revirtieron ${oldItem.cantidadRecibida} unidades de ${oldItem.productName}`
+            }, { transaction });
+            
+            stockReverted += oldItem.cantidadRecibida;
+            stockMovementsCreated++;
+            
+            console.log(`✅ [UpdatePurchaseOrder] Stock revertido: ${product.name} ${previousStock} → ${newStock}`);
+          }
+        } else if (newItem.cantidadRecibida !== undefined && newItem.cantidadRecibida < oldItem.cantidadRecibida) {
+          // ✅ CANTIDAD RECIBIDA REDUCIDA - REVERTIR LA DIFERENCIA
+          const difference = oldItem.cantidadRecibida - newItem.cantidadRecibida;
+          
+          console.log(`🔄 [UpdatePurchaseOrder] Cantidad recibida reducida para ${oldItem.productName}: ${oldItem.cantidadRecibida} → ${newItem.cantidadRecibida} (Diferencia: ${difference})`);
+          
+          if (oldItem.productId && oldItem.product && difference > 0) {
+            const product = oldItem.product;
+            const previousStock = product.stock;
+            const newStock = previousStock - difference;
+            
+            await product.update({ stock: newStock }, { transaction });
+            
+            await StockMovement.create({
+              productId: product.id,
+              quantity: difference,
+              type: 'salida',
+              reason: `Ajuste por edición de orden ${existingOrder.orderNumber}`,
+              previousStock,
+              currentStock: newStock,
+              userId: req.user?.n_document || req.user?.id,
+              purchaseOrderId: existingOrder.id,
+              notes: `Cantidad recibida reducida de ${oldItem.cantidadRecibida} a ${newItem.cantidadRecibida} para ${oldItem.productName}`
+            }, { transaction });
+            
+            stockReverted += difference;
+            stockMovementsCreated++;
+            
+            console.log(`✅ [UpdatePurchaseOrder] Stock ajustado: ${product.name} ${previousStock} → ${newStock}`);
+          }
+        }
+      }
     }
 
     // Calcular totales
@@ -784,7 +869,7 @@ const updatePurchaseOrder = async (req, res) => {
       numeroFactura,
       metodoPago,
       fechaVencimiento,
-      notas,
+      notas: (existingOrder.notas || '') + `\n[EDICIÓN ${new Date().toLocaleString('es-CO')}] Orden actualizada${stockReverted > 0 ? ` - ${stockReverted} unidades de stock revertidas` : ''}. ${notas || ''}`,
       subtotal,
       impuestos,
       descuentos,
@@ -797,7 +882,7 @@ const updatePurchaseOrder = async (req, res) => {
       transaction
     });
 
-    // Crear nuevos items
+    // Crear nuevos items (preservando cantidadRecibida si existe)
     const newItems = [];
     for (const item of items) {
       const newItem = await PurchaseOrderItem.create({
@@ -820,6 +905,22 @@ const updatePurchaseOrder = async (req, res) => {
       newItems.push(newItem);
     }
 
+    // ✅ RECALCULAR ESTADO BASADO EN ITEMS ACTUALIZADOS
+    const allReceived = newItems.every(item => (item.cantidadRecibida || 0) >= item.cantidad);
+    const partialReceived = newItems.some(item => (item.cantidadRecibida || 0) > 0);
+    
+    let newStatus = 'pendiente';
+    if (allReceived && partialReceived) {
+      newStatus = 'completada';
+    } else if (partialReceived) {
+      newStatus = 'parcial';
+    }
+    
+    if (newStatus !== existingOrder.status) {
+      await existingOrder.update({ status: newStatus }, { transaction });
+      console.log(`🔄 [UpdatePurchaseOrder] Estado cambiado: ${existingOrder.status} → ${newStatus}`);
+    }
+
     await transaction.commit();
 
     // Obtener orden actualizada
@@ -838,8 +939,14 @@ const updatePurchaseOrder = async (req, res) => {
 
     res.json({
       error: false,
-      message: 'Orden de compra actualizada exitosamente',
-      data: updatedOrder
+      message: stockReverted > 0 
+        ? `Orden actualizada exitosamente. Se revirtieron ${stockReverted} unidades de stock.`
+        : 'Orden de compra actualizada exitosamente',
+      data: updatedOrder,
+      stockChanges: {
+        unitsReverted: stockReverted,
+        movementsCreated: stockMovementsCreated
+      }
     });
 
   } catch (error) {
@@ -847,7 +954,8 @@ const updatePurchaseOrder = async (req, res) => {
     console.error('❌ [UpdatePurchaseOrder] Error:', error);
     res.status(500).json({
       error: true,
-      message: 'Error al actualizar orden de compra'
+      message: 'Error al actualizar orden de compra',
+      details: error.message
     });
   }
 };
@@ -1136,6 +1244,165 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+// ✅ REVERTIR ORDEN COMPLETADA (DESHACER RECEPCIÓN)
+const revertCompletedOrder = async (req, res) => {
+  const transaction = await conn.transaction();
+  
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    console.log('🔄 [RevertOrder] Iniciando reversión de orden:', { orderId: id, reason });
+
+    if (!reason || reason.trim().length < 10) {
+      await transaction.rollback();
+      return res.status(400).json({
+        error: true,
+        message: 'Debe proporcionar un motivo detallado para revertir la orden (mínimo 10 caracteres)'
+      });
+    }
+
+    const purchaseOrder = await PurchaseOrder.findByPk(id, {
+      include: [
+        {
+          model: PurchaseOrderItem,
+          as: 'items',
+          include: [{ model: Product, as: 'product' }]
+        },
+        { model: Proveedor, as: 'proveedor' }
+      ],
+      transaction
+    });
+
+    if (!purchaseOrder) {
+      await transaction.rollback();
+      return res.status(404).json({
+        error: true,
+        message: 'Orden de compra no encontrada'
+      });
+    }
+
+    // ✅ SOLO PERMITIR REVERSIÓN DE ÓRDENES COMPLETADAS O PARCIALES
+    if (purchaseOrder.status !== 'completada' && purchaseOrder.status !== 'parcial') {
+      await transaction.rollback();
+      return res.status(400).json({
+        error: true,
+        message: `Solo se pueden revertir órdenes completadas o parciales. Estado actual: ${purchaseOrder.status}`,
+        currentStatus: purchaseOrder.status
+      });
+    }
+
+    let totalUnitsReverted = 0;
+    let productsAffected = 0;
+    let stockMovementsCreated = 0;
+
+    console.log('🔄 [RevertOrder] Revirtiendo stock de items...');
+
+    // ✅ REVERTIR STOCK DE TODOS LOS ITEMS RECIBIDOS
+    for (const item of purchaseOrder.items) {
+      if (item.cantidadRecibida > 0 && item.productId && item.product) {
+        const product = item.product;
+        const previousStock = product.stock;
+        const quantityToRevert = item.cantidadRecibida;
+        const newStock = previousStock - quantityToRevert;
+
+        // ✅ VALIDAR QUE NO QUEDE STOCK NEGATIVO
+        if (newStock < 0) {
+          await transaction.rollback();
+          return res.status(400).json({
+            error: true,
+            message: `No se puede revertir la orden. El producto "${product.name}" no tiene suficiente stock.`,
+            details: {
+              productName: product.name,
+              currentStock: previousStock,
+              quantityToRevert,
+              resultingStock: newStock
+            },
+            hint: 'Verifique que no se hayan realizado ventas de este producto después de la recepción.'
+          });
+        }
+
+        // Actualizar stock del producto
+        await product.update({ stock: newStock }, { transaction });
+
+        // Crear movimiento de stock de reversión
+        await StockMovement.create({
+          productId: product.id,
+          quantity: quantityToRevert,
+          type: 'salida',
+          reason: `Reversión de orden de compra ${purchaseOrder.orderNumber}`,
+          previousStock,
+          currentStock: newStock,
+          userId: req.user?.n_document || req.user?.id,
+          purchaseOrderId: purchaseOrder.id,
+          notes: `REVERSIÓN: ${reason}`
+        }, { transaction });
+
+        // Resetear cantidad recibida del item
+        await item.update({ cantidadRecibida: 0 }, { transaction });
+
+        totalUnitsReverted += quantityToRevert;
+        productsAffected++;
+        stockMovementsCreated++;
+
+        console.log(`✅ [RevertOrder] Stock revertido: ${product.name} ${previousStock} → ${newStock} (${quantityToRevert} unidades)`);
+      }
+    }
+
+    // ✅ ELIMINAR EXPENSE AUTOMÁTICO SI EXISTE
+    const deletedExpenses = await Expense.destroy({
+      where: {
+        purchaseOrderId: purchaseOrder.id,
+        isFromPurchaseOrder: true
+      },
+      transaction
+    });
+
+    console.log(deletedExpenses > 0 
+      ? `💰 [RevertOrder] Eliminado ${deletedExpenses} expense(s) automático(s)`
+      : `💰 [RevertOrder] No se encontraron expenses automáticos para eliminar`
+    );
+
+    // ✅ ACTUALIZAR ESTADO Y NOTAS DE LA ORDEN
+    const revertNote = `\n[REVERSIÓN ${new Date().toLocaleString('es-CO')}] Orden revertida a estado pendiente. ${totalUnitsReverted} unidades devueltas al stock. ${deletedExpenses > 0 ? `${deletedExpenses} gasto(s) eliminado(s). ` : ''}Motivo: ${reason}`;
+    
+    await purchaseOrder.update({
+      status: 'pendiente',
+      notas: (purchaseOrder.notas || '') + revertNote
+    }, { transaction });
+
+    await transaction.commit();
+
+    console.log(`✅ [RevertOrder] Orden ${purchaseOrder.orderNumber} revertida exitosamente`);
+
+    res.json({
+      error: false,
+      message: 'Orden revertida exitosamente. Stock y gastos fueron restaurados.',
+      data: {
+        orderNumber: purchaseOrder.orderNumber,
+        previousStatus: purchaseOrder.status === 'pendiente' ? 'completada' : purchaseOrder.status,
+        newStatus: 'pendiente',
+        summary: {
+          totalUnitsReverted,
+          productsAffected,
+          stockMovementsCreated,
+          expensesDeleted: deletedExpenses,
+          reason
+        }
+      }
+    });
+
+  } catch (error) {
+    await transaction.rollback();
+    console.error('❌ [RevertOrder] Error:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Error al revertir orden de compra',
+      details: error.message
+    });
+  }
+};
+
 module.exports = {
   createPurchaseOrder,
   getPurchaseOrders,
@@ -1143,5 +1410,6 @@ module.exports = {
   receiveOrder,
   updatePurchaseOrder,
   registerPayment,
-  updateOrderStatus
+  updateOrderStatus,
+  revertCompletedOrder // ✅ NUEVA FUNCIÓN
 };

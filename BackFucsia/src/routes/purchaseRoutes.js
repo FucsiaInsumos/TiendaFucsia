@@ -11,7 +11,8 @@ const {
   receiveOrder,
   updatePurchaseOrder,
   registerPayment,
-  updateOrderStatus
+  updateOrderStatus,
+  revertCompletedOrder
 } = require('../controllers/Purchase/purchaseController');
 
 const {
@@ -52,8 +53,6 @@ router.put('/orders/:id', upload.single('comprobante'), updatePurchaseOrder);
 router.post('/orders/:id/receive', receiveOrder);
 router.post('/orders/:id/payment', registerPayment);
 router.patch('/orders/:id/status', updateOrderStatus);
-
-module.exports = router;
-// router.put('/orders/:id/cancel', cancelPurchaseOrder);
+router.post('/orders/:id/revert', revertCompletedOrder); // ✅ NUEVA RUTA PARA REVERTIR ÓRDENES
 
 module.exports = router;
