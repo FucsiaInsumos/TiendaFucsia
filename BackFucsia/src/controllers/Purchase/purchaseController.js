@@ -235,6 +235,9 @@ const receiveOrder = async (req, res) => {
     const { id } = req.params;
     const { receivedItems, notes } = req.body;
 
+    // 🚀 LOG DE VERSIÓN - Para verificar que Railway tiene los cambios
+    console.log('🚀 [VERSION] receiveOrder - v2024-10-21-RELOAD-FIX');
+    
     console.log('📦 [ReceiveOrder] Iniciando recepción de mercancía:', { 
       orderId: id, 
       itemsCount: receivedItems?.length,
