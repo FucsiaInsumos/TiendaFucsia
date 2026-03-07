@@ -23,6 +23,7 @@ const allowedOrigins = [
   'http://localhost:3001',
   'http://localhost:5174',
   'https://tienda-fucsia.vercel.app',
+  'https://fucsiainsumos.com'
 
   // Agregar más origins si es necesario
 ].filter(Boolean);
