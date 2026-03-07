@@ -52,9 +52,10 @@ const Receipt = ({ order, onPrint, onDownload }) => {
               }}
             />
           </div>
-          <h1 className="text-lg font-bold uppercase tracking-wide">TIENDA FUCSIA</h1>
-          <p className="text-xs text-gray-600 mt-1">Insumos y Accesorios</p>
-          <p className="text-xs text-gray-500 mt-1">NIT: 123456789-0</p>
+          <h1 className="text-lg font-bold uppercase tracking-wide">FUCSIA INSUMOS</h1>
+          <p className="text-xs text-gray-600 mt-1">GABRIEL ROLDÁN LEÓN</p>
+          <p className="text-xs text-gray-500 mt-1">NIT:122647296-4</p>
+          <p className="text-xs text-gray-500 mt-1">NO responsable de IVA</p>
           <div className="mt-2">
             <p className="text-xs font-semibold">RECIBO DE VENTA</p>
             <p className="text-xs font-mono">No. {order.orderNumber}</p>
@@ -250,13 +251,14 @@ const Receipt = ({ order, onPrint, onDownload }) => {
         {/* Footer */}
         <div className="text-center text-xs text-gray-500 border-t-2 border-dashed border-gray-400 pt-3">
           <p className="font-semibold mb-2">¡GRACIAS POR SU COMPRA!</p>
-          <p className="mb-1">Este es un recibo válido de su transacción</p>
-          <p className="mb-2">Para cambios presentar este recibo</p>
+          <p className="mb-1">AL COMPRAR Y/O RECIBIR SU MERCANCIA ACEPTA LA POLITICAS DE GARANTIA</p>
+          <p className="mb-1">Politicas de cambio de acuerdo a la ley 1480 de 2011</p>
+          <p className="mb-2">Para cambios, garantia o devoluciones presentar este recibo</p>
           
           <div className="mt-3 space-y-1">
-            <p>📱 WhatsApp: +57 300 123 4567</p>
-            <p>📧 ventas@tiendafucsia.com</p>
-            <p>🌐 www.tiendafucsia.com</p>
+            <p>📱 WhatsApp: +57 311 4928756</p>
+            <p>📧 ventas@fucsiainsumos.com</p>
+            <p>🌐 www.fucsiainsumos.com</p>
           </div>
           
           <div className="mt-3 pt-2 border-t border-gray-300">
