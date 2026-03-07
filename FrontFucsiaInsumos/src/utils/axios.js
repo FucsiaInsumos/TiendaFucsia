@@ -4,11 +4,8 @@ import { logout } from '../Redux/Reducer/authReducer';
 
 // Crear instancia de axios con la URL base
 const api = axios.create({
-
-
-  baseURL: 'https://tiendafucsia.up.railway.app/', // Ajusta esto a tu URL de backend
+  baseURL: import.meta.env.VITE_API_URL || 'https://tiendafucsia.up.railway.app/',
   timeout: 30000,
-
   headers: {
     'Content-Type': 'application/json'
   }
