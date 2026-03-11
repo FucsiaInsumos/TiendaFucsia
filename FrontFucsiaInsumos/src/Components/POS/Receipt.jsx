@@ -53,9 +53,9 @@ const Receipt = ({ order, onPrint, onDownload }) => {
             />
           </div>
           <h1 className="text-lg font-bold uppercase tracking-wide">FUCSIA INSUMOS</h1>
-          <p className="text-xs text-gray-600 mt-1">GABRIEL ROLDÁN LEÓN</p>
-          <p className="text-xs text-gray-500 mt-1">NIT:122647296-4</p>
-          <p className="text-xs text-gray-500 mt-1">NO responsable de IVA</p>
+          <p className="text-xs font-semibold">GABRIEL ROLDÁN LEÓN</p>
+          <p className="text-xs font-semibold">NIT:122647296-4</p>
+          <p className="text-xs font-semibold">NO responsable de IVA</p>
           <div className="mt-2">
             <p className="text-xs font-semibold">RECIBO DE VENTA</p>
             <p className="text-xs font-mono">No. {order.orderNumber}</p>
@@ -69,7 +69,7 @@ const Receipt = ({ order, onPrint, onDownload }) => {
             <span>{formatDate(order.createdAt)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="font-semibold">Tipo:</span>
+            <span className="font-bold">Tipo:</span>
             <span>
               {order.orderType === 'local' ? '🏪 Local' :
                order.orderType === 'online' ? '🌐 Online' : 
@@ -88,11 +88,11 @@ const Receipt = ({ order, onPrint, onDownload }) => {
         <div className="mb-4 text-xs border-b border-dashed border-gray-300 pb-3">
           <p className="font-semibold mb-1">CLIENTE:</p>
           {order.customer?.first_name === 'Cliente' && order.customer?.last_name === 'Local' ? (
-            <p className="text-gray-600">Cliente Local (Sin registro)</p>
+            <p className="text-semibold">Cliente Local (Sin registro)</p>
           ) : (
             <div className="space-y-1">
               <p className="font-medium">{order.customer?.first_name} {order.customer?.last_name}</p>
-              <p className="text-gray-600">CC: {order.customer?.n_document}</p>
+              <p className="text-semibold">CC: {order.customer?.n_document}</p>
               {order.customer?.role === 'Distributor' && (
                 <p className="text-blue-600 font-semibold">⭐ DISTRIBUIDOR</p>
               )}
@@ -151,7 +151,7 @@ const Receipt = ({ order, onPrint, onDownload }) => {
             {order.discount > 0 && (
               <div className="flex justify-between text-green-600">
                 <span>Descuentos:</span>
-                <span className="font-mono">-{formatPrice(order.discount)}</span>
+                <span className="font-bold">-{formatPrice(order.discount)}</span>
               </div>
             )}
             
@@ -231,10 +231,10 @@ const Receipt = ({ order, onPrint, onDownload }) => {
         {/* Ahorros si existen */}
         {order.discount > 0 && (
           <div className="mb-4 text-center bg-green-50 border border-green-200 rounded p-2">
-            <p className="text-xs font-semibold text-green-700">
+            <p className="text-xs text-center text-blue-700 font-semibold mb-2">
               🎉 ¡AHORRO TOTAL!
             </p>
-            <p className="text-sm font-bold text-green-600">
+            <p className="text-xs text-center text-blue-700 font-semibold mb-2">
               {formatPrice(order.discount)}
             </p>
           </div>
@@ -242,27 +242,27 @@ const Receipt = ({ order, onPrint, onDownload }) => {
 
         {/* Notas adicionales */}
         {order.notes && (
-          <div className="mb-4 text-xs text-gray-600">
+          <div className="mb-4 text-xs font-semibold">
             <p className="font-semibold mb-1">NOTAS:</p>
             <p className="whitespace-pre-wrap">{order.notes}</p>
           </div>
         )}
 
         {/* Footer */}
-        <div className="text-center text-xs text-gray-500 border-t-2 border-dashed border-gray-400 pt-3">
+        <div className="text-center text-xs font-semibold border-t-2 border-dashed border-gray-400 pt-3">
           <p className="font-semibold mb-2">¡GRACIAS POR SU COMPRA!</p>
           <p className="mb-1">AL COMPRAR Y/O RECIBIR SU MERCANCIA ACEPTA LA POLITICAS DE GARANTIA</p>
           <p className="mb-1">Politicas de cambio de acuerdo a la ley 1480 de 2011</p>
           <p className="mb-2">Para cambios, garantia o devoluciones presentar este recibo</p>
           
-          <div className="mt-3 space-y-1">
+          <div className="mt-3 font-semibold">
             <p>📱 WhatsApp: +57 311 4928756</p>
             <p>📧 ventas@fucsiainsumos.com</p>
             <p>🌐 www.fucsiainsumos.com</p>
           </div>
           
           <div className="mt-3 pt-2 border-t border-gray-300">
-            <p className="text-xs">
+            <p className="text-xs font-semibold">
               Generado: {new Date().toLocaleString('es-CO')}
             </p>
           </div>
