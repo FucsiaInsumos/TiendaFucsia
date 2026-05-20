@@ -54,7 +54,7 @@ const Receipt = ({ order, onPrint, onDownload }) => {
           </div>
           <h1 className="text-lg font-bold uppercase tracking-wide">FUCSIA INSUMOS</h1>
           <p className="text-xs font-semibold">GABRIEL ROLDÁN LEÓN</p>
-          <p className="text-xs font-semibold">NIT:122647296-4</p>
+          <p className="text-xs font-semibold">NIT:1122647296-4</p>
           <p className="text-xs font-semibold">NO responsable de IVA</p>
           <div className="mt-2">
             <p className="text-xs font-semibold">RECIBO DE VENTA</p>
